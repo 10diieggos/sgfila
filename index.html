@@ -1382,8 +1382,7 @@
             $btnAddGuicheGlobal.on('click', function() {
                 const novoNome = `Guichê ${String(guichesGlobais.length + 1).padStart(2, '0')}`;
                 guichesGlobais.push({ nome: novoNome, ativo: true });
-                renderizarGuichesGlobais();
-                salvarGuichesGlobais(); // Salva automaticamente
+                salvarGuichesGlobais(); // Salva e renderiza automaticamente
             });
 
             $guicheGlobalList.on('click', '.btn-delete-guiche-global', function() {
@@ -1391,13 +1390,12 @@
                 if (!isNaN(index) && guichesGlobais[index]) {
                     const nome = guichesGlobais[index].nome;
                     mostrarModalConfirmacao(
-                        'Excluir Guichê Global', 
-                        `Tem certeza que deseja excluir o guichê <strong>${nome}</strong> do sistema?<br><br>Esta ação não pode ser desfeita.`, 
+                        'Excluir Guichê Global',
+                        `Tem certeza que deseja excluir o guichê <strong>${nome}</strong> do sistema?<br><br>Esta ação não pode ser desfeita.`,
                         function() {
                             guichesGlobais.splice(index, 1);
-                            renderizarGuichesGlobais(); // Renderiza localmente
-                            // Salva automaticamente ao excluir
-                            salvarGuichesGlobais(); 
+                            // Salva e renderiza automaticamente
+                            salvarGuichesGlobais();
                         }
                     );
                 }
@@ -1418,19 +1416,45 @@
                     const index = parseInt($(this).data('index'), 10);
                     const nome = $(this).val().trim();
                     const ativo = $(`#guiche-ativo-${index}`).is(':checked');
-                    
+
                     if (nome && !isNaN(index)) {
                         // Usa o índice para manter a ordem
                         novosGuiches[index] = { nome: nome, ativo: ativo };
                     }
                 });
-                
+
                 // Filtra 'empty slots' se houver
                 const guichesFinais = novosGuiches.filter(g => g !== undefined);
-                
+
+                // *** NOVO: Atualiza os guichês selecionados quando um nome é alterado ***
+                const exibicaoSalva = sessionStorage.getItem('sgfGuichesExibicao');
+                const guichesExibicao = exibicaoSalva ? JSON.parse(exibicaoSalva) : [];
+                const guichesExibicaoAtualizados = [];
+
+                // Para cada guichê selecionado, verifica se o nome mudou
+                guichesExibicao.forEach(nomeAntigo => {
+                    // Procura o guichê antigo pelo índice
+                    const indexAntigo = guichesGlobais.findIndex(g => g.nome === nomeAntigo);
+
+                    if (indexAntigo !== -1 && guichesFinais[indexAntigo]) {
+                        // Usa o novo nome do guichê no mesmo índice
+                        guichesExibicaoAtualizados.push(guichesFinais[indexAntigo].nome);
+                    } else {
+                        // Se não encontrou, mantém o nome antigo (caso o guichê não tenha mudado)
+                        guichesExibicaoAtualizados.push(nomeAntigo);
+                    }
+                });
+
+                // Salva a lista atualizada de guichês selecionados
+                sessionStorage.setItem('sgfGuichesExibicao', JSON.stringify(guichesExibicaoAtualizados));
+
                 guichesGlobais = guichesFinais;
                 socket.emit('atualizarGuichesGlobais', guichesFinais);
-                
+
+                // Atualiza a interface
+                renderizarGuichesGlobais();
+                renderizarPaineisDeGuiche();
+
                 // --- REMOVIDO: Feedback visual do botão (Req 2) ---
             }
             
