@@ -9,3 +9,8 @@ npm-debug.log
 # é crucial que NÃO seja versionado para evitar conflitos de merge e
 # manter o histórico limpo de dados de operação.
 dados.json
+
+# Bibliotecas baixadas manualmente (opcional)
+# Vue.js para uso offline - cada desenvolvedor deve baixar sua própria cópia
+# Veja SETUP-VUE-OFFLINE.md para instruções
+public/assets/vue.global.js
