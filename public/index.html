@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Senhas por Prioridade - Correios</title>
+
+    <!-- Estilos externos -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/all.min.css">
+
+    <!-- jQuery -->
+    <script src="assets/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-mail-bulk"></i> Sistema de Senhas - Correios</h1>
+            <p>Sistema de atendimento por prioridade legal</p>
+        </header>
+
+        <div class="dashboard">
+
+            <div class="card">
+
+                <div class="secao-painel">
+                    <h3><i class="fas fa-desktop"></i> Painéis de Guichê</h3>
+                    <div id="guiche-control-panels">
+                    </div>
+                </div>
+
+                <div class="secao-painel fila">
+                    <h3><i class="fas fa-user-headset"></i> Atendendo (Todos)</h3>
+                    <div class="lista-senhas" id="lista-atendimentos-atuais">
+                    </div>
+                </div>
+
+                <div class="secao-painel">
+                    <h3><i class="fas fa-ticket-alt"></i> Emissão de Senhas</h3>
+                    <div class="controls">
+                        <button id="btn-prioridade" class="btn-prioridade">
+                            <i class="fas fa-wheelchair"></i> Prioritária
+                        </button>
+                        <button id="btn-normal" class="btn-normal">
+                            <i class="fas fa-user"></i> Normal
+                        </button>
+                        <button id="btn-contratual" class="btn-contratual">
+                            <i class="fas fa-file-contract"></i> Contratual
+                        </button>
+
+                        <button id="btn-reiniciar" class="btn-reiniciar">
+                            <i class="fas fa-redo"></i> Reiniciar Sistema
+                        </button>
+                    </div>
+                </div>
+
+                <div class="secao-painel fila">
+                    <h3><i class="fas fa-clock"></i> Fila de Espera</h3>
+
+                    <div class="filtro-fila-wrapper">
+                        <div class="filtro-botoes">
+                            <button class="btn-filtro active" data-filtro="emissao" title="Ordenar por ordem de chegada">
+                                <i class="fas fa-clock"></i> Emissão
+                            </button>
+                            <button class="btn-filtro" data-filtro="automatica" title="Ordenar pela lógica de proporção (P:C:N)">
+                                <i class="fas fa-cogs"></i> Automática
+                            </button>
+                            <button class="btn-filtro" data-filtro="tipo" title="Agrupar por tipo (Prioridade > Contratual > Normal)">
+                                <i class="fas fa-layer-group"></i> Tipo
+                            </button>
+                        </div>
+                        <div class="filtro-busca-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="filtro-busca" placeholder="Buscar na descrição...">
+                        </div>
+                    </div>
+                    <div class="lista-senhas" id="lista-espera">
+                    </div>
+                </div>
+
+            </div>
+            <div class="card">
+
+                <div class="tab-nav">
+                    <button class="tab-link active" data-tab="tab-stats">
+                        <i class="fas fa-chart-bar"></i> Estatísticas
+                    </button>
+                    <button class="tab-link" data-tab="tab-history">
+                        <i class="fas fa-history"></i> Histórico
+                    </button>
+                    <button class="tab-link" data-tab="tab-config">
+                        <i class="fas fa-cogs"></i> Configurações
+                    </button>
+                </div>
+
+                <div class="tab-content-wrapper">
+
+                    <div id="tab-stats" class="tab-content active">
+
+                        <div class="sub-tab-nav">
+                            <button class="sub-tab-link active" data-sub-tab="sub-tab-geral">
+                                <i class="fas fa-chart-bar"></i> Geral
+                            </button>
+                            <button class="sub-tab-link" data-sub-tab="sub-tab-ticket">
+                                <i class="fas fa-ticket-alt"></i> Ticket
+                            </button>
+                        </div>
+
+                        <div class="sub-tab-content-wrapper">
+
+                            <div id="sub-tab-geral" class="sub-tab-content active">
+                                <h2><i class="fas fa-chart-pie"></i> Resumo do Dia</h2>
+                                <div class="stats">
+                                    <div class="stat-item">
+                                        <span>Senhas emitidas hoje:</span>
+                                        <span id="total-senhas">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span>Senhas atendidas:</span>
+                                        <span id="senhas-atendidas">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span>Tempo médio de espera:</span>
+                                        <span id="tempo-medio">0 min</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span>Próxima senha (Lógica):</span>
+                                        <span id="proxima-senha">---</span>
+                                    </div>
+                                </div>
+
+                                <h2 style="margin-top: 20px;"><i class="fas fa-tasks"></i> Desempenho por Tipo</h2>
+                                <table class="stats-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tipo</th>
+                                            <th>Emitidas</th>
+                                            <th>Atendidas</th>
+                                            <th>T.M. Espera</th>
+                                            <th>T.M. Atend.</th>
+                                            <th>Maior Espera</th>
+                                            <th>Menor Espera</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stats-por-tipo">
+                                    </tbody>
+                                </table>
+
+                                <h2 style="margin-top: 20px;"><i class="fas fa-user-headset"></i> Desempenho por Guichê</h2>
+                                <div class="stats" id="stats-por-guiche">
+                                </div>
+
+                                <h2 style="margin-top: 20px;"><i class="fas fa-user-slash"></i> Abandono e Exclusões</h2>
+                                <div class="stats">
+                                    <div class="stat-item">
+                                        <span>Senhas (Não Compareceu):</span>
+                                        <span id="total-nao-compareceu">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span>Senhas (Excluídas da Fila):</span>
+                                        <span id="total-excluidas">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="sub-tab-ticket" class="sub-tab-content">
+                                <h2><i class="fas fa-info-circle"></i> Detalhes do Ticket</h2>
+                                <div class="stats" id="ticket-info-content">
+                                    <p style="padding: 10px 0; color: #868e96;">
+                                        Clique no ícone <i class="fas fa-info-circle"></i> de uma senha na fila de espera para ver os detalhes.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div id="tab-history" class="tab-content">
+                        <h2><i class="fas fa-history"></i> Histórico de Atendimentos</h2>
+                        <div class="fila">
+                            <div class="lista-senhas" id="historico-atendimentos" style="max-height: 300px; overflow-y: auto;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-config" class="tab-content">
+
+                        <div class="sub-tab-nav">
+                            <button class="sub-tab-link active" data-sub-tab="sub-tab-guiches">
+                                <i class="fas fa-desktop"></i> Guichês
+                            </button>
+                            <button class="sub-tab-link" data-sub-tab="sub-tab-proporcao">
+                                <i class="fas fa-balance-scale-right"></i> Proporção
+                            </button>
+                        </div>
+
+                        <div class="sub-tab-content-wrapper">
+
+                            <div id="sub-tab-guiches" class="sub-tab-content active">
+                                <h2><i class="fas fa-desktop"></i> Gerenciar Guichês</h2>
+
+                                <h3 style="margin-top: 15px;"><i class="fas fa-desktop-alt"></i> Exibição (Este Navegador)</h3>
+                                <p style="margin-bottom: 15px; color: #555;">Selecione os guichês que deseja exibir no painel de controle desta aba. A seleção é salva automaticamente.</p>
+
+                                <div id="guiche-exibicao-list" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                                </div>
+
+                                <hr style="margin: 25px 0; border: none; border-top: 1px solid #eee;">
+
+                                <h3><i class="fas fa-users-cog"></i> Guichês (Global)</h3>
+                                <p style="margin-bottom: 15px; color: #555;">Adicione, nomeie e ative/desative guichês para <strong>todo o sistema</strong>. Guichês inativos não são contados na estimativa de tempo. As alterações são salvas automaticamente.</p>
+
+                                <div id="guiche-global-list" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                                </div>
+
+                                <button id="btn-add-guiche-global" style="padding: 8px 12px; margin-top: 15px;">
+                                    <i class="fas fa-plus"></i> Adicionar Guichê
+                                </button>
+                            </div>
+                            <div id="sub-tab-proporcao" class="sub-tab-content">
+                                <h2><i class="fas fa-balance-scale-right"></i> Configurações de Proporção</h2>
+                                <div class="ratio-control">
+                                    <label for="input-ratio"><i class="fas fa-balance-scale-right"></i> Proporção (P:N):</label>
+                                    <input type="number" id="input-ratio" min="1" value="2">
+                                    <span> : 1</span>
+                                </div>
+
+                                <div class="ratio-control">
+                                    <label for="input-ratio-contratual"><i class="fas fa-file-contract"></i> Proporção (C:N):</label>
+                                    <input type="number" id="input-ratio-contratual" min="1" value="1">
+                                    <span> : 1</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert">
+            <i class="fas fa-info-circle"></i> <strong>Prioridades legais:</strong> Idosos (60+), gestantes, lactantes, pessoas com crianças de colo e pessoas com deficiência têm direito a atendimento prioritário.
+        </div>
+    </div>
+
+    <!-- Modais -->
+    <div id="modal-reiniciar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reiniciar Sistema</h3>
+            </div>
+            <p>Tem certeza que deseja reiniciar o sistema? Todos os dados serão perdidos.</p>
+            <div class="controls-modal-reiniciar">
+                <button id="btn-confirmar-reiniciar" class="btn-reiniciar-confirmar">Reiniciar</button>
+                <button id="btn-cancelar-reiniciar" class="btn-cancelar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-nova-senha" class="modal modal-clicavel-fechar">
+        <div class="modal-content-nova-senha">
+            <span>Nova Senha Emitida</span>
+            <div id="senha-gerada-numero">---</div>
+
+            <div class="form-group-modal-senha" id="form-group-nova-senha">
+                <label for="textarea-nova-senha-descricao">Descrição (Opcional - Pressione Enter para salvar):</label>
+                <textarea id="textarea-nova-senha-descricao" rows="3" placeholder="Ex: Alteração de CPF..."></textarea>
+                <input type="hidden" id="hidden-nova-senha-numero">
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-editar-descricao" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-editar-titulo">Editar Descrição</h3>
+                <span class="close" id="btn-fechar-modal-editar">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="textarea-editar-descricao">Descrição:</label>
+                <textarea id="textarea-editar-descricao" rows="4"></textarea>
+                <input type="hidden" id="hidden-editar-senha-numero">
+            </div>
+            <div class="controls-modal-editar">
+                <button id="btn-salvar-descricao" class="btn-salvar-descricao"><i class="fas fa-save"></i> Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-confirmar-acao" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-confirmar-titulo">Confirmar Ação</h3>
+            </div>
+            <p id="modal-confirmar-texto" style="margin-top: 15px;"></p>
+            <div class="controls-modal-reiniciar" style="margin-top: 25px;">
+                <button id="btn-confirmar-acao-confirmar" class="btn-reiniciar-confirmar">Confirmar</button>
+                <button id="btn-confirmar-acao-cancelar" class="btn-cancelar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script src="js/guiche-manager.js"></script>
+    <script src="js/modal-handlers.js"></script>
+    <script src="js/tab-handlers.js"></script>
+    <script src="js/filter-handlers.js"></script>
+    <script src="js/event-handlers.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

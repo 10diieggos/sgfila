@@ -1,0 +1,951 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background: linear-gradient(135deg, #004a8d, #0066cc);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px 10px 0 0;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* --- REMOVIDO: .guiche-bar (Movido para Configurações) --- */
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* --- ALTERADO: #senha-atual agora é um container --- */
+#guiche-control-panels {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    /* margin-bottom: 20px; */ /* Movido para .secao-painel */
+}
+
+.guiche-painel {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+/* --- MODIFICADO: Estilo do nome do guichê ajustado para ficar DENTRO do painel tracejado --- */
+.guiche-painel-nome {
+    display: block;
+    font-weight: bold;
+    color: #004a8d;
+    margin-bottom: 5px; /* Reduzido */
+    font-size: 1.1rem;
+    border-bottom: none; /* Removido */
+    padding-bottom: 0; /* Removido */
+}
+
+/* --- MODIFICADO: O painel tracejado agora tem a fonte principal removida (movida para o filho) --- */
+.senha-atual-guiche {
+    text-align: center;
+    /* font-size: 3rem; */ /* MOVIDO para .senha-numero */
+    font-weight: bold;
+    color: #004a8d;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f0f8ff;
+    border: 2px dashed #004a8d;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.senha-atual-guiche.prioridade {
+    background-color: #fff5f5;
+    border-color: #ff6b6b;
+    color: #c92a2a;
+}
+.senha-atual-guiche.contratual {
+    background-color: #f3e8ff;
+    border-color: #845ef7;
+    color: #7048e8;
+}
+.senha-atual-guiche.normal {
+    /* Padrão */
+}
+
+/* --- NOVO: Classes para o número e o placeholder '---' --- */
+.senha-numero {
+    font-size: 3rem;
+    font-weight: bold;
+    color: inherit; /* Herda a cor (vermelho/roxo/azul) do pai */
+    line-height: 1.1;
+}
+
+.senha-numero.vazio {
+    color: #adb5bd; /* A cor do '---' original */
+}
+/* --- FIM DA MODIFICAÇÃO --- */
+
+
+.senha-atual-guiche:empty::after,
+.senha-atual-guiche:hover:empty::after {
+    /* Este seletor pode não funcionar mais como esperado,
+       mas é mantido para consistência. A lógica JS agora
+       controla o '---'. */
+    content: '---';
+    color: #adb5bd;
+    background-color: transparent;
+}
+
+/* --- FIM DAS ALTERAÇÕES --- */
+
+.senha-atual + .fila {
+    margin-bottom: 20px;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* --- MODIFICADO: Req 1 (Botões de Emissão) --- */
+button {
+    padding: 10px 13px;
+    border: 2px solid transparent; /* Alterado de 'none' */
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+button i {
+    font-size: 1.2rem;
+}
+
+button:disabled {
+    background-color: #ced4da;
+    color: #868e96;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* --- MODIFICADO: Req 1 (Botões de Emissão) --- */
+.btn-prioridade {
+    background-color: #ffffff;
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+/* --- MODIFICADO: Req 1 (Botões de Emissão) --- */
+.btn-prioridade:hover {
+    background-color: #fff5f5;
+    color: #ff5252;
+    border-color: #ff5252;
+    transform: scale(1.05);
+}
+
+/* --- MODIFICADO: Req 1 (Botões de Emissão) --- */
+.btn-normal {
+    background-color: #ffffff;
+    color: #4dabf7;
+    border-color: #4dabf7;
+}
+
+/* --- MODIFICADO: Req 1 (Botões de Emissão) --- */
+.btn-normal:hover {
+    background-color: #e7f5ff;
+    color: #339af0;
+    border-color: #339af0;
+    transform: scale(1.05);
+}
+
+/* --- MODIFICADO: Req 1 (Botões de Emissão) --- */
+.btn-contratual {
+    background-color: #ffffff;
+    color: #845ef7;
+    border-color: #845ef7;
+}
+
+/* --- MODIFICADO: Req 1 (Botões de Emissão) --- */
+.btn-contratual:hover {
+    background-color: #f3e8ff;
+    color: #7048e8;
+    border-color: #7048e8;
+    transform: scale(1.05);
+}
+
+.btn-reiniciar {
+    background-color: #ff8787;
+    color: white;
+}
+
+.btn-reiniciar:hover {
+    background-color: #fa5252;
+    transform: scale(1.05);
+}
+
+.fila {
+    margin-top: 15px;
+}
+
+.fila h3 {
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #eee;
+    color: #004a8d;
+}
+
+.ratio-control {
+    margin-top: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ratio-control + .ratio-control {
+    margin-top: 0;
+    padding-top: 0;
+    margin-bottom: 20px;
+    border-top: none;
+}
+
+.ratio-control label {
+    font-weight: bold;
+    margin-bottom: 0;
+    color: #004a8d;
+}
+
+.ratio-control input {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.ratio-control span {
+    font-weight: bold;
+    color: #495057;
+    font-size: 1rem;
+}
+
+/* --- NOVOS ESTILOS DE FILTRO --- */
+.filtro-fila-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap; /* Para telas menores */
+    gap: 10px;
+}
+
+.filtro-botoes {
+    display: flex;
+    gap: 5px;
+    flex-grow: 1;
+}
+
+.btn-filtro {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    background-color: #f8f9fa;
+    color: #555;
+    font-size: 0.85rem;
+    font-weight: normal; /* Sobrescreve o 'bold' geral de 'button' */
+    border-radius: 5px;
+    cursor: pointer;
+    gap: 4px; /* Menor espaçamento */
+}
+
+.btn-filtro i {
+    font-size: 0.9rem; /* Ícones menores */
+}
+
+.btn-filtro:hover {
+    background-color: #e9ecef;
+}
+
+.btn-filtro.active {
+    background-color: #004a8d;
+    color: white;
+    border-color: #004a8d;
+    font-weight: bold;
+}
+
+.filtro-busca-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+    padding: 0 8px;
+}
+
+.filtro-busca-wrapper i {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+#filtro-busca {
+    border: none;
+    padding: 6px 4px 6px 8px;
+    font-size: 0.9rem;
+    outline: none;
+    background: transparent;
+}
+/* --- FIM: NOVOS ESTILOS DE FILTRO --- */
+
+.lista-senhas {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+
+#lista-espera .senha-item {
+    cursor: default;
+}
+
+.senha-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    transition: background-color 0.2s;
+}
+
+.senha-item:hover {
+    background-color: #e9ecef;
+}
+
+.senha-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.senha-item.prioridade {
+    background-color: #fff5f5;
+    border-left: 4px solid #ff6b6b;
+}
+
+.senha-item.normal {
+    background-color: #f8f9fa;
+    border-left: 4px solid #4dabf7;
+}
+
+.senha-item.contratual {
+    background-color: #f3e8ff;
+    border-left: 4px solid #845ef7;
+}
+
+.senha-item.atual {
+    background-color: #e7f5ff;
+    font-weight: bold;
+    border: 2px solid #339af0;
+}
+
+.senha-item.chamada {
+    background-color: #fff3cd;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { background-color: #fff3cd; }
+    50% { background-color: #ffeaa7; }
+    100% { background-color: #fff3cd; }
+}
+
+/* --- MODIFICADO: Req 3 (Rótulos de Fila) - Ocultando os badges --- */
+.badge {
+    /* display: none; */ /* Ocultado via JS (Req 3) */
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+.badge-prioridade {
+    background-color: #ff6b6b;
+}
+
+.badge-normal {
+    background-color: #4dabf7;
+}
+
+.badge-contratual {
+    background-color: #845ef7;
+}
+
+/* --- Estilos para botões de ação na fila --- */
+.senha-item-controles {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.senha-item-controles .botoes-wrapper {
+    display: flex;
+    gap: 6px;
+}
+
+/* --- NOVO: Estilo wrapper para botões de ação (usado no ticket info) --- */
+.botoes-wrapper {
+    display: flex;
+    gap: 6px;
+}
+/* --- FIM --- */
+
+/* --- MODIFICADO: Req 4 (Botões de Ação da Fila) --- */
+.btn-acao-senha {
+    padding: 3px 6px; /* Tamanho diminuído */
+    border: 1px solid; /* Borda adicionada */
+    background-color: transparent; /* Fundo transparente */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+/* --- MODIFICADO: Req 4 --- */
+.btn-acao-chamar {
+    color: #51cf66;
+    border-color: #51cf66;
+}
+/* --- MODIFICADO: Req 4 --- */
+.btn-acao-chamar:hover {
+    background-color: #51cf66;
+    color: white;
+}
+
+/* --- MODIFICADO: Req 4 --- */
+.btn-acao-excluir {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+}
+/* --- MODIFICADO: Req 4 --- */
+.btn-acao-excluir:hover {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+/* --- MODIFICADO: Req 4 --- */
+.btn-acao-editar {
+    color: #4dabf7;
+    border-color: #4dabf7;
+}
+/* --- MODIFICADO: Req 4 --- */
+.btn-acao-editar:hover {
+    background-color: #4dabf7;
+    color: white;
+}
+
+/* --- MODIFICADO: Req 4 --- */
+.btn-acao-info {
+    color: #17a2b8;
+    border-color: #17a2b8;
+}
+/* --- MODIFICADO: Req 4 --- */
+.btn-acao-info:hover {
+    background-color: #17a2b8;
+    color: white;
+}
+
+/* --- NOVO: Estilo para botão devolver --- */
+.btn-acao-devolver {
+    color: #fd7e14;
+    border-color: #fd7e14;
+}
+/* --- NOVO --- */
+.btn-acao-devolver:hover {
+    background-color: #fd7e14;
+    color: white;
+}
+/* --- FIM: Estilos para botões de ação na fila --- */
+
+.senha-item-descricao {
+    font-size: 0.85rem;
+    color: #495057;
+    margin-left: 22px;
+    font-style: italic;
+}
+
+
+.stats {
+    margin-top: 20px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.close {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #868e96;
+}
+
+.close:hover {
+    color: #495057;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #495057;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.prioridade-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.prioridade-option {
+    padding: 12px 15px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.prioridade-option:hover {
+    border-color: #4dabf7;
+    background-color: #f8f9fa;
+}
+
+.prioridade-option.selected {
+    border-color: #339af0;
+    background-color: #e7f5ff;
+}
+
+.prioridade-option i {
+    font-size: 1.5rem;
+    color: #339af0;
+}
+
+.prioridade-descricao {
+    font-size: 0.9rem;
+    color: #868e96;
+    margin-top: 5px;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.controls-modal-reiniciar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.controls-modal-reiniciar button {
+    font-size: 1.2rem;
+    padding: 15px 20px;
+}
+
+.btn-reiniciar-confirmar {
+    background-color: #fa5252;
+    color: white;
+}
+.btn-reiniciar-confirmar:hover {
+    background-color: #e03131;
+}
+
+.btn-cancelar {
+    background-color: #868e96;
+    color: white;
+}
+.btn-cancelar:hover {
+    background-color: #5c6770;
+}
+
+.modal-clicavel-fechar {
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.modal-content-nova-senha {
+    background-color: white;
+    padding: 40px 60px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    cursor: default;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-content-nova-senha span {
+    display: block;
+    font-size: 2rem;
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+#senha-gerada-numero {
+    font-size: 7rem;
+    font-weight: bold;
+    color: #004a8d;
+    line-height: 1.1;
+}
+
+.form-group-modal-senha {
+    margin-top: 20px;
+    text-align: left;
+    display: none;
+}
+
+.form-group-modal-senha label {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.controls-modal-editar {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-salvar-descricao {
+    background-color: #51cf66;
+    color: white;
+    padding: 10px 20px;
+}
+.btn-salvar-descricao:hover {
+    background-color: #40c057;
+}
+
+/* --- NOVOS ESTILOS DAS ABAS --- */
+.tab-nav {
+    display: flex;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 20px;
+}
+
+.tab-link {
+    padding: 10px 15px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #868e96;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px; /* Alinha com a borda principal */
+    transition: all 0.2s;
+    flex-grow: 1; /* Faz as abas ocuparem espaço igual */
+    text-align: center;
+}
+
+.tab-link:hover {
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.tab-link.active {
+    color: #004a8d; /* Cor principal do tema */
+    border-bottom: 3px solid #004a8d;
+}
+
+.tab-content {
+    display: none; /* Esconde por padrão */
+}
+
+.tab-content.active {
+    display: block; /* Mostra o ativo */
+}
+
+/* Ajustes de espaçamento para o conteúdo movido */
+.tab-content h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #eee;
+}
+/* --- NOVO: Título h3 para seções de config --- */
+.tab-content h3 {
+    font-size: 1.2rem;
+    color: #004a8d;
+    margin-bottom: 10px;
+}
+.tab-content .stats {
+    margin-top: 0;
+}
+.tab-content .fila {
+    margin-top: 0;
+}
+.tab-content .ratio-control {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+ /* --- FIM DOS NOVOS ESTILOS DAS ABAS --- */
+
+/* --- NOVOS ESTILOS DAS SUB-ABAS (Dentro de Estatísticas E Config) --- */
+.sub-tab-nav {
+    display: flex;
+    border-bottom: 2px solid #e0e0e0; /* Um pouco mais leve que a principal */
+    margin-bottom: 15px;
+}
+
+.sub-tab-link {
+    padding: 8px 12px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 0.95rem; /* Um pouco menor */
+    font-weight: bold;
+    color: #868e96;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.sub-tab-link:hover {
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.sub-tab-link.active {
+    color: #004a8d;
+    border-bottom: 3px solid #004a8d;
+}
+
+.sub-tab-content {
+    display: none; /* Esconde por padrão */
+}
+
+.sub-tab-content.active {
+    display: block; /* Mostra o ativo */
+}
+
+#ticket-info-content .stat-item {
+    /* Estilo para os itens de info do ticket */
+    padding: 8px 0;
+}
+
+#ticket-info-content .stat-item span:first-child {
+    font-weight: bold;
+    color: #004a8d;
+    min-width: 150px; /* Alinhamento */
+}
+/* --- FIM DOS ESTILOS DAS SUB-ABAS --- */
+
+/* --- NOVOS Estilos para Formulário de Configuração de Guichês --- */
+.guiche-config-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.guiche-config-form label {
+    margin-bottom: 0; /* Alinha com o input */
+}
+
+#guiche-naming-list .form-group {
+    margin-bottom: 10px;
+}
+
+#guiche-naming-list .form-group label {
+    font-weight: normal;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+#guiche-naming-list .form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+/* --- FIM: NOVOS Estilos --- */
+
+/* --- NOVOS ESTILOS DE SEÇÃO DO PAINEL (REORGANIZAÇÃO) --- */
+.secao-painel {
+    margin-bottom: 25px; /* Espaço entre as seções */
+}
+
+.secao-painel:last-child {
+    margin-bottom: 0;
+}
+
+/* Ajusta margens de elementos movidos para as novas seções */
+.secao-painel .controls {
+    margin-bottom: 0;
+}
+
+.secao-painel.fila {
+    margin-top: 0;
+}
+/* --- FIM: NOVOS ESTILOS DE SEÇÃO --- */
+
+/* --- NOVO: Estilo para a tabela de estatísticas --- */
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    margin-top: 10px; /* Adicionado */
+}
+.stats-table th, .stats-table td {
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+.stats-table th {
+    background-color: #f8f9fa;
+    color: #004a8d;
+    font-weight: bold;
+}
+.stats-table td:first-child {
+    text-align: left;
+    font-weight: bold;
+}
+/* Cor de destaque para Prioridade */
+.stats-table tr[data-tipo="prioridade"] td:first-child { color: #c92a2a; }
+/* Cor de destaque para Contratual */
+.stats-table tr[data-tipo="contratual"] td:first-child { color: #7048e8; }
+/* Cor de destaque para Normal */
+.stats-table tr[data-tipo="normal"] td:first-child { color: #004a8d; }
+/* --- FIM: Estilo da tabela --- */
+
+
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .controls {
+        grid-template-columns: 1fr;
+    }
+
+    /* --- NOVO: Ajuste de Filtros para mobile --- */
+    .filtro-fila-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filtro-botoes {
+        justify-content: space-around;
+    }
+    .filtro-busca-wrapper {
+        width: 100%;
+    }
+    #filtro-busca {
+        width: 100%;
+    }
+    /* --- FIM: Ajuste mobile --- */
+}
