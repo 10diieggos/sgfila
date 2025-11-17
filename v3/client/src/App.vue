@@ -107,6 +107,7 @@
               v-if="activeTab === 'stats' && estatisticas"
               :estatisticas="estatisticas"
               :ticket-selecionado="ticketSelecionado"
+              :estado="estado"
             />
 
             <HistoryPanel

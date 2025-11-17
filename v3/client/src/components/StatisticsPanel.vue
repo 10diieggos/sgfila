@@ -123,6 +123,22 @@
             <div class="info-label">Status</div>
             <div class="info-value">{{ getStatusLabel(ticketSelecionado.status) }}</div>
           </div>
+          <div v-if="ticketSelecionado.status === 'espera'" class="info-item">
+            <div class="info-label">Posição (Automática)</div>
+            <div class="info-value"><strong>{{ queuePosition.peopleAhead }}</strong></div>
+          </div>
+          <div v-if="ticketSelecionado.status === 'espera'" class="info-item">
+            <div class="info-label">Estimativa de Atendimento</div>
+            <div class="info-value" title="Estimativa baseada no tempo médio de atendimento das pessoas à frente e número de guichês ativos">
+              <strong>~ {{ serviceEstimate.estimateFormatted }}</strong>
+            </div>
+          </div>
+          <div v-if="ticketSelecionado.status === 'espera'" class="info-item">
+            <div class="info-label">Horário Estimado</div>
+            <div class="info-value" title="Horário estimado de início do atendimento">
+              <strong>~ {{ serviceEstimate.eta }}</strong>
+            </div>
+          </div>
           <div class="info-item">
             <div class="info-label">Emitida em</div>
             <div class="info-value">{{ formatTimestamp(ticketSelecionado.timestamp) }}</div>
@@ -158,13 +174,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Estatisticas, Senha } from '@shared/types'
-import { formatarTempoHMS } from '../composables/useUtils'
+import { ref, computed } from 'vue'
+import type { Estatisticas, Senha, EstadoSistema } from '@shared/types'
+import { formatarTempoHMS, formatarTempo } from '../composables/useUtils'
 
-defineProps<{
+const props = defineProps<{
   estatisticas: Estatisticas
   ticketSelecionado: Senha | null
+  estado?: EstadoSistema
 }>()
 
 const activeSubTab = ref<'geral' | 'ticket'>('geral')
@@ -200,6 +217,97 @@ const formatTimestamp = (timestamp: number): string => {
     second: '2-digit'
   })
 }
+
+// Queue position calculation
+const queuePosition = computed(() => {
+  if (!props.ticketSelecionado || !props.estado || props.ticketSelecionado.status !== 'espera') {
+    return { position: -1, peopleAhead: 'N/A' }
+  }
+
+  const senhasEspera = props.estado.senhas.filter(s => s.status === 'espera')
+  const filaSimulada: Senha[] = []
+  let simFilaEspera = [...senhasEspera].sort((a, b) => a.timestamp - b.timestamp)
+  let simContadorP = props.estado.contadorPrioridadeDesdeUltimaNormal || 0
+  let simContadorC = props.estado.contadorContratualDesdeUltimaNormal || 0
+  const proporcaoP = props.estado.proporcaoPrioridade || 2
+  const proporcaoC = props.estado.proporcaoContratual || 1
+
+  while (simFilaEspera.length > 0) {
+    const prioritariaMaisAntiga = simFilaEspera.find(s => s.tipo === 'prioridade')
+    const contratualMaisAntiga = simFilaEspera.find(s => s.tipo === 'contratual')
+    const normalMaisAntiga = simFilaEspera.find(s => s.tipo === 'normal')
+    let proximaSimulada: Senha | null = null
+
+    if (prioritariaMaisAntiga && simContadorP < proporcaoP) {
+      proximaSimulada = prioritariaMaisAntiga
+      simContadorP++
+    }
+    else if (contratualMaisAntiga && simContadorC < proporcaoC) {
+      proximaSimulada = contratualMaisAntiga
+      simContadorC++
+    }
+    else if (normalMaisAntiga) {
+      proximaSimulada = normalMaisAntiga
+      simContadorP = 0
+      simContadorC = 0
+    }
+    else if (prioritariaMaisAntiga) {
+      proximaSimulada = prioritariaMaisAntiga
+    }
+    else if (contratualMaisAntiga) {
+      proximaSimulada = contratualMaisAntiga
+    }
+
+    if (proximaSimulada) {
+      filaSimulada.push(proximaSimulada)
+      simFilaEspera = simFilaEspera.filter(s => s.numero !== proximaSimulada!.numero)
+    } else {
+      break
+    }
+  }
+
+  const position = filaSimulada.findIndex(s => s.numero === props.ticketSelecionado!.numero)
+  const peopleAhead = position !== -1 ? `${position} pessoas na frente` : 'N/A'
+
+  return { position, peopleAhead, filaSimulada }
+})
+
+// Service time estimate calculation
+const serviceEstimate = computed(() => {
+  if (!props.ticketSelecionado || props.ticketSelecionado.status !== 'espera' || !props.estado) {
+    return { estimateMs: 0, estimateFormatted: '---', eta: '---' }
+  }
+
+  const pos = queuePosition.value.position
+  if (pos < 0) {
+    return { estimateMs: 0, estimateFormatted: '---', eta: '---' }
+  }
+
+  const tmaDefault = props.estatisticas.tempoMedioAtendimentoGeralMs || 300000
+  const tmaPorTipo = {
+    prioridade: props.estatisticas.detalhesPorTipo.prioridade.tempoMedioAtendimentoMs || tmaDefault,
+    contratual: props.estatisticas.detalhesPorTipo.contratual.tempoMedioAtendimentoMs || tmaDefault,
+    normal: props.estatisticas.detalhesPorTipo.normal.tempoMedioAtendimentoMs || tmaDefault
+  }
+
+  let estimativaMs = 0
+  const filaSimulada = queuePosition.value.filaSimulada || []
+
+  for (let i = 0; i < pos; i++) {
+    const pessoaNaFrente = filaSimulada[i]
+    estimativaMs += tmaPorTipo[pessoaNaFrente.tipo]
+  }
+
+  const guichesAtivos = props.estatisticas.guichesAtivos || 1
+  const estimativaFinalMs = estimativaMs / guichesAtivos
+  const estimateFormatted = formatarTempo(estimativaFinalMs)
+
+  const agoraMs = Date.now()
+  const etaMs = agoraMs + estimativaFinalMs
+  const eta = estimativaFinalMs > 0 ? new Date(etaMs).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '---'
+
+  return { estimateMs: estimativaFinalMs, estimateFormatted, eta }
+})
 </script>
 
 <style scoped>
