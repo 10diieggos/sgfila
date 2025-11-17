@@ -7,4 +7,7 @@ echo.
 cd /d "%~dp0"
 
 echo Iniciando Vite dev server...
-node_modules\.bin\vite.cmd
+echo.
+
+node node_modules/vite/bin/vite.js
+

@@ -7,4 +7,7 @@ echo.
 cd /d "%~dp0"
 
 echo Iniciando servidor TypeScript...
-node_modules\.bin\tsx.cmd watch src/server.ts
+echo.
+
+node node_modules/tsx/dist/cli.mjs watch src/server.ts
+
