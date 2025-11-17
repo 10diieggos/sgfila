@@ -4,11 +4,11 @@
   "description": "SGFILA v3 - Client (Vue 3 + TypeScript)",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-    "type-check": "vue-tsc --noEmit"
+    "dev": "npx vite",
+    "build": "npx vue-tsc && npx vite build",
+    "preview": "npx vite preview",
+    "lint": "npx eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "type-check": "npx vue-tsc --noEmit"
   },
   "dependencies": {
     "socket.io-client": "^4.6.1",
