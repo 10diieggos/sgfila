@@ -19,22 +19,22 @@
     <!-- Conteúdo Geral -->
     <div v-if="activeSubTab === 'geral'" class="sub-tab-content">
       <h2><i class="fas fa-chart-pie"></i> Resumo do Dia</h2>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value">{{ estatisticas.totalEmitidas }}</div>
-          <div class="stat-label">Senhas emitidas hoje</div>
+      <div class="stats-list">
+        <div class="stat-item">
+          <span>Senhas emitidas hoje:</span>
+          <span class="stat-value-inline">{{ estatisticas.totalEmitidas }}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ estatisticas.totalAtendidas }}</div>
-          <div class="stat-label">Senhas atendidas</div>
+        <div class="stat-item">
+          <span>Senhas atendidas:</span>
+          <span class="stat-value-inline">{{ estatisticas.totalAtendidas }}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ estatisticas.tempoMedioEsperaGeral }}</div>
-          <div class="stat-label">Tempo médio de espera</div>
+        <div class="stat-item">
+          <span>Tempo médio de espera:</span>
+          <span class="stat-value-inline">{{ estatisticas.tempoMedioEsperaGeral }}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ estatisticas.proximaSenha }}</div>
-          <div class="stat-label">Próxima senha (Lógica)</div>
+        <div class="stat-item">
+          <span>Próxima senha (Lógica):</span>
+          <span class="stat-value-inline">{{ estatisticas.proximaSenha }}</span>
         </div>
       </div>
 
@@ -89,14 +89,14 @@
       </div>
 
       <h2 style="margin-top: 30px;"><i class="fas fa-user-slash"></i> Abandono e Exclusões</h2>
-      <div class="stats-grid">
-        <div class="stat-card warning">
-          <div class="stat-value">{{ estatisticas.totalNaoCompareceu }}</div>
-          <div class="stat-label">Senhas (Não Compareceu)</div>
+      <div class="stats-list">
+        <div class="stat-item">
+          <span>Senhas (Não Compareceu):</span>
+          <span class="stat-value-inline">{{ estatisticas.totalNaoCompareceu }}</span>
         </div>
-        <div class="stat-card danger">
-          <div class="stat-value">{{ estatisticas.totalExcluidas }}</div>
-          <div class="stat-label">Senhas (Excluídas da Fila)</div>
+        <div class="stat-item">
+          <span>Senhas (Excluídas da Fila):</span>
+          <span class="stat-value-inline">{{ estatisticas.totalExcluidas }}</span>
         </div>
       </div>
     </div>
@@ -242,39 +242,31 @@ const formatTimestamp = (timestamp: number): string => {
   margin-bottom: 20px;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+.stats-list {
+  margin-top: 20px;
+  margin-bottom: 30px;
 }
 
-.stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 1em;
+  color: #495057;
 }
 
-.stat-card.warning {
-  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+.stat-item:last-child {
+  border-bottom: none;
 }
 
-.stat-card.danger {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+.stat-item span:first-child {
+  color: #868e96;
 }
 
-.stat-value {
-  font-size: 2.5em;
+.stat-value-inline {
   font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  font-size: 0.9em;
-  opacity: 0.9;
+  color: #004a8d;
 }
 
 .table-responsive {
