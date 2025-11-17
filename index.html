@@ -1324,11 +1324,12 @@
                 }
                 
                 guichesGlobais.forEach(guiche => {
-                    const estaSelecionado = guichesExibicao.includes(guiche.nome);
+                    const estaSelecionado = guichesExibicao.includes(guiche.id);
+                    const guicheId = guiche.id || 'temp';
                     $guicheExibicaoList.append(`
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="checkbox" id="exibicao-${guiche.nome}" ${estaSelecionado ? 'checked' : ''} data-guiche-nome="${guiche.nome}" style="transform: scale(1.2);">
-                            <label for="exibicao-${guiche.nome}" style="margin-bottom: 0; font-weight: normal;">${guiche.nome} ${guiche.ativo ? '' : '(Inativo)'}</label>
+                            <input type="checkbox" id="exibicao-${guicheId}" ${estaSelecionado ? 'checked' : ''} data-guiche-id="${guicheId}" style="transform: scale(1.2);">
+                            <label for="exibicao-${guicheId}" style="margin-bottom: 0; font-weight: normal;">${guiche.nome} ${guiche.ativo ? '' : '(Inativo)'}</label>
                         </div>
                     `);
                 });
@@ -1337,13 +1338,13 @@
             function salvarExibicaoGuiches() {
                 const guichesSelecionados = [];
                 $('#guiche-exibicao-list input[type="checkbox"]:checked').each(function() {
-                    guichesSelecionados.push($(this).data('guiche-nome'));
+                    guichesSelecionados.push($(this).data('guiche-id'));
                 });
-                
+
                 // *** ALTERADO: Usa sessionStorage (por aba) ao invés de localStorage (global) ***
                 sessionStorage.setItem('sgfGuichesExibicao', JSON.stringify(guichesSelecionados));
                 renderizarPaineisDeGuiche();
-                
+
                 // --- REMOVIDO: Feedback visual do botão ---
             }
 
@@ -1357,47 +1358,54 @@
                 if (guichesGlobais.length === 0) {
                     $guicheGlobalList.html('<p style="color: #868e96;">Nenhum guichê global cadastrado. Clique em "Adicionar Guichê".</p>');
                 }
-                
+
                 guichesGlobais.forEach((guiche, index) => {
                     const checked = guiche.ativo ? 'checked' : '';
                     // Escapa o nome para o value do input
                     const nomeEscapado = $('<div />').text(guiche.nome).html();
-                    
+                    // Usa o ID único do guichê
+                    const guicheId = guiche.id || `temp_${index}`;
+
                     $guicheGlobalList.append(`
                         <div style="display: flex; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 6px;">
-                            <input type="text" class="guiche-global-nome" data-index="${index}" value="${nomeEscapado}" placeholder="Nome do Guichê" style="flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
-                            <input type="checkbox" class="guiche-global-ativo" data-index="${index}" id="guiche-ativo-${index}" ${checked} style="transform: scale(1.2); cursor: pointer;">
-                            <label for="guiche-ativo-${index}" style="margin-bottom: 0; font-weight: normal; cursor: pointer;">Ativo</label>
-                            <button class="btn-acao-senha btn-acao-excluir btn-delete-guiche-global" data-index="${index}" title="Excluir Guichê">
+                            <input type="text" class="guiche-global-nome" data-guiche-id="${guicheId}" value="${nomeEscapado}" placeholder="Nome do Guichê" style="flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+                            <input type="checkbox" class="guiche-global-ativo" data-guiche-id="${guicheId}" id="guiche-ativo-${guicheId}" ${checked} style="transform: scale(1.2); cursor: pointer;">
+                            <label for="guiche-ativo-${guicheId}" style="margin-bottom: 0; font-weight: normal; cursor: pointer;">Ativo</label>
+                            <button class="btn-acao-senha btn-acao-excluir btn-delete-guiche-global" data-guiche-id="${guicheId}" title="Excluir Guichê">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     `);
                 });
-                
+
                 // Re-renderizar a lista de exibição sempre que os guichês globais mudarem
                 renderizarGuichesExibicao();
             }
             
+            // Função para gerar ID único no frontend
+            function gerarIdUnico() {
+                return 'guiche_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
             $btnAddGuicheGlobal.on('click', function() {
                 const novoNome = `Guichê ${String(guichesGlobais.length + 1).padStart(2, '0')}`;
-                guichesGlobais.push({ nome: novoNome, ativo: true });
+                guichesGlobais.push({ id: gerarIdUnico(), nome: novoNome, ativo: true });
                 renderizarGuichesGlobais();
                 salvarGuichesGlobais(); // Salva automaticamente
             });
 
             $guicheGlobalList.on('click', '.btn-delete-guiche-global', function() {
-                const index = parseInt($(this).data('index'), 10);
-                if (!isNaN(index) && guichesGlobais[index]) {
-                    const nome = guichesGlobais[index].nome;
+                const guicheId = $(this).data('guiche-id');
+                const guiche = guichesGlobais.find(g => g.id === guicheId);
+                if (guiche) {
                     mostrarModalConfirmacao(
-                        'Excluir Guichê Global', 
-                        `Tem certeza que deseja excluir o guichê <strong>${nome}</strong> do sistema?<br><br>Esta ação não pode ser desfeita.`, 
+                        'Excluir Guichê Global',
+                        `Tem certeza que deseja excluir o guichê <strong>${guiche.nome}</strong> do sistema?<br><br>Esta ação não pode ser desfeita.`,
                         function() {
-                            guichesGlobais.splice(index, 1);
+                            guichesGlobais = guichesGlobais.filter(g => g.id !== guicheId);
                             renderizarGuichesGlobais(); // Renderiza localmente
                             // Salva automaticamente ao excluir
-                            salvarGuichesGlobais(); 
+                            salvarGuichesGlobais();
                         }
                     );
                 }
@@ -1415,22 +1423,23 @@
             function salvarGuichesGlobais() {
                 const novosGuiches = [];
                 $('.guiche-global-nome').each(function() {
-                    const index = parseInt($(this).data('index'), 10);
+                    const guicheId = $(this).data('guiche-id');
                     const nome = $(this).val().trim();
-                    const ativo = $(`#guiche-ativo-${index}`).is(':checked');
-                    
-                    if (nome && !isNaN(index)) {
-                        // Usa o índice para manter a ordem
-                        novosGuiches[index] = { nome: nome, ativo: ativo };
+                    const ativo = $(`#guiche-ativo-${guicheId}`).is(':checked');
+
+                    if (nome && guicheId) {
+                        // Mantém o ID existente do guichê
+                        novosGuiches.push({
+                            id: guicheId,
+                            nome: nome,
+                            ativo: ativo
+                        });
                     }
                 });
-                
-                // Filtra 'empty slots' se houver
-                const guichesFinais = novosGuiches.filter(g => g !== undefined);
-                
-                guichesGlobais = guichesFinais;
-                socket.emit('atualizarGuichesGlobais', guichesFinais);
-                
+
+                guichesGlobais = novosGuiches;
+                socket.emit('atualizarGuichesGlobais', novosGuiches);
+
                 // --- REMOVIDO: Feedback visual do botão (Req 2) ---
             }
             
@@ -1465,23 +1474,28 @@
                     return;
                 }
 
-                guichesParaExibir.forEach(nomeGuiche => {
+                guichesParaExibir.forEach(guicheId => {
+                    // Busca o guichê pelo ID
+                    const guiche = guichesGlobais.find(g => g.id === guicheId);
+                    if (!guiche) return; // Pula se o guichê não existir mais
+
+                    const nomeGuiche = guiche.nome;
                     const atendimento = atendimentos[nomeGuiche];
-                    
+
                     const isOcupado = !!atendimento;
                     const numeroSenha = isOcupado ? atendimento.numero : '---';
                     let classeTipo = '';
-                    
+
                     if(atendimento) {
                         if (atendimento.tipo === 'prioridade') classeTipo = 'prioridade';
                         else if (atendimento.tipo === 'contratual') classeTipo = 'contratual';
                         else classeTipo = 'normal';
                     }
 
-                    const numeroHtml = isOcupado 
+                    const numeroHtml = isOcupado
                         ? `<span class="senha-numero">${numeroSenha}</span>`
                         : `<span class="senha-numero vazio">---</span>`;
-                    
+
                     $guicheControlPanels.append(`
                         <div class="guiche-painel">
                             <div class="senha-atual-guiche ${classeTipo}" data-guiche-id="${nomeGuiche}">
@@ -2160,7 +2174,36 @@
                 estatisticasLocais = payload.estatisticas || {}; 
                 // *** NOVO: Salva guichês globais ***
                 guichesGlobais = estadoLocal.guichesConfigurados || [];
-                
+
+                // *** NOVO: Migração de dados antigos do sessionStorage (nomes -> IDs) ***
+                const exibicaoSalva = sessionStorage.getItem('sgfGuichesExibicao');
+                if (exibicaoSalva && guichesGlobais.length > 0) {
+                    try {
+                        const guichesExibicao = JSON.parse(exibicaoSalva);
+                        let precisaMigrar = false;
+
+                        // Verifica se há nomes ao invés de IDs
+                        const guichesExibicaoMigrados = guichesExibicao.map(item => {
+                            // Se o item não começa com 'guiche_', é um nome antigo
+                            if (typeof item === 'string' && !item.startsWith('guiche_')) {
+                                precisaMigrar = true;
+                                // Busca o guichê pelo nome e retorna o ID
+                                const guiche = guichesGlobais.find(g => g.nome === item);
+                                return guiche ? guiche.id : null;
+                            }
+                            return item;
+                        }).filter(id => id !== null); // Remove IDs nulos
+
+                        // Se precisou migrar, salva os novos IDs
+                        if (precisaMigrar) {
+                            console.log('Migrando dados de exibição de guichês (nomes -> IDs)');
+                            sessionStorage.setItem('sgfGuichesExibicao', JSON.stringify(guichesExibicaoMigrados));
+                        }
+                    } catch (e) {
+                        console.error('Erro ao migrar dados de exibição:', e);
+                    }
+                }
+
                 // Atualiza proporções na UI
                 $inputRatio.val(estadoLocal.proporcaoPrioridade || 2);
                 $inputRatioContratual.val(estadoLocal.proporcaoContratual || 1);

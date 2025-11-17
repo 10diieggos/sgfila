@@ -83,6 +83,17 @@ function carregarEstado() {
             if (estadoSalvo.guichesConfigurados === undefined) {
                 estadoSalvo.guichesConfigurados = [];
             }
+            // NOVO: Migração - Adiciona ID único para guichês antigos sem ID
+            estadoSalvo.guichesConfigurados = estadoSalvo.guichesConfigurados.map(g => {
+                if (!g.id) {
+                    return {
+                        id: 'guiche_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        nome: g.nome,
+                        ativo: g.ativo
+                    };
+                }
+                return g;
+            });
             // --- Fim dos novos campos ---
 
 
@@ -607,17 +618,23 @@ io.on('connection', (socket) => {
     socket.on('atualizarGuichesGlobais', (novosGuiches) => {
         if (Array.isArray(novosGuiches)) {
             console.log('Atualizando guichês globais.');
-            // Limpa os nomes e status
+            // Limpa os nomes e status, mantém o ID se existir
             const guichesLimpados = novosGuiches.map(g => ({
+                id: g.id || gerarIdUnico(), // Mantém ID existente ou gera novo
                 nome: (g.nome || 'Guichê').trim(),
                 ativo: !!g.ativo
             }));
-            
+
             estado.guichesConfigurados = guichesLimpados;
             salvarEstado(estado);
             broadcastEstadoAtualizado(); // Emite o novo estado (com guiches) e novas estatisticas (com contagem de ativos)
         }
     });
+
+    // --- NOVO: Função para gerar ID único ---
+    function gerarIdUnico() {
+        return 'guiche_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
 
     socket.on('reiniciarSistema', () => {
         console.log('Sistema sendo reiniciado por um guichê.');
