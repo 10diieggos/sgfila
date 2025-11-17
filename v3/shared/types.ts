@@ -138,3 +138,12 @@ export type FiltroFila = 'emissao' | 'automatica' | 'tipo';
 export interface ConfiguracaoGuiche {
   guichesExibicao: string[];
 }
+
+export type TabType = 'stats' | 'history' | 'config';
+export type SubTabStats = 'geral' | 'ticket';
+export type SubTabConfig = 'guiches' | 'proporcao';
+
+export interface ModalData {
+  show: boolean;
+  data?: any;
+}

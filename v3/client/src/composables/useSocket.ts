@@ -13,6 +13,7 @@ import type {
   TipoSenha,
   Guiche
 } from '@shared/types'
+import { useBeep } from './useBeep'
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 
@@ -21,6 +22,7 @@ export function useSocket() {
   const connected = ref(false)
   const estado = ref<EstadoSistema | null>(null)
   const estatisticas = ref<Estatisticas | null>(null)
+  const { beep } = useBeep()
 
   /**
    * Conecta ao servidor Socket.IO
@@ -44,7 +46,7 @@ export function useSocket() {
     })
 
     socket.value.on('beep', (dados) => {
-      playBeep(dados.times)
+      beep(dados)
     })
 
     socket.value.on('sistemaReiniciado', () => {
@@ -62,33 +64,6 @@ export function useSocket() {
       socket.value.disconnect()
       socket.value = null
       connected.value = false
-    }
-  }
-
-  /**
-   * Toca beep de notificação
-   */
-  const playBeep = (times: number = 1) => {
-    try {
-      for (let i = 0; i < times; i++) {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-        const oscillator = audioContext.createOscillator()
-        const gainNode = audioContext.createGain()
-
-        oscillator.connect(gainNode)
-        gainNode.connect(audioContext.destination)
-
-        oscillator.type = 'sine'
-        oscillator.frequency.value = times === 1 ? 800 : 1000
-        gainNode.gain.value = 0.1
-
-        oscillator.start()
-        setTimeout(() => {
-          oscillator.stop()
-        }, 200)
-      }
-    } catch (error) {
-      console.log('Audio não suportado')
     }
   }
 
