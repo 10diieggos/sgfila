@@ -12,21 +12,23 @@ cd ../client && npm install
 
 ### 2. Rodar em Desenvolvimento
 
-**Abra 2 terminais:**
+**Abra 2 terminais (PowerShell ou CMD):**
 
 **Terminal 1 - Servidor:**
 ```bash
-cd v3/server
+cd v3\server
 npm run dev
 ```
 ✅ Servidor roda em http://localhost:3000
 
 **Terminal 2 - Cliente:**
 ```bash
-cd v3/client
+cd v3\client
 npm run dev
 ```
 ✅ Cliente roda em http://localhost:5173
+
+**Nota:** Os scripts agora usam `npx` automaticamente, funcionando com Node.js portátil!
 
 ### 3. Acessar
 
