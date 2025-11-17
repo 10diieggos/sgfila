@@ -137,11 +137,11 @@
           </div>
           <div class="info-item">
             <div class="info-label">Tempo de Espera</div>
-            <div class="info-value">{{ formatarTempo(ticketSelecionado.tempoEspera) }}</div>
+            <div class="info-value">{{ formatarTempoHMS(ticketSelecionado.tempoEspera) }}</div>
           </div>
           <div class="info-item">
             <div class="info-label">Tempo de Atendimento</div>
-            <div class="info-value">{{ formatarTempo(ticketSelecionado.tempoAtendimento) }}</div>
+            <div class="info-value">{{ formatarTempoHMS(ticketSelecionado.tempoAtendimento) }}</div>
           </div>
           <div v-if="ticketSelecionado.guicheAtendendo" class="info-item">
             <div class="info-label">Guichê</div>
@@ -160,7 +160,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Estatisticas, Senha } from '@shared/types'
-import { formatarTempo } from '../composables/useUtils'
+import { formatarTempoHMS } from '../composables/useUtils'
 
 defineProps<{
   estatisticas: Estatisticas

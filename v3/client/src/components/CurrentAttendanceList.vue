@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Senha, AtendimentoAtual } from '@shared/types'
-import { formatarTempo } from '../composables/useUtils'
+import { formatarTempoHMS } from '../composables/useUtils'
 
 const props = defineProps<{
   atendimentosAtuais: AtendimentoAtual
@@ -75,9 +75,9 @@ const senhasAtendendo = computed(() => {
 })
 
 const formatTempoAtendimento = (senha: Senha): string => {
-  if (!senha.chamadaTimestamp) return '0 min'
+  if (!senha.chamadaTimestamp) return '0:00:00'
   const tempoMs = Date.now() - senha.chamadaTimestamp
-  return formatarTempo(tempoMs)
+  return formatarTempoHMS(tempoMs)
 }
 </script>
 

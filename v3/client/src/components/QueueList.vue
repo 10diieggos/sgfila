@@ -44,7 +44,7 @@
         </div>
 
         <div class="ticket-controls">
-          <span class="wait-time">{{ calcularTempoEspera(senha.timestamp) }} min</span>
+          <span class="wait-time">{{ formatarTempoHMS(Date.now() - senha.timestamp) }}</span>
 
           <div class="action-buttons">
             <button @click="$emit('ver-detalhes', senha.numero)" class="btn-action btn-info" title="Ver Detalhes">
@@ -69,7 +69,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Senha, FiltroFila } from '@shared/types'
-import { calcularTempoEspera, getIconClass, formatarDescricao } from '@/composables/useUtils'
+import { getIconClass, formatarDescricao, formatarTempoHMS } from '@/composables/useUtils'
 
 // Props
 interface Props {
