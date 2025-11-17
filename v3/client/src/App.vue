@@ -2,8 +2,7 @@
   <div id="app" class="container">
     <!-- Header -->
     <header>
-      <h1><i class="fas fa-mail-bulk"></i> Sistema de Senhas - Correios</h1>
-      <p>Sistema de atendimento por prioridade legal - SGFILA v3.0</p>
+      <h1><i class="fas fa-mail-bulk"></i> SGFILA v3.0</h1>
       <div class="connection-status">
         <span :class="['status-indicator', { connected }]"></span>
         {{ connected ? 'Conectado' : 'Desconectado' }}
@@ -37,6 +36,8 @@
           <CurrentAttendanceList
             :atendimentos-atuais="estado.atendimentosAtuais"
             @devolver="handleDevolverSenha"
+            @ausente="handleAusente"
+            @ver-detalhes="handleVerDetalhes"
           />
         </div>
 
@@ -270,6 +271,17 @@ const handleDevolverSenha = (numeroSenha: string) => {
   devolverSenha(numeroSenha)
 }
 
+const handleAusente = (numeroSenha: string) => {
+  confirmModalData.value = {
+    title: 'Marcar como Não Compareceu',
+    message: `Confirma que a senha ${numeroSenha} não compareceu ao atendimento?`,
+    confirmText: 'Confirmar',
+    action: 'nao-compareceu',
+    data: { numeroSenha }
+  }
+  showConfirmModal.value = true
+}
+
 // Handlers - Fila
 const handleChamarSenhaEspecifica = (numeroSenha: string) => {
   // Buscar primeiro guichê livre
@@ -360,23 +372,18 @@ body {
 
 /* Header */
 header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgba(0, 74, 141, 0.85) 0%, rgba(0, 102, 204, 0.85) 100%);
   color: white;
-  padding: 30px;
-  border-radius: 12px;
-  margin-bottom: 30px;
+  padding: 15px;
+  border-radius: 10px 10px 0 0;
+  margin-bottom: 20px;
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 header h1 {
-  font-size: 2.2em;
-  margin-bottom: 10px;
-}
-
-header p {
-  font-size: 1em;
-  opacity: 0.9;
+  font-size: 1.5em;
+  margin: 0;
 }
 
 .connection-status {
@@ -463,48 +470,77 @@ header p {
 /* Controls */
 .controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 15px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
 }
 
 .btn {
-  padding: 15px 20px;
-  border: none;
-  border-radius: 8px;
+  padding: 10px 13px;
+  border: 2px solid;
+  border-radius: 6px;
   font-size: 1em;
   cursor: pointer;
   transition: all 0.3s;
-  color: white;
-  font-weight: 600;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 
-.btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.btn i {
+  font-size: 1.2rem;
 }
 
-.btn:active {
-  transform: translateY(-1px);
+.btn:hover {
+  transform: scale(1.05);
 }
 
 .btn-priority {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background-color: #ffffff;
+  color: #ff6b6b;
+  border-color: #ff6b6b;
+}
+
+.btn-priority:hover {
+  background-color: #fff5f5;
+  color: #ff5252;
+  border-color: #ff5252;
 }
 
 .btn-normal {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background-color: #ffffff;
+  color: #4dabf7;
+  border-color: #4dabf7;
+}
+
+.btn-normal:hover {
+  background-color: #e7f5ff;
+  color: #339af0;
+  border-color: #339af0;
 }
 
 .btn-contract {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background-color: #ffffff;
+  color: #845ef7;
+  border-color: #845ef7;
+}
+
+.btn-contract:hover {
+  background-color: #f3e8ff;
+  color: #7048e8;
+  border-color: #7048e8;
 }
 
 .btn-reset {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  background-color: #ff8787;
+  color: white;
+  border-color: #ff8787;
+}
+
+.btn-reset:hover {
+  background-color: #fa5252;
+  border-color: #fa5252;
 }
 
 /* Tabs */
