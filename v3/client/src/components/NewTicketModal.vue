@@ -1,12 +1,12 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show" class="modal-overlay" @click.self="handleClose">
-        <div class="modal-content-nova-senha">
+      <div v-if="show" class="modal-overlay modal-clicavel-fechar" @click.self="handleClickOverlay" @keydown="handleKeyDown">
+        <div class="modal-content-nova-senha" @click.stop>
           <span class="modal-label">Nova Senha Emitida</span>
-          <div class="senha-gerada-numero">{{ numeroSenha }}</div>
+          <div :class="['senha-gerada-numero', tipoSenha]">{{ numeroSenha }}</div>
 
-          <div class="form-group-modal-senha">
+          <div v-show="descricaoAtiva" class="form-group-modal-senha">
             <label for="nova-senha-descricao">Descrição (Opcional - Pressione Enter para salvar):</label>
             <textarea
               id="nova-senha-descricao"
@@ -24,11 +24,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import type { TipoSenha } from '@shared/types'
 
 const props = defineProps<{
   show: boolean
   numeroSenha: string
+  tipoSenha?: TipoSenha
 }>()
 
 const emit = defineEmits<{
@@ -37,29 +39,67 @@ const emit = defineEmits<{
 }>()
 
 const descricao = ref('')
+const descricaoAtiva = ref(false)
 const textareaRef = ref<HTMLTextAreaElement>()
 
-// Auto-focus quando modal abre
+// Watch para quando modal abre
 watch(() => props.show, async (newVal) => {
   if (newVal) {
     descricao.value = ''
-    await nextTick()
-    textareaRef.value?.focus()
+    descricaoAtiva.value = false
   }
 })
 
-const handleClose = () => {
-  if (descricao.value.trim()) {
-    handleSalvar()
+const handleClickOverlay = () => {
+  fecharModal()
+}
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (!props.show) return
+
+  const isEnter = e.key === 'Enter'
+
+  if (isEnter) {
+    e.preventDefault()
+    if (!descricaoAtiva.value) {
+      // Primeira vez: ativa textarea
+      descricaoAtiva.value = true
+      nextTick(() => {
+        textareaRef.value?.focus()
+      })
+    } else {
+      // Segunda vez: salva e fecha
+      handleSalvar()
+    }
   } else {
-    emit('close')
+    // Qualquer outra tecla: fecha (só se textarea não estiver ativo)
+    if (!descricaoAtiva.value) {
+      fecharModal()
+    }
   }
+}
+
+const fecharModal = () => {
+  const descricaoTrim = descricao.value.trim()
+  if (descricaoTrim) {
+    emit('save', descricaoTrim)
+  }
+  emit('close')
 }
 
 const handleSalvar = () => {
   emit('save', descricao.value.trim())
   emit('close')
 }
+
+// Adicionar listener global
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <style scoped>
@@ -96,14 +136,34 @@ const handleSalvar = () => {
 }
 
 .senha-gerada-numero {
-  font-size: 4em;
+  font-size: 8em;
   font-weight: bold;
-  color: #667eea;
   margin: 20px 0;
   padding: 30px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 12px;
   letter-spacing: 4px;
+}
+
+/* Cores por tipo */
+.senha-gerada-numero.prioridade {
+  color: #ff6b6b;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+}
+
+.senha-gerada-numero.normal {
+  color: #4dabf7;
+  background: linear-gradient(135deg, #f0f8ff 0%, #d0ebff 100%);
+}
+
+.senha-gerada-numero.contratual {
+  color: #845ef7;
+  background: linear-gradient(135deg, #f3e8ff 0%, #e5d4ff 100%);
+}
+
+/* Fallback se não tiver tipo */
+.senha-gerada-numero:not(.prioridade):not(.normal):not(.contratual) {
+  color: #667eea;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .form-group-modal-senha {
@@ -116,6 +176,7 @@ const handleSalvar = () => {
   margin-bottom: 10px;
   color: #495057;
   font-weight: 500;
+  font-size: 0.9em;
 }
 
 .form-group-modal-senha textarea {

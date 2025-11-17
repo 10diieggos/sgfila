@@ -24,6 +24,25 @@ export function formatarTempo(milissegundos: number): string {
 }
 
 /**
+ * Formata milissegundos para formato h:mm:ss
+ */
+export function formatarTempoHMS(milissegundos: number): string {
+  if (isNaN(milissegundos) || milissegundos < 0 || !isFinite(milissegundos)) {
+    return '0:00:00'
+  }
+
+  const totalSegundos = Math.floor(milissegundos / 1000)
+  const horas = Math.floor(totalSegundos / 3600)
+  const minutos = Math.floor((totalSegundos % 3600) / 60)
+  const segundos = totalSegundos % 60
+
+  const mm = String(minutos).padStart(2, '0')
+  const ss = String(segundos).padStart(2, '0')
+
+  return `${horas}:${mm}:${ss}`
+}
+
+/**
  * Retorna classe de ícone baseado no tipo
  */
 export function getIconClass(tipo: string): string {

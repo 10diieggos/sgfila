@@ -74,10 +74,18 @@ import { calcularTempoEspera, getIconClass, formatarDescricao } from '@/composab
 // Props
 interface Props {
   senhas: Senha[]
+  proporcaoPrioridade?: number
+  proporcaoContratual?: number
+  contadorPrioridadeDesdeUltimaNormal?: number
+  contadorContratualDesdeUltimaNormal?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  senhas: () => []
+  senhas: () => [],
+  proporcaoPrioridade: 2,
+  proporcaoContratual: 1,
+  contadorPrioridadeDesdeUltimaNormal: 0,
+  contadorContratualDesdeUltimaNormal: 0
 })
 
 // Emits
@@ -120,8 +128,51 @@ const senhasFiltradas = computed(() => {
       }
       return a.timestamp - b.timestamp
     })
+  } else if (filtroAtivo.value === 'automatica') {
+    // Simula a lógica de chamamento automático do servidor
+    const filaSimulada: Senha[] = []
+    let simFilaEspera = [...result].sort((a, b) => a.timestamp - b.timestamp)
+    let simContadorP = props.contadorPrioridadeDesdeUltimaNormal || 0
+    let simContadorC = props.contadorContratualDesdeUltimaNormal || 0
+    const proporcaoP = props.proporcaoPrioridade || 2
+    const proporcaoC = props.proporcaoContratual || 1
+
+    while (simFilaEspera.length > 0) {
+      const prioritariaMaisAntiga = simFilaEspera.find(s => s.tipo === 'prioridade')
+      const contratualMaisAntiga = simFilaEspera.find(s => s.tipo === 'contratual')
+      const normalMaisAntiga = simFilaEspera.find(s => s.tipo === 'normal')
+
+      let proximaSimulada: Senha | null = null
+
+      if (prioritariaMaisAntiga && simContadorP < proporcaoP) {
+        proximaSimulada = prioritariaMaisAntiga
+        simContadorP++
+      }
+      else if (contratualMaisAntiga && simContadorC < proporcaoC) {
+        proximaSimulada = contratualMaisAntiga
+        simContadorC++
+      }
+      else if (normalMaisAntiga) {
+        proximaSimulada = normalMaisAntiga
+        simContadorP = 0
+        simContadorC = 0
+      }
+      else if (prioritariaMaisAntiga) {
+        proximaSimulada = prioritariaMaisAntiga
+      }
+      else if (contratualMaisAntiga) {
+        proximaSimulada = contratualMaisAntiga
+      }
+
+      if (proximaSimulada) {
+        filaSimulada.push(proximaSimulada)
+        simFilaEspera = simFilaEspera.filter(s => s.numero !== proximaSimulada!.numero)
+      } else {
+        break
+      }
+    }
+    result = filaSimulada
   }
-  // TODO: Implementar filtro 'automatica' com lógica de proporção
 
   return result
 })

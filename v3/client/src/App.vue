@@ -64,6 +64,10 @@
         <div class="card">
           <QueueList
             :senhas="estado.senhas || []"
+            :proporcao-prioridade="estado.proporcaoPrioridade"
+            :proporcao-contratual="estado.proporcaoContratual"
+            :contador-prioridade-desde-ultima-normal="estado.contadorPrioridadeDesdeUltimaNormal"
+            :contador-contratual-desde-ultima-normal="estado.contadorContratualDesdeUltimaNormal"
             @ver-detalhes="handleVerDetalhes"
             @chamar="handleChamarSenhaEspecifica"
             @editar="handleEditarDescricao"
@@ -137,6 +141,7 @@
     <NewTicketModal
       :show="showNewTicketModal"
       :numero-senha="novaSenhaNumerо"
+      :tipo-senha="novaSenhaTipo"
       @close="showNewTicketModal = false"
       @save="handleSalvarDescricaoNovaSenha"
     />
@@ -209,6 +214,7 @@ const showEditModal = ref(false)
 const showResetModal = ref(false)
 const showConfirmModal = ref(false)
 const novaSenhaNumerо = ref('')
+const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
 const senhaParaEditar = ref<Senha | null>(null)
 const ticketSelecionado = ref<Senha | null>(null)
 const guichesExibicao = ref<string[]>([])
@@ -227,6 +233,7 @@ const senhasEspera = computed(() => {
 
 // Handlers - Emissão
 const handleEmitirSenha = (tipo: 'prioridade' | 'normal' | 'contratual') => {
+  novaSenhaTipo.value = tipo
   emitirSenha(tipo, '')
   // Aguardar resposta do servidor para mostrar modal
   setTimeout(() => {
@@ -367,7 +374,7 @@ body {
 .container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 40px;
 }
 
 /* Header */
