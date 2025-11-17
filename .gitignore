@@ -1,0 +1,11 @@
+# Arquivos e pastas gerados pelo Node.js/npm
+# Estes não devem ser versionados, pois podem ser reinstalados
+node_modules/
+npm-debug.log
+.DS_Store
+
+# Dados operacionais
+# O arquivo de dados que contém o estado dinâmico (senhas, atendimentos, etc.)
+# é crucial que NÃO seja versionado para evitar conflitos de merge e
+# manter o histórico limpo de dados de operação.
+dados.json

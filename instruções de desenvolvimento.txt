@@ -1,0 +1,40 @@
+Estamos desenvolvendo o sistema de gerenciamento de filas SGF tem as restrições: 
+
+1) Sem painel, os atendendentes é que chamam a senha; 
+2)Sem gerador automatico de senhas, as senhas são solicitadas ao atendente que emite diretamante no SGF; 
+3)Sem acesso há internet, apenas rede interna; 
+4)Sem acesso administrativo aos computadores para instalações e configurações; 
+5)node.js portátil para servidor; 
+6)Armazenamento em dados.json. 
+
+Estrtura do projeto: 
+
+└── sgf/
+
+    ├── server.js
+
+    ├── package.json
+
+    ├── dados.json
+
+    ├── index.html
+
+    ├── jquery-3.6.0.min.js
+
+    └── webfonts
+
+           ├── fa-brands-400.woff2
+
+           ├── ...
+
+    └── css
+
+           ├── all.min.css
+
+
+
+Atenção! Eu não sou programador, não posso depurar e nem integrar código. A cada modificação você deve imprimir ou entregar na saída o arquivo com o codigo atualizado completo.
+
+
+Você não deve alterar o estilo e a estrutura da interface além do necessário para incrementar funcionalidades, tudo deve permanecer como está!
+Você não deve alterar absolutamente nada além do necessário para fazer as modificações solicitadas por mim.
