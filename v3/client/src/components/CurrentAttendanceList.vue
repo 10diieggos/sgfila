@@ -7,47 +7,45 @@
       <p>Nenhum atendimento em andamento</p>
     </div>
 
-    <div v-else class="attendance-list">
+    <div v-else class="lista-senhas">
       <div
         v-for="item in senhasAtendendo"
         :key="item.senha.numero"
-        :class="['attendance-item', item.senha.tipo]"
+        :class="['senha-item', item.senha.tipo]"
       >
-        <div class="attendance-info">
-          <div class="attendance-number">{{ item.senha.numero }}</div>
-          <div class="attendance-details">
-            <div class="detail-row">
-              <span class="label">Guichê:</span>
-              <strong>{{ item.guiche }}</strong>
-            </div>
-            <div class="detail-row">
-              <span class="label">Tipo:</span>
-              <span :class="['badge-type', item.senha.tipo]">
-                {{ getTipoLabel(item.senha.tipo) }}
-              </span>
-            </div>
-            <div v-if="item.senha.descricao" class="detail-row">
-              <span class="label">Descrição:</span>
-              <span class="description">{{ item.senha.descricao }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Tempo:</span>
-              <span class="time">
-                <i class="fas fa-clock"></i>
-                {{ formatTempoAtendimento(item.senha) }}
-              </span>
-            </div>
-          </div>
+        <div class="senha-info">
+          <strong class="senha-numero-small">{{ item.senha.numero }}</strong>
+          <span class="guiche-info">{{ item.guiche }}</span>
+          <span class="tempo-info">
+            <i class="fas fa-clock"></i>
+            {{ formatTempoAtendimento(item.senha) }}
+          </span>
         </div>
 
-        <div class="attendance-actions">
-          <button
-            class="btn-icon btn-return"
-            @click="$emit('devolver', item.senha.numero)"
-            title="Devolver para fila"
-          >
-            <i class="fas fa-undo"></i>
-          </button>
+        <div class="senha-item-controles">
+          <div class="botoes-wrapper">
+            <button
+              class="btn-acao-senha btn-acao-info"
+              @click="$emit('ver-detalhes', item.senha.numero)"
+              title="Informações"
+            >
+              <i class="fas fa-info-circle"></i>
+            </button>
+            <button
+              class="btn-acao-senha btn-acao-devolver"
+              @click="$emit('devolver', item.senha.numero)"
+              title="Devolver para fila"
+            >
+              <i class="fas fa-undo"></i>
+            </button>
+            <button
+              class="btn-acao-senha btn-acao-ausente"
+              @click="$emit('ausente', item.senha.numero)"
+              title="Não compareceu"
+            >
+              <i class="fas fa-user-slash"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -65,6 +63,8 @@ const props = defineProps<{
 
 defineEmits<{
   'devolver': [numeroSenha: string]
+  'ausente': [numeroSenha: string]
+  'ver-detalhes': [numeroSenha: string]
 }>()
 
 const senhasAtendendo = computed(() => {
@@ -73,15 +73,6 @@ const senhasAtendendo = computed(() => {
     senha
   }))
 })
-
-const getTipoLabel = (tipo: string): string => {
-  const labels: Record<string, string> = {
-    'prioridade': 'Prioritária',
-    'normal': 'Normal',
-    'contratual': 'Contratual'
-  }
-  return labels[tipo] || tipo
-}
 
 const formatTempoAtendimento = (senha: Senha): string => {
   if (!senha.chamadaTimestamp) return '0 min'
@@ -92,151 +83,143 @@ const formatTempoAtendimento = (senha: Senha): string => {
 
 <style scoped>
 .current-attendance-wrapper h3 {
-  margin-bottom: 20px;
-  color: #495057;
-  font-size: 1.3em;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #eee;
+  color: #004a8d;
+  font-size: 1.1em;
 }
 
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
   color: #868e96;
 }
 
 .empty-state i {
-  font-size: 3em;
-  margin-bottom: 15px;
+  font-size: 2em;
+  margin-bottom: 10px;
   opacity: 0.5;
 }
 
 .empty-state p {
   margin: 0;
-}
-
-.attendance-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.attendance-item {
-  background: white;
-  border-left: 4px solid #667eea;
-  border-radius: 8px;
-  padding: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.attendance-item:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.attendance-item.prioridade {
-  border-left-color: #f5576c;
-}
-
-.attendance-item.contratual {
-  border-left-color: #fa709a;
-}
-
-.attendance-item.normal {
-  border-left-color: #4facfe;
-}
-
-.attendance-info {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex: 1;
-}
-
-.attendance-number {
-  font-size: 2em;
-  font-weight: bold;
-  color: #667eea;
-  min-width: 100px;
-  text-align: center;
-}
-
-.attendance-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.detail-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-size: 0.9em;
 }
 
-.label {
-  color: #868e96;
-  min-width: 80px;
+.lista-senhas {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #f8f9fa;
 }
 
-.badge-type {
-  padding: 3px 10px;
-  border-radius: 12px;
+.senha-item {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 6px;
+  margin-bottom: 5px;
+  transition: background-color 0.2s;
+}
+
+.senha-item:hover {
+  background-color: #e9ecef;
+}
+
+.senha-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.senha-item.prioridade {
+  background-color: #fff5f5;
+  border-left: 4px solid #ff6b6b;
+}
+
+.senha-item.normal {
+  background-color: #f8f9fa;
+  border-left: 4px solid #4dabf7;
+}
+
+.senha-item.contratual {
+  background-color: #f3e8ff;
+  border-left: 4px solid #845ef7;
+}
+
+.senha-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.senha-numero-small {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #333;
+  min-width: 60px;
+}
+
+.guiche-info {
+  color: #495057;
+  font-size: 0.9em;
+}
+
+.tempo-info {
+  color: #868e96;
   font-size: 0.85em;
-  font-weight: 600;
+}
+
+.senha-item-controles {
+  display: flex;
+  align-items: center;
+}
+
+.botoes-wrapper {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-acao-senha {
+  padding: 3px 6px;
+  border: 1px solid;
+  background-color: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.btn-acao-info {
+  color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+.btn-acao-info:hover {
+  background-color: #17a2b8;
   color: white;
 }
 
-.badge-type.prioridade {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.btn-acao-devolver {
+  color: #ffa500;
+  border-color: #ffa500;
 }
 
-.badge-type.contratual {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+.btn-acao-devolver:hover {
+  background-color: #ffa500;
+  color: white;
 }
 
-.badge-type.normal {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+.btn-acao-ausente {
+  color: #ff6b6b;
+  border-color: #ff6b6b;
 }
 
-.description {
-  color: #495057;
-  font-style: italic;
-}
-
-.time {
-  color: #667eea;
-  font-weight: 600;
-}
-
-.attendance-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-icon {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-  font-size: 1em;
-}
-
-.btn-return {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.btn-return:hover {
-  background: #ffc107;
-  transform: rotate(-360deg);
+.btn-acao-ausente:hover {
+  background-color: #ff6b6b;
+  color: white;
 }
 </style>

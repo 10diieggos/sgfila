@@ -135,153 +135,222 @@ const mensagemVazia = computed(() => {
 </script>
 
 <style scoped>
-.queue-list {
-  padding: 20px;
+.queue-list h3 {
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #eee;
+  color: #004a8d;
+  font-size: 1.1em;
 }
 
+/* Filtros */
 .filter-wrapper {
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
   flex-wrap: wrap;
+  gap: 10px;
 }
 
 .filter-buttons {
   display: flex;
-  gap: 10px;
+  gap: 5px;
+  flex-grow: 1;
 }
 
 .btn-filter {
-  padding: 8px 16px;
-  border: 2px solid #dee2e6;
-  background: white;
-  border-radius: 6px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  color: #555;
+  font-size: 0.85rem;
+  font-weight: normal;
+  border-radius: 5px;
   cursor: pointer;
-  transition: all 0.3s;
-  font-size: 14px;
+  gap: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.btn-filter i {
+  font-size: 0.9rem;
 }
 
 .btn-filter:hover {
-  background: #f8f9fa;
+  background-color: #e9ecef;
 }
 
 .btn-filter.active {
-  background: #007bff;
+  background-color: #004a8d;
   color: white;
-  border-color: #007bff;
+  border-color: #004a8d;
+  font-weight: bold;
 }
 
 .search-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  padding: 0 8px;
+}
+
+.search-wrapper i {
+  color: #aaa;
+  font-size: 0.9rem;
 }
 
 .search-wrapper input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 2px solid #dee2e6;
-  border-radius: 6px;
-  font-size: 14px;
+  border: none;
+  padding: 6px 4px 6px 8px;
+  font-size: 0.9rem;
+  outline: none;
+  background: transparent;
+  min-width: 150px;
 }
 
+/* Lista */
 .ticket-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #f8f9fa;
 }
 
 .ticket-item {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  border-radius: 8px;
-  background: white;
-  border-left: 4px solid;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 6px;
+  margin-bottom: 5px;
+  transition: background-color 0.2s;
+}
+
+.ticket-item:hover {
+  background-color: #e9ecef;
+}
+
+.ticket-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .ticket-item.prioridade {
-  border-left-color: #dc3545;
-}
-
-.ticket-item.contratual {
-  border-left-color: #ffc107;
+  background-color: #fff5f5;
+  border-left: 4px solid #ff6b6b;
 }
 
 .ticket-item.normal {
-  border-left-color: #28a745;
+  background-color: #f8f9fa;
+  border-left: 4px solid #4dabf7;
+}
+
+.ticket-item.contratual {
+  background-color: #f3e8ff;
+  border-left: 4px solid #845ef7;
 }
 
 .ticket-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex: 1;
+}
+
+.ticket-info i {
+  font-size: 1em;
+}
+
+.ticket-info strong {
+  font-size: 1em;
+  font-weight: bold;
+  color: #333;
+  min-width: 50px;
 }
 
 .ticket-description {
   color: #666;
-  font-size: 14px;
-  margin-top: 5px;
+  font-size: 0.85em;
+  font-style: italic;
 }
 
 .ticket-controls {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .wait-time {
-  color: #666;
-  font-size: 14px;
+  color: #868e96;
+  font-size: 0.85em;
+  min-width: 45px;
+  text-align: right;
 }
 
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .btn-action {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
+  padding: 3px 6px;
+  border: 1px solid;
+  background-color: transparent;
+  border-radius: 5px;
   cursor: pointer;
-  transition: all 0.3s;
-  font-size: 14px;
-}
-
-.btn-info {
-  background: #17a2b8;
-  color: white;
+  font-size: 0.8rem;
+  transition: all 0.2s;
 }
 
 .btn-call {
-  background: #007bff;
-  color: white;
+  color: #51cf66;
+  border-color: #51cf66;
 }
 
-.btn-edit {
-  background: #ffc107;
+.btn-call:hover {
+  background-color: #51cf66;
   color: white;
 }
 
 .btn-delete {
-  background: #dc3545;
+  color: #ff6b6b;
+  border-color: #ff6b6b;
+}
+
+.btn-delete:hover {
+  background-color: #ff6b6b;
   color: white;
 }
 
-.btn-action:hover {
-  opacity: 0.8;
-  transform: translateY(-2px);
+.btn-edit {
+  color: #4dabf7;
+  border-color: #4dabf7;
+}
+
+.btn-edit:hover {
+  background-color: #4dabf7;
+  color: white;
+}
+
+.btn-info {
+  color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+.btn-info:hover {
+  background-color: #17a2b8;
+  color: white;
 }
 
 .empty-message {
-  padding: 40px;
+  padding: 20px;
   text-align: center;
   color: #868e96;
-  font-size: 16px;
+  font-size: 0.9em;
 }
 </style>

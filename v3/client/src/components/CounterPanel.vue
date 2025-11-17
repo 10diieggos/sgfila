@@ -12,53 +12,18 @@
       <div
         v-for="guiche in guichesVisiveis"
         :key="guiche.nome"
-        :class="['counter-panel', { 'inactive': !guiche.ativo }]"
+        class="guiche-painel"
       >
-        <div class="counter-header">
-          <h4>{{ guiche.nome }}</h4>
-          <span v-if="!guiche.ativo" class="badge-inactive">Inativo</span>
-        </div>
-
-        <div v-if="senhaAtual(guiche.nome)" class="current-ticket">
-          <div class="ticket-number">{{ senhaAtual(guiche.nome)?.numero }}</div>
-          <div class="ticket-info">
-            <span :class="['ticket-type', senhaAtual(guiche.nome)?.tipo]">
-              {{ getTipoLabel(senhaAtual(guiche.nome)?.tipo!) }}
-            </span>
-            <span class="ticket-time">
-              <i class="fas fa-clock"></i>
-              {{ formatTempoAtendimento(senhaAtual(guiche.nome)!) }}
-            </span>
-          </div>
-
-          <div class="counter-actions">
-            <button
-              class="btn btn-finish"
-              @click="$emit('finalizar', guiche.nome)"
-              :disabled="!guiche.ativo"
-            >
-              <i class="fas fa-check"></i> Finalizar
-            </button>
-            <button
-              class="btn btn-no-show"
-              @click="$emit('nao-compareceu', guiche.nome)"
-              :disabled="!guiche.ativo"
-            >
-              <i class="fas fa-user-slash"></i> Não Compareceu
-            </button>
-          </div>
-        </div>
-
-        <div v-else class="no-ticket">
-          <i class="fas fa-chair"></i>
-          <p>Livre</p>
-          <button
-            class="btn btn-call"
-            @click="$emit('chamar', guiche.nome)"
-            :disabled="!guiche.ativo || filaVazia"
-          >
-            <i class="fas fa-bell"></i> Chamar Próxima
-          </button>
+        <div
+          :class="['senha-atual-guiche', getSenhaClass(guiche.nome), { 'disabled': !guiche.ativo }]"
+          :data-guiche-id="guiche.nome"
+          @click="handleGuicheClick(guiche)"
+        >
+          <span class="guiche-painel-nome">{{ guiche.nome }}</span>
+          <span v-if="senhaAtual(guiche.nome)" class="senha-numero">
+            {{ senhaAtual(guiche.nome)?.numero }}
+          </span>
+          <span v-else class="senha-numero vazio">---</span>
         </div>
       </div>
     </div>
@@ -68,7 +33,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Guiche, Senha, AtendimentoAtual } from '@shared/types'
-import { formatarTempo } from '../composables/useUtils'
 
 const props = withDefaults(defineProps<{
   guiches: Guiche[]
@@ -80,7 +44,7 @@ const props = withDefaults(defineProps<{
   filaVazia: false
 })
 
-defineEmits<{
+const emit = defineEmits<{
   'chamar': [guicheNome: string]
   'finalizar': [guicheNome: string]
   'nao-compareceu': [guicheNome: string]
@@ -97,195 +61,129 @@ const senhaAtual = (guicheNome: string): Senha | undefined => {
   return props.atendimentosAtuais[guicheNome]
 }
 
-const getTipoLabel = (tipo: string): string => {
-  const labels: Record<string, string> = {
-    'prioridade': 'Prioritária',
-    'normal': 'Normal',
-    'contratual': 'Contratual'
-  }
-  return labels[tipo] || tipo
+const getSenhaClass = (guicheNome: string): string => {
+  const senha = senhaAtual(guicheNome)
+  return senha ? senha.tipo : ''
 }
 
-const formatTempoAtendimento = (senha: Senha): string => {
-  if (!senha.chamadaTimestamp) return '0 min'
-  const tempoMs = Date.now() - senha.chamadaTimestamp
-  return formatarTempo(tempoMs)
+const handleGuicheClick = (guiche: Guiche) => {
+  if (!guiche.ativo) return
+
+  const senha = senhaAtual(guiche.nome)
+  if (senha) {
+    // Se tem senha, finaliza
+    emit('finalizar', guiche.nome)
+  } else {
+    // Se não tem senha, chama próxima
+    if (!props.filaVazia) {
+      emit('chamar', guiche.nome)
+    }
+  }
 }
 </script>
 
 <style scoped>
 .counter-panels-wrapper h3 {
-  margin-bottom: 20px;
-  color: #495057;
-  font-size: 1.3em;
+  margin-bottom: 15px;
+  color: #004a8d;
+  font-size: 1.1em;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #eee;
 }
 
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 30px 15px;
   color: #868e96;
 }
 
 .empty-state i {
-  font-size: 3em;
-  margin-bottom: 15px;
+  font-size: 2em;
+  margin-bottom: 10px;
   opacity: 0.5;
 }
 
 .empty-state p {
-  margin: 5px 0;
+  margin: 3px 0;
+  font-size: 0.9em;
 }
 
 .empty-state .hint {
-  font-size: 0.9em;
+  font-size: 0.85em;
   color: #adb5bd;
 }
 
+/* Painéis em coluna única */
 .counter-panels {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 15px;
 }
 
-.counter-panel {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 20px;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.counter-panel:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.counter-panel.inactive {
-  background: linear-gradient(135deg, #868e96 0%, #6c757d 100%);
-  opacity: 0.7;
-}
-
-.counter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.counter-header h4 {
-  margin: 0;
-  font-size: 1.2em;
-}
-
-.badge-inactive {
-  background: rgba(255, 255, 255, 0.3);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75em;
-  font-weight: 600;
-}
-
-.current-ticket {
-  text-align: center;
-}
-
-.ticket-number {
-  font-size: 3em;
-  font-weight: bold;
-  margin: 15px 0;
-  letter-spacing: 2px;
-}
-
-.ticket-info {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.ticket-type {
-  background: rgba(255, 255, 255, 0.3);
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.85em;
-  font-weight: 600;
-}
-
-.ticket-time {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.85em;
-}
-
-.counter-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.no-ticket {
-  text-align: center;
-  padding: 30px 0;
-}
-
-.no-ticket i {
-  font-size: 3em;
-  opacity: 0.7;
-  margin-bottom: 10px;
-}
-
-.no-ticket p {
-  margin: 10px 0 20px 0;
-  font-size: 1.2em;
-  opacity: 0.9;
-}
-
-.btn {
-  padding: 10px 15px;
-  border: none;
+.guiche-painel {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
   border-radius: 8px;
-  font-size: 0.9em;
-  font-weight: 600;
+  padding: 15px;
+}
+
+.senha-atual-guiche {
+  text-align: center;
+  font-weight: bold;
+  color: #004a8d;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f0f8ff;
+  border: 2px dashed #004a8d;
   cursor: pointer;
-  transition: all 0.3s;
-  flex: 1;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
-.btn:disabled {
-  opacity: 0.5;
+.senha-atual-guiche.disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
-.btn-call {
-  background: white;
-  color: #667eea;
-  width: 100%;
+.senha-atual-guiche:hover:not(.disabled) {
+  background-color: #e7f3ff;
 }
 
-.btn-call:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+/* Cores por tipo de senha */
+.senha-atual-guiche.prioridade {
+  background-color: #fff5f5;
+  border-color: #ff6b6b;
+  color: #c92a2a;
 }
 
-.btn-finish {
-  background: rgba(40, 167, 69, 0.9);
-  color: white;
+.senha-atual-guiche.contratual {
+  background-color: #f3e8ff;
+  border-color: #845ef7;
+  color: #7048e8;
 }
 
-.btn-finish:hover:not(:disabled) {
-  background: rgba(40, 167, 69, 1);
+.senha-atual-guiche.normal {
+  background-color: #f0f8ff;
+  border-color: #4dabf7;
+  color: #004a8d;
 }
 
-.btn-no-show {
-  background: rgba(220, 53, 69, 0.9);
-  color: white;
+.guiche-painel-nome {
+  display: block;
+  font-weight: bold;
+  color: inherit;
+  margin-bottom: 5px;
+  font-size: 1.1rem;
 }
 
-.btn-no-show:hover:not(:disabled) {
-  background: rgba(220, 53, 69, 1);
+.senha-numero {
+  font-size: 3rem;
+  font-weight: bold;
+  color: inherit;
+  line-height: 1.1;
+  display: block;
+}
+
+.senha-numero.vazio {
+  color: #adb5bd;
 }
 </style>
