@@ -1,6 +1,6 @@
 // socket-client.js - Gerenciamento de comunicação WebSocket
 
-function initializeSocketHandlers() {
+window.initializeSocketHandlers = function initializeSocketHandlers() {
     const socket = window.socket;
 
     // Recebe estado atualizado do servidor
@@ -50,50 +50,50 @@ function initializeSocketHandlers() {
 }
 
 // Funções para emitir eventos ao servidor
-function emitirSenha(tipo, subtipo = '') {
+window.emitirSenha = function emitirSenha(tipo, subtipo = '') {
     window.socket.emit('emitirSenha', { tipo, subtipo });
 }
 
-function chamarSenha(guicheId) {
+window.chamarSenha = function chamarSenha(guicheId) {
     window.socket.emit('chamarSenha', { guicheId });
 }
 
-function chamarSenhaEspecifica(guicheId, numeroSenha) {
+window.chamarSenhaEspecifica = function chamarSenhaEspecifica(guicheId, numeroSenha) {
     window.socket.emit('chamarSenhaEspecifica', { guicheId, numeroSenha });
 }
 
-function finalizarAtendimento(guicheId) {
+window.finalizarAtendimento = function finalizarAtendimento(guicheId) {
     window.socket.emit('finalizarAtendimento', { guicheId });
 }
 
-function excluirSenha(numeroSenha) {
+window.excluirSenha = function excluirSenha(numeroSenha) {
     window.socket.emit('excluirSenha', { numeroSenha });
 }
 
-function excluirAtendimento(numeroSenha) {
+window.excluirAtendimento = function excluirAtendimento(numeroSenha) {
     window.socket.emit('excluirAtendimento', { numeroSenha });
 }
 
-function devolverSenha(numeroSenha) {
+window.devolverSenha = function devolverSenha(numeroSenha) {
     window.socket.emit('devolverSenha', { numeroSenha });
 }
 
-function atualizarDescricao(numeroSenha, descricao) {
+window.atualizarDescricao = function atualizarDescricao(numeroSenha, descricao) {
     window.socket.emit('atualizarDescricao', { numeroSenha, descricao });
 }
 
-function atualizarProporcao(novaProporcao) {
+window.atualizarProporcao = function atualizarProporcao(novaProporcao) {
     window.socket.emit('atualizarProporcao', novaProporcao);
 }
 
-function atualizarProporcaoContratual(novaProporcao) {
+window.atualizarProporcaoContratual = function atualizarProporcaoContratual(novaProporcao) {
     window.socket.emit('atualizarProporcaoContratual', novaProporcao);
 }
 
-function atualizarGuichesGlobais(guiches) {
+window.atualizarGuichesGlobais = function atualizarGuichesGlobais(guiches) {
     window.socket.emit('atualizarGuichesGlobais', guiches);
 }
 
-function reiniciarSistema() {
+window.reiniciarSistema = function reiniciarSistema() {
     window.socket.emit('reiniciarSistema');
 }

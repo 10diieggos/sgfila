@@ -917,3 +917,15 @@ const UIController = (function() {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UIController;
 }
+
+// Expose functions globally for backward compatibility
+window.UIController = UIController;
+window.atualizarInterface = UIController.atualizarInterface;
+window.renderizarFilaDeEspera = UIController.renderizarFilaDeEspera;
+window.renderizarPaineisDeGuiche = UIController.renderizarPaineisDeGuiche;
+window.renderizarDetalhesDoTicket = UIController.renderizarDetalhesDoTicket;
+window.renderizarGuichesGlobais = UIController.renderizarGuichesGlobais;
+window.renderizarGuichesExibicao = UIController.renderizarGuichesExibicao;
+window.salvarGuichesGlobais = UIController.salvarGuichesGlobais;
+window.salvarExibicaoGuiches = UIController.salvarExibicaoGuiches;
+window.initializeUI = UIController.initialize;

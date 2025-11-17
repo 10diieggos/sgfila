@@ -1,6 +1,6 @@
 // event-handlers.js - Gerenciamento de eventos de botões e ações
 
-function initializeEventHandlers() {
+window.initializeEventHandlers = function initializeEventHandlers() {
     // Botões de emissão de senha
     $('#btn-prioridade').on('click', function() {
         emitirSenha('prioridade', '');

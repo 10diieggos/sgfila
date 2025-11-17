@@ -16,8 +16,12 @@ $(document).ready(function() {
     // Helpers de ordenação
     window.tipoValor = { 'prioridade': 1, 'contratual': 2, 'normal': 3 };
 
+    // Inicializa o UIController
+    if (typeof initializeUI === 'function') {
+        initializeUI();
+    }
+
     // Inicializa os módulos
-    initializeUI();
     initializeSocketHandlers();
     initializeGuicheManager();
     initializeModalHandlers();

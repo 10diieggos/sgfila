@@ -1,6 +1,6 @@
 // tab-handlers.js - Gerenciamento de abas e sub-abas
 
-function initializeTabHandlers() {
+window.initializeTabHandlers = function initializeTabHandlers() {
     // Abas principais
     $('.tab-nav').on('click', '.tab-link', function(e) {
         e.preventDefault();

@@ -1,6 +1,6 @@
 // filter-handlers.js - Gerenciamento de filtros de fila
 
-function initializeFilterHandlers() {
+window.initializeFilterHandlers = function initializeFilterHandlers() {
     // Filtros de ordenação
     $('.filtro-botoes').on('click', '.btn-filtro', function() {
         const $this = $(this);

@@ -1,6 +1,6 @@
 // guiche-manager.js - Gerenciamento de guichês
 
-function initializeGuicheManager() {
+window.initializeGuicheManager = function initializeGuicheManager() {
     // Adicionar novo guichê global
     $('#btn-add-guiche-global').on('click', function() {
         const novoNome = `Guichê ${String(window.guichesGlobais.length + 1).padStart(2, '0')}`;
@@ -44,7 +44,7 @@ function initializeGuicheManager() {
     renderizarPaineisDeGuiche();
 }
 
-function renderizarGuichesExibicao() {
+window.renderizarGuichesExibicao = function renderizarGuichesExibicao() {
     const $guicheExibicaoList = $('#guiche-exibicao-list');
     $guicheExibicaoList.empty();
 
@@ -67,7 +67,7 @@ function renderizarGuichesExibicao() {
     });
 }
 
-function salvarExibicaoGuiches() {
+window.salvarExibicaoGuiches = function salvarExibicaoGuiches() {
     const guichesSelecionados = [];
     $('#guiche-exibicao-list input[type="checkbox"]:checked').each(function() {
         guichesSelecionados.push($(this).data('guiche-nome'));
@@ -77,7 +77,7 @@ function salvarExibicaoGuiches() {
     renderizarPaineisDeGuiche();
 }
 
-function renderizarGuichesGlobais() {
+window.renderizarGuichesGlobais = function renderizarGuichesGlobais() {
     const $guicheGlobalList = $('#guiche-global-list');
     $guicheGlobalList.empty();
 
@@ -104,7 +104,7 @@ function renderizarGuichesGlobais() {
     renderizarGuichesExibicao();
 }
 
-function salvarGuichesGlobais() {
+window.salvarGuichesGlobais = function salvarGuichesGlobais() {
     const novosGuiches = [];
     $('.guiche-global-nome').each(function() {
         const index = parseInt($(this).data('index'), 10);

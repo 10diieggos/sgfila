@@ -1,6 +1,6 @@
 // modal-handlers.js - Gerenciamento de modais
 
-function initializeModalHandlers() {
+window.initializeModalHandlers = function initializeModalHandlers() {
     // Modal de reiniciar sistema
     $('#btn-confirmar-reiniciar').on('click', function() {
         reiniciarSistema();
@@ -89,7 +89,7 @@ function initializeModalHandlers() {
     });
 }
 
-function mostrarModalConfirmacao(titulo, texto, callback) {
+window.mostrarModalConfirmacao = function mostrarModalConfirmacao(titulo, texto, callback) {
     $('#modal-confirmar-titulo').text(titulo);
     $('#modal-confirmar-texto').html(texto);
     window.acaoConfirmadaCallback = callback;

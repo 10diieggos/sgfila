@@ -1,20 +1,20 @@
 // utils.js - Funções utilitárias
 
-function calcularTempoEspera(timestamp) {
+window.calcularTempoEspera = function calcularTempoEspera(timestamp) {
     const agora = new Date().getTime();
     return Math.round((agora - timestamp) / 60000);
-}
+};
 
-function formatarTempo(milissegundos) {
+window.formatarTempo = function formatarTempo(milissegundos) {
     if (isNaN(milissegundos) || milissegundos === 0 || !isFinite(milissegundos)) {
         return '0 min';
     }
     if (milissegundos < 60000) return "< 1 min";
     const minutos = Math.round(milissegundos / 60000);
     return `${minutos} min`;
-}
+};
 
-function beep(times = 1) {
+window.beep = function beep(times = 1) {
     try {
         for (let i = 0; i < times; i++) {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -36,4 +36,4 @@ function beep(times = 1) {
     } catch (e) {
         console.log('Áudio não suportado');
     }
-}
+};
