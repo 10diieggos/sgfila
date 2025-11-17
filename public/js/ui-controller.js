@@ -22,14 +22,7 @@ const UIController = (function() {
     // ========================================
     // STATE AND CONFIGURATION VARIABLES
     // ========================================
-    // These will be injected during initialization
-    let estadoLocal = {};
-    let estatisticasLocais = {};
-    let guichesGlobais = [];
-    let filtroAtivo = 'emissao'; // 'emissao', 'automatica', 'tipo'
-    let termoBusca = '';
-    let ticketInfoSendoExibido = null;
-
+    // Use global window state directly (no internal copies)
     // Helper for sorting by type
     const tipoValor = { 'prioridade': 1, 'contratual': 2, 'normal': 3 };
 
@@ -76,55 +69,40 @@ const UIController = (function() {
     // INITIALIZATION FUNCTION
     // ========================================
     /**
-     * Initialize UI Controller with DOM references and state
-     * @param {Object} config - Configuration object containing:
-     *   - estado: Local state object reference
-     *   - estatisticas: Local statistics object reference
-     *   - guiches: Global counters array reference
-     *   - filtro: Current filter state reference
-     *   - termo: Current search term reference
-     *   - ticketExibido: Current displayed ticket number reference
-     *   And jQuery element selectors for all UI components
+     * Initialize UI Controller - sets up DOM references
+     * No parameters needed - uses global window state directly
      */
-    function initializeUI(config) {
-        // Inject state references
-        if (config.estado) estadoLocal = config.estado;
-        if (config.estatisticas) estatisticasLocais = config.estatisticas;
-        if (config.guiches) guichesGlobais = config.guiches;
-        if (config.filtro !== undefined) filtroAtivo = config.filtro;
-        if (config.termo !== undefined) termoBusca = config.termo;
-        if (config.ticketExibido !== undefined) ticketInfoSendoExibido = config.ticketExibido;
-
+    function initializeUI() {
         // Initialize DOM element references
-        $listaEspera = config.$listaEspera || $('#lista-espera');
-        $listaAtendimentosAtuais = config.$listaAtendimentosAtuais || $('#lista-atendimentos-atuais');
-        $historicoAtendimentos = config.$historicoAtendimentos || $('#historico-atendimentos');
+        $listaEspera = $('#lista-espera');
+        $listaAtendimentosAtuais = $('#lista-atendimentos-atuais');
+        $historicoAtendimentos = $('#historico-atendimentos');
 
-        $totalSenhas = config.$totalSenhas || $('#total-senhas');
-        $senhasAtendidas = config.$senhasAtendidas || $('#senhas-atendidas');
-        $tempoMedio = config.$tempoMedio || $('#tempo-medio');
-        $proximaSenha = config.$proximaSenha || $('#proxima-senha');
-        $statsPorTipo = config.$statsPorTipo || $('#stats-por-tipo');
-        $statsPorGuiche = config.$statsPorGuiche || $('#stats-por-guiche');
-        $totalNaoCompareceu = config.$totalNaoCompareceu || $('#total-nao-compareceu');
-        $totalExcluidas = config.$totalExcluidas || $('#total-excluidas');
-        $tabStats = config.$tabStats || $('#tab-stats');
+        $totalSenhas = $('#total-senhas');
+        $senhasAtendidas = $('#senhas-atendidas');
+        $tempoMedio = $('#tempo-medio');
+        $proximaSenha = $('#proxima-senha');
+        $statsPorTipo = $('#stats-por-tipo');
+        $statsPorGuiche = $('#stats-por-guiche');
+        $totalNaoCompareceu = $('#total-nao-compareceu');
+        $totalExcluidas = $('#total-excluidas');
+        $tabStats = $('#tab-stats');
 
-        $guicheControlPanels = config.$guicheControlPanels || $('#guiche-control-panels');
+        $guicheControlPanels = $('#guiche-control-panels');
 
-        $guicheGlobalList = config.$guicheGlobalList || $('#guiche-global-list');
-        $guicheExibicaoList = config.$guicheExibicaoList || $('#guiche-exibicao-list');
-        $btnAddGuicheGlobal = config.$btnAddGuicheGlobal || $('#btn-add-guiche-global');
+        $guicheGlobalList = $('#guiche-global-list');
+        $guicheExibicaoList = $('#guiche-exibicao-list');
+        $btnAddGuicheGlobal = $('#btn-add-guiche-global');
 
-        $modalReiniciar = config.$modalReiniciar || $('#modal-reiniciar');
-        $modalNovaSenha = config.$modalNovaSenha || $('#modal-nova-senha');
-        $modalEditarDescricao = config.$modalEditarDescricao || $('#modal-editar-descricao');
-        $modalConfirmarAcao = config.$modalConfirmarAcao || $('#modal-confirmar-acao');
-        $modalConfirmarTitulo = config.$modalConfirmarTitulo || $('#modal-confirmar-titulo');
-        $modalConfirmarTexto = config.$modalConfirmarTexto || $('#modal-confirmar-texto');
+        $modalReiniciar = $('#modal-reiniciar');
+        $modalNovaSenha = $('#modal-nova-senha');
+        $modalEditarDescricao = $('#modal-editar-descricao');
+        $modalConfirmarAcao = $('#modal-confirmar-acao');
+        $modalConfirmarTitulo = $('#modal-confirmar-titulo');
+        $modalConfirmarTexto = $('#modal-confirmar-texto');
 
-        $inputRatio = config.$inputRatio || $('#input-ratio');
-        $inputRatioContratual = config.$inputRatioContratual || $('#input-ratio-contratual');
+        $inputRatio = $('#input-ratio');
+        $inputRatioContratual = $('#input-ratio-contratual');
     }
 
     // ========================================
@@ -197,12 +175,12 @@ const UIController = (function() {
         const exibicaoSalva = sessionStorage.getItem('sgfGuichesExibicao');
         const guichesExibicao = exibicaoSalva ? JSON.parse(exibicaoSalva) : [];
 
-        if (guichesGlobais.length === 0) {
+        if (!window.guichesGlobais || window.guichesGlobais.length === 0) {
             $guicheExibicaoList.html('<p style="color: #868e96;">No global counters configured. Add counters in the "Counters (Global)" section.</p>');
             return;
         }
 
-        guichesGlobais.forEach(guiche => {
+        window.guichesGlobais.forEach(guiche => {
             const estaSelecionado = guichesExibicao.includes(guiche.nome);
             $guicheExibicaoList.append(`
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -233,11 +211,11 @@ const UIController = (function() {
      */
     function renderizarGuichesGlobais() {
         $guicheGlobalList.empty();
-        if (guichesGlobais.length === 0) {
+        if (!window.guichesGlobais || window.guichesGlobais.length === 0) {
             $guicheGlobalList.html('<p style="color: #868e96;">No global counters configured. Click "Add Counter".</p>');
         }
 
-        guichesGlobais.forEach((guiche, index) => {
+        window.guichesGlobais.forEach((guiche, index) => {
             const checked = guiche.ativo ? 'checked' : '';
             const nomeEscapado = $('<div />').text(guiche.nome).html();
 
@@ -273,7 +251,7 @@ const UIController = (function() {
         });
 
         const guichesFinais = novosGuiches.filter(g => g !== undefined);
-        guichesGlobais = guichesFinais;
+        window.guichesGlobais = guichesFinais;
 
         // Emit to server (requires socket.io reference)
         if (window.socket) {
@@ -296,7 +274,7 @@ const UIController = (function() {
         const exibicaoSalva = sessionStorage.getItem('sgfGuichesExibicao');
         const guichesParaExibir = exibicaoSalva ? JSON.parse(exibicaoSalva) : [];
 
-        const atendimentos = (estadoLocal && estadoLocal.atendimentosAtuais) ? estadoLocal.atendimentosAtuais : {};
+        const atendimentos = (window.estadoLocal && window.estadoLocal.atendimentosAtuais) ? window.estadoLocal.atendimentosAtuais : {};
 
         if (guichesParaExibir.length === 0) {
             $guicheControlPanels.html('<div class="alert">No counters selected for display. Go to Settings > Counters.</div>');
@@ -337,22 +315,22 @@ const UIController = (function() {
      * Lines ~2209-2367 of original index.html
      */
     function renderizarFilaDeEspera() {
-        if (!estadoLocal.senhas) {
+        if (!window.estadoLocal.senhas) {
             $listaEspera.empty().append('<div class="senha-item">No tickets in queue</div>');
             return;
         }
 
-        let senhasEspera = estadoLocal.senhas.filter(s => s.status === 'espera');
+        let senhasEspera = window.estadoLocal.senhas.filter(s => s.status === 'espera');
 
         // 1. Apply search filter
-        if (termoBusca) {
+        if (window.termoBusca) {
             senhasEspera = senhasEspera.filter(s =>
-                s.descricao && s.descricao.toLowerCase().includes(termoBusca)
+                s.descricao && s.descricao.toLowerCase().includes(window.termoBusca)
             );
         }
 
         // 2. Apply sorting filter
-        switch (filtroAtivo) {
+        switch (window.filtroAtivo) {
             case 'emissao':
                 // Default: Arrival order (timestamp)
                 senhasEspera.sort((a, b) => a.timestamp - b.timestamp);
@@ -362,10 +340,10 @@ const UIController = (function() {
                 // Simulate server's automatic calling algorithm
                 const filaSimulada = [];
                 let simFilaEspera = [...senhasEspera].sort((a, b) => a.timestamp - b.timestamp);
-                let simContadorP = estadoLocal.contadorPrioridadeDesdeUltimaNormal || 0;
-                let simContadorC = estadoLocal.contadorContratualDesdeUltimaNormal || 0;
-                const proporcaoP = estadoLocal.proporcaoPrioridade || 2;
-                const proporcaoC = estadoLocal.proporcaoContratual || 1;
+                let simContadorP = window.estadoLocal.contadorPrioridadeDesdeUltimaNormal || 0;
+                let simContadorC = window.estadoLocal.contadorContratualDesdeUltimaNormal || 0;
+                const proporcaoP = window.estadoLocal.proporcaoPrioridade || 2;
+                const proporcaoC = window.estadoLocal.proporcaoContratual || 1;
 
                 while (simFilaEspera.length > 0) {
                     const prioritariaMaisAntiga = simFilaEspera.find(s => s.tipo === 'prioridade');
@@ -470,7 +448,7 @@ const UIController = (function() {
                 `);
             });
         } else {
-            if (termoBusca) {
+            if (window.termoBusca) {
                 $listaEspera.append('<div class="senha-item">No tickets found with that description.</div>');
             } else {
                 $listaEspera.append('<div class="senha-item">No tickets in queue</div>');
@@ -488,9 +466,9 @@ const UIController = (function() {
      * Lines ~1778-1995 of original index.html
      */
     function renderizarDetalhesDoTicket(numeroSenha) {
-        const senhas = (estadoLocal && estadoLocal.senhas) ? estadoLocal.senhas : [];
+        const senhas = (window.estadoLocal && window.estadoLocal.senhas) ? window.estadoLocal.senhas : [];
         const senha = senhas.find(s => s.numero === numeroSenha);
-        const stats = estatisticasLocais || {};
+        const stats = window.estatisticasLocais || {};
 
         const $content = $('#ticket-info-content');
 
@@ -502,14 +480,14 @@ const UIController = (function() {
             let pessoasNaFrente = 'N/A';
 
             if (senha.status === 'espera') {
-                const senhasEspera = (estadoLocal.senhas || []).filter(s => s.status === 'espera');
+                const senhasEspera = (window.estadoLocal.senhas || []).filter(s => s.status === 'espera');
 
                 const filaSimulada = [];
                 let simFilaEspera = [...senhasEspera].sort((a, b) => a.timestamp - b.timestamp);
-                let simContadorP = estadoLocal.contadorPrioridadeDesdeUltimaNormal || 0;
-                let simContadorC = estadoLocal.contadorContratualDesdeUltimaNormal || 0;
-                const proporcaoP = estadoLocal.proporcaoPrioridade || 2;
-                const proporcaoC = estadoLocal.proporcaoContratual || 1;
+                let simContadorP = window.estadoLocal.contadorPrioridadeDesdeUltimaNormal || 0;
+                let simContadorC = window.estadoLocal.contadorContratualDesdeUltimaNormal || 0;
+                const proporcaoP = window.estadoLocal.proporcaoPrioridade || 2;
+                const proporcaoC = window.estadoLocal.proporcaoContratual || 1;
 
                 while (simFilaEspera.length > 0) {
                     const prioritariaMaisAntiga = simFilaEspera.find(s => s.tipo === 'prioridade');
@@ -679,7 +657,7 @@ const UIController = (function() {
                 </div>
             `);
         } else {
-            ticketInfoSendoExibido = null;
+            window.ticketInfoSendoExibido = null;
             $content.html(`
                 <p style="padding: 10px 0; color: #868e96;">
                     Ticket ${numeroSenha} is no longer in the queue or has already been served.
@@ -696,8 +674,8 @@ const UIController = (function() {
      */
     function atualizarInterface(estatisticas) {
 
-        const senhas = (estadoLocal && estadoLocal.senhas) ? estadoLocal.senhas : [];
-        const atendimentos = (estadoLocal && estadoLocal.atendimentosAtuais) ? estadoLocal.atendimentosAtuais : {};
+        const senhas = (window.estadoLocal && window.estadoLocal.senhas) ? window.estadoLocal.senhas : [];
+        const atendimentos = (window.estadoLocal && window.estadoLocal.atendimentosAtuais) ? window.estadoLocal.atendimentosAtuais : {};
 
         // 1. Render counter control panels
         renderizarPaineisDeGuiche();
@@ -863,8 +841,8 @@ const UIController = (function() {
         }
 
         // 8. Re-render ticket details if being displayed
-        if (ticketInfoSendoExibido) {
-            renderizarDetalhesDoTicket(ticketInfoSendoExibido);
+        if (window.ticketInfoSendoExibido) {
+            renderizarDetalhesDoTicket(window.ticketInfoSendoExibido);
         }
     }
 
@@ -876,23 +854,23 @@ const UIController = (function() {
         initialize: initializeUI,
 
         // State accessors and mutators
-        setEstado: function(estado) { estadoLocal = estado; },
-        getEstado: function() { return estadoLocal; },
+        setEstado: function(estado) { window.estadoLocal = estado; },
+        getEstado: function() { return window.estadoLocal; },
 
-        setEstatisticas: function(stats) { estatisticasLocais = stats; },
-        getEstatisticas: function() { return estatisticasLocais; },
+        setEstatisticas: function(stats) { window.estatisticasLocais = stats; },
+        getEstatisticas: function() { return window.estatisticasLocais; },
 
         setGuiches: function(guiches) { guichesGlobais = guiches; },
         getGuiches: function() { return guichesGlobais; },
 
-        setFiltro: function(filtro) { filtroAtivo = filtro; },
-        getFiltro: function() { return filtroAtivo; },
+        setFiltro: function(filtro) { window.filtroAtivo = filtro; },
+        getFiltro: function() { return window.filtroAtivo; },
 
-        setTermoBusca: function(termo) { termoBusca = termo; },
-        getTermoBusca: function() { return termoBusca; },
+        setTermoBusca: function(termo) { window.termoBusca = termo; },
+        getTermoBusca: function() { return window.termoBusca; },
 
-        setTicketExibido: function(ticket) { ticketInfoSendoExibido = ticket; },
-        getTicketExibido: function() { return ticketInfoSendoExibido; },
+        setTicketExibido: function(ticket) { window.ticketInfoSendoExibido = ticket; },
+        getTicketExibido: function() { return window.ticketInfoSendoExibido; },
 
         // Main rendering functions
         atualizarInterface: atualizarInterface,
