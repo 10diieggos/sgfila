@@ -604,15 +604,53 @@ io.on('connection', (socket) => {
     });
 
     // --- NOVO: Handler para Configuração Global de Guichês ---
-    socket.on('atualizarGuichesGlobais', (novosGuiches) => {
+    socket.on('atualizarGuichesGlobais', (payload) => {
+        // Suporta tanto formato antigo (array direto) quanto novo (objeto com guiches e renomeacoes)
+        let novosGuiches = [];
+        let renomeacoes = [];
+
+        if (Array.isArray(payload)) {
+            // Formato antigo: apenas array de guichês
+            novosGuiches = payload;
+        } else if (payload && typeof payload === 'object') {
+            // Formato novo: objeto com guiches e renomeacoes
+            novosGuiches = payload.guiches || [];
+            renomeacoes = payload.renomeacoes || [];
+        }
+
         if (Array.isArray(novosGuiches)) {
             console.log('Atualizando guichês globais.');
+
+            // Processa renomeações ANTES de atualizar a configuração
+            renomeacoes.forEach(({nomeAntigo, nomeNovo}) => {
+                console.log(`Renomeando guichê "${nomeAntigo}" para "${nomeNovo}"`);
+
+                // 1. Atualizar atendimentosAtuais (renomear chave)
+                if (estado.atendimentosAtuais[nomeAntigo]) {
+                    estado.atendimentosAtuais[nomeNovo] = estado.atendimentosAtuais[nomeAntigo];
+                    delete estado.atendimentosAtuais[nomeAntigo];
+                    console.log(`  - Atendimento atual movido de "${nomeAntigo}" para "${nomeNovo}"`);
+                }
+
+                // 2. Atualizar senhas[].guicheAtendendo
+                let senhasAtualizadas = 0;
+                estado.senhas.forEach(senha => {
+                    if (senha.guicheAtendendo === nomeAntigo) {
+                        senha.guicheAtendendo = nomeNovo;
+                        senhasAtualizadas++;
+                    }
+                });
+                if (senhasAtualizadas > 0) {
+                    console.log(`  - ${senhasAtualizadas} senha(s) atualizada(s)`);
+                }
+            });
+
             // Limpa os nomes e status
             const guichesLimpados = novosGuiches.map(g => ({
                 nome: (g.nome || 'Guichê').trim(),
                 ativo: !!g.ativo
             }));
-            
+
             estado.guichesConfigurados = guichesLimpados;
             salvarEstado(estado);
             broadcastEstadoAtualizado(); // Emite o novo estado (com guiches) e novas estatisticas (com contagem de ativos)

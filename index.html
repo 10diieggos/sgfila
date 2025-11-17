@@ -1414,23 +1414,38 @@
 
             function salvarGuichesGlobais() {
                 const novosGuiches = [];
+                const renomeacoes = []; // Array para rastrear renomeações: [{nomeAntigo, nomeNovo}]
+
                 $('.guiche-global-nome').each(function() {
                     const index = parseInt($(this).data('index'), 10);
-                    const nome = $(this).val().trim();
+                    const nomeNovo = $(this).val().trim();
                     const ativo = $(`#guiche-ativo-${index}`).is(':checked');
-                    
-                    if (nome && !isNaN(index)) {
+
+                    if (nomeNovo && !isNaN(index)) {
+                        // Verifica se houve renomeação comparando com o estado anterior
+                        if (guichesGlobais[index] && guichesGlobais[index].nome !== nomeNovo) {
+                            renomeacoes.push({
+                                nomeAntigo: guichesGlobais[index].nome,
+                                nomeNovo: nomeNovo
+                            });
+                        }
+
                         // Usa o índice para manter a ordem
-                        novosGuiches[index] = { nome: nome, ativo: ativo };
+                        novosGuiches[index] = { nome: nomeNovo, ativo: ativo };
                     }
                 });
-                
+
                 // Filtra 'empty slots' se houver
                 const guichesFinais = novosGuiches.filter(g => g !== undefined);
-                
+
                 guichesGlobais = guichesFinais;
-                socket.emit('atualizarGuichesGlobais', guichesFinais);
-                
+
+                // Envia os guichês atualizados E as renomeações detectadas
+                socket.emit('atualizarGuichesGlobais', {
+                    guiches: guichesFinais,
+                    renomeacoes: renomeacoes
+                });
+
                 // --- REMOVIDO: Feedback visual do botão (Req 2) ---
             }
             
