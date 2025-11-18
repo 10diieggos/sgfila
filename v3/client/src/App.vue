@@ -200,7 +200,7 @@
     <!-- Modal Estatísticas -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showStatsModal" class="modal-overlay modal-paineis" @click.self="showStatsModal = false">
+        <div v-if="showStatsModal" class="modal-overlay modal-paineis modal-stats" @click.self="showStatsModal = false">
           <div class="modal-content modal-content-paineis" @click.stop>
             <StatisticsPanel
               :estatisticas="estatisticas"
@@ -858,6 +858,11 @@ header h1 {
 /* Modal overlay para painéis - z-index mais alto */
 .modal-overlay.modal-paineis {
   z-index: 3000;
+}
+
+/* Modal de Estatísticas (ticket) - sempre na frente dos outros painéis */
+.modal-overlay.modal-stats {
+  z-index: 3500;
 }
 
 .modal-content {
