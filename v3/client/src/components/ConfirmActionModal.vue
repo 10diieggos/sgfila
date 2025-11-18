@@ -6,10 +6,6 @@
           <span class="modal-label">{{ title }}</span>
           <div v-if="tipoSenha" :class="['senha-numero-confirm', tipoSenha]">{{ extractSenhaNumber(message) }}</div>
 
-          <div class="modal-message">
-            <p>{{ message }}</p>
-          </div>
-
           <div class="modal-actions-confirm">
             <button :class="['btn-confirm', getConfirmClass()]" @click="handleConfirm">
               {{ confirmText }}
@@ -173,53 +169,54 @@ onUnmounted(() => {
 .btn-confirm,
 .btn-cancel-confirm {
   padding: 12px 30px;
-  border: none;
+  border: 2px solid;
   border-radius: 8px;
   font-size: 1em;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   min-width: 120px;
+  background-color: transparent;
 }
 
 .btn-confirm.btn-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
+  color: #ff6b6b;
+  border-color: #ff6b6b;
 }
 
 .btn-confirm.btn-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+  background-color: #ff6b6b;
+  color: white;
 }
 
 .btn-confirm.btn-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  color: white;
+  color: #ff6b6b;
+  border-color: #ff6b6b;
 }
 
 .btn-confirm.btn-warning:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
-}
-
-.btn-confirm.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #ff6b6b;
   color: white;
 }
 
+.btn-confirm.btn-primary {
+  color: #4dabf7;
+  border-color: #4dabf7;
+}
+
 .btn-confirm.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background-color: #4dabf7;
+  color: white;
 }
 
 .btn-cancel-confirm {
-  background: #e9ecef;
-  color: #495057;
+  color: #868e96;
+  border-color: #868e96;
 }
 
 .btn-cancel-confirm:hover {
-  background: #dee2e6;
-  transform: translateY(-2px);
+  background-color: #868e96;
+  color: white;
 }
 
 /* Transitions */

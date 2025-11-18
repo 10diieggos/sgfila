@@ -84,7 +84,13 @@ const termoBusca = ref('')
 const senhasHistorico = computed(() => {
   return props.senhas
     .filter(s => s.status === 'atendida' || s.status === 'nao_compareceu' || s.status === 'excluida')
-    .sort((a, b) => b.timestamp - a.timestamp) // Ordenar por entrada (mais recentes primeiro)
+    .sort((a, b) => {
+      // Ordenar por finalizadoTimestamp (quando foi finalizada/marcada ausente/excluída)
+      // Usar timestamp como fallback se finalizadoTimestamp não existir
+      const timestampA = a.finalizadoTimestamp || a.timestamp
+      const timestampB = b.finalizadoTimestamp || b.timestamp
+      return timestampB - timestampA // Mais recentes primeiro
+    })
 })
 
 const senhasFiltradas = computed(() => {
@@ -332,22 +338,22 @@ const getStatusLabel = (status: string): string => {
 }
 
 .btn-return {
-  color: #845ef7;
-  border-color: #845ef7;
+  color: #ffa500;
+  border-color: #ffa500;
 }
 
 .btn-return:hover {
-  background-color: #845ef7;
+  background-color: #ffa500;
   color: white;
 }
 
 .btn-absent {
-  color: #ffc107;
-  border-color: #ffc107;
+  color: #ff6b6b;
+  border-color: #ff6b6b;
 }
 
 .btn-absent:hover {
-  background-color: #ffc107;
+  background-color: #ff6b6b;
   color: white;
 }
 

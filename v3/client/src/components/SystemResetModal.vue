@@ -104,31 +104,33 @@ defineEmits<{
 
 .btn {
   padding: 10px 20px;
-  border: none;
+  border: 2px solid;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  background-color: transparent;
 }
 
 .btn-reset {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-  color: white;
+  color: #ff6b6b;
+  border-color: #ff6b6b;
 }
 
 .btn-reset:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  background-color: #ff6b6b;
+  color: white;
 }
 
 .btn-cancel {
-  background: #e9ecef;
-  color: #495057;
+  color: #868e96;
+  border-color: #868e96;
 }
 
 .btn-cancel:hover {
-  background: #dee2e6;
+  background-color: #868e96;
+  color: white;
 }
 
 /* Transitions */

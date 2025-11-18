@@ -63,11 +63,17 @@ export function calcularTempoEsperaRealtime(senha: { timestamp: number; chamadaT
 
 /**
  * Calcula tempo de atendimento em tempo real para senha em atendimento
- * @param senha - Objeto senha com chamadaTimestamp e finalizadoTimestamp
+ * @param senha - Objeto senha com chamadaTimestamp, finalizadoTimestamp e status
  * @returns Milissegundos de tempo de atendimento
  */
-export function calcularTempoAtendimentoRealtime(senha: { chamadaTimestamp?: number; finalizadoTimestamp?: number }): number {
+export function calcularTempoAtendimentoRealtime(senha: { chamadaTimestamp?: number; finalizadoTimestamp?: number; status?: string }): number {
+  // Se não foi chamada, não tem tempo de atendimento
   if (!senha.chamadaTimestamp) {
+    return 0
+  }
+
+  // Se foi marcada como ausente sem ter sido atendida, não tem tempo de atendimento
+  if (senha.status === 'nao_compareceu' && !senha.finalizadoTimestamp) {
     return 0
   }
 

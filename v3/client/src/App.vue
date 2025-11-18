@@ -138,7 +138,7 @@
       :numero-senha="senhaParaEditar?.numero || ''"
       :descricao="senhaParaEditar?.descricao || ''"
       :tipo-senha="senhaParaEditar?.tipo"
-      @close="showEditModal = false"
+      @close="handleCloseEditModal"
       @save="handleSalvarEdicaoDescricao"
     />
 
@@ -313,6 +313,7 @@ const showAlertModal = ref(false)
 const showTicketModal = ref(false)
 const alertMessage = ref('')
 const modalSourceForTicket = ref<'history' | 'queue' | 'attendance' | null>(null)
+const editModalOpenedFromTicket = ref(false)
 const novaSenhaNumerо = ref('')
 const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
 const senhaParaEditar = ref<Senha | null>(null)
@@ -368,7 +369,7 @@ const handleNaoCompareceu = (guicheNome: string) => {
   const senha = estado.value?.atendimentosAtuais[guicheNome]
   if (senha) {
     confirmModalData.value = {
-      title: 'Marcar como Ausente',
+      title: 'Ausente',
       message: `Confirma que a senha ${senha.numero} não compareceu ao atendimento?`,
       confirmText: 'Confirmar',
       tipoSenha: senha.tipo,
@@ -386,7 +387,7 @@ const handleDevolverSenha = (numeroSenha: string) => {
 const handleAusente = (numeroSenha: string) => {
   const senha = estado.value?.senhas.find(s => s.numero === numeroSenha)
   confirmModalData.value = {
-    title: 'Marcar como Ausente',
+    title: 'Ausente',
     message: `Confirma que a senha ${numeroSenha} não compareceu ao atendimento?`,
     confirmText: 'Confirmar',
     tipoSenha: senha?.tipo || 'normal',
@@ -436,10 +437,22 @@ const handleEditarDescricao = (numeroSenha: string) => {
   }
 }
 
+const handleCloseEditModal = () => {
+  showEditModal.value = false
+
+  // Se foi aberto a partir do modal ticket, reabrir o modal ticket
+  if (editModalOpenedFromTicket.value) {
+    showTicketModal.value = true
+    editModalOpenedFromTicket.value = false
+  }
+}
+
 const handleSalvarEdicaoDescricao = (descricao: string) => {
   if (senhaParaEditar.value) {
     atualizarDescricao(senhaParaEditar.value.numero, descricao)
   }
+
+  handleCloseEditModal()
 }
 
 const handleExcluirSenha = (numeroSenha: string) => {
@@ -493,8 +506,8 @@ const handleChamarFromTicketModal = (numeroSenha: string) => {
 
 const handleEditarFromTicketModal = (numeroSenha: string) => {
   showTicketModal.value = false
+  editModalOpenedFromTicket.value = true
   handleEditarDescricao(numeroSenha)
-  modalSourceForTicket.value = null
 }
 
 const handleExcluirFromTicketModal = (numeroSenha: string) => {

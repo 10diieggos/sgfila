@@ -14,43 +14,6 @@
               {{ ticketSelecionado.numero }}
             </div>
 
-            <!-- Botões de ação -->
-            <div class="ticket-actions">
-              <button
-                v-if="ticketSelecionado.status !== 'chamada'"
-                @click="$emit('chamar', ticketSelecionado.numero)"
-                class="btn-ticket-action btn-call"
-              >
-                <i class="fas fa-bullhorn"></i> Chamar
-              </button>
-              <button
-                @click="$emit('editar', ticketSelecionado.numero)"
-                class="btn-ticket-action btn-edit"
-              >
-                <i class="fas fa-edit"></i> Editar
-              </button>
-              <button
-                @click="$emit('excluir', ticketSelecionado.numero)"
-                class="btn-ticket-action btn-delete"
-              >
-                <i class="fas fa-trash-alt"></i> Excluir
-              </button>
-              <button
-                v-if="ticketSelecionado.status !== 'espera'"
-                @click="$emit('retornar', ticketSelecionado.numero)"
-                class="btn-ticket-action btn-return"
-              >
-                <i class="fas fa-undo"></i> Devolver
-              </button>
-              <button
-                v-if="ticketSelecionado.status !== 'nao_compareceu'"
-                @click="$emit('ausente', ticketSelecionado.numero)"
-                class="btn-ticket-action btn-absent"
-              >
-                <i class="fas fa-user-times"></i> Ausente
-              </button>
-            </div>
-
             <div class="ticket-info-grid">
               <div class="info-item">
                 <div class="info-label">Status</div>
@@ -90,7 +53,7 @@
               </div>
               <div class="info-item">
                 <div class="info-label">Tempo de Atendimento</div>
-                <div class="info-value">{{ formatarTempoHMS(tempoAtendimentoRealtime) }}</div>
+                <div class="info-value">{{ tempoAtendimentoRealtime > 0 ? formatarTempoHMS(tempoAtendimentoRealtime) : '---' }}</div>
               </div>
               <div v-if="ticketSelecionado.guicheAtendendo" class="info-item">
                 <div class="info-label">Guichê</div>
@@ -100,6 +63,48 @@
                 <div class="info-label">Descrição</div>
                 <div class="info-value">{{ ticketSelecionado.descricao }}</div>
               </div>
+            </div>
+
+            <!-- Botões de ação -->
+            <div class="ticket-actions">
+              <button
+                v-if="ticketSelecionado.status !== 'chamada'"
+                @click="$emit('chamar', ticketSelecionado.numero)"
+                class="btn-ticket-action btn-call"
+                title="Chamar esta senha"
+              >
+                <i class="fas fa-bullhorn"></i>
+              </button>
+              <button
+                @click="$emit('editar', ticketSelecionado.numero)"
+                class="btn-ticket-action btn-edit"
+                title="Editar descrição"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
+              <button
+                @click="$emit('excluir', ticketSelecionado.numero)"
+                class="btn-ticket-action btn-delete"
+                title="Excluir senha"
+              >
+                <i class="fas fa-trash-alt"></i>
+              </button>
+              <button
+                v-if="ticketSelecionado.status !== 'espera'"
+                @click="$emit('retornar', ticketSelecionado.numero)"
+                class="btn-ticket-action btn-return"
+                title="Devolver para fila"
+              >
+                <i class="fas fa-undo"></i>
+              </button>
+              <button
+                v-if="ticketSelecionado.status !== 'nao_compareceu'"
+                @click="$emit('ausente', ticketSelecionado.numero)"
+                class="btn-ticket-action btn-absent"
+                title="Marcar como ausente"
+              >
+                <i class="fas fa-user-times"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -358,26 +363,23 @@ const tempoAtendimentoRealtime = useRealtimeTimer(() => {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
 }
 
 .btn-ticket-action {
-  padding: 10px 20px;
-  border: 2px solid;
-  background-color: white;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid;
+  background-color: transparent;
+  border-radius: 5px;
   cursor: pointer;
   font-size: 0.95em;
-  font-weight: 600;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  transition: all 0.2s;
 }
 
 .btn-ticket-action:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 .btn-ticket-action.btn-call {
@@ -411,22 +413,22 @@ const tempoAtendimentoRealtime = useRealtimeTimer(() => {
 }
 
 .btn-ticket-action.btn-return {
-  color: #845ef7;
-  border-color: #845ef7;
+  color: #ffa500;
+  border-color: #ffa500;
 }
 
 .btn-ticket-action.btn-return:hover {
-  background-color: #845ef7;
+  background-color: #ffa500;
   color: white;
 }
 
 .btn-ticket-action.btn-absent {
-  color: #ffc107;
-  border-color: #ffc107;
+  color: #ff6b6b;
+  border-color: #ff6b6b;
 }
 
 .btn-ticket-action.btn-absent:hover {
-  background-color: #ffc107;
+  background-color: #ff6b6b;
   color: white;
 }
 

@@ -1,6 +1,6 @@
 <template>
   <div class="current-attendance-wrapper">
-    <h3><i class="fas fa-user-headset"></i> Atendendo (Todos)</h3>
+    <h3><i class="fas fa-user-headset"></i> Atendendo</h3>
 
     <div v-if="senhasAtendendo.length === 0" class="empty-state">
       <i class="fas fa-inbox"></i>
@@ -41,7 +41,7 @@
             <button
               class="btn-acao-senha btn-acao-ausente"
               @click="$emit('ausente', item.senha.numero)"
-              title="Não compareceu"
+              title="Ausente"
             >
               <i class="fas fa-user-slash"></i>
             </button>
