@@ -504,32 +504,32 @@ const handleCloseTicketModal = () => {
 }
 
 const handleChamarFromTicketModal = (numeroSenha: string) => {
-  showTicketModal.value = false
   handleChamarSenhaEspecifica(numeroSenha)
+  showTicketModal.value = false
   modalSourceForTicket.value = null
 }
 
 const handleEditarFromTicketModal = (numeroSenha: string) => {
-  showTicketModal.value = false
   editModalOpenedFromTicket.value = true
   handleEditarDescricao(numeroSenha)
+  showTicketModal.value = false
 }
 
 const handleExcluirFromTicketModal = (numeroSenha: string) => {
-  showTicketModal.value = false
   handleExcluirSenha(numeroSenha)
+  showTicketModal.value = false
   modalSourceForTicket.value = null
 }
 
 const handleRetornarFromTicketModal = (numeroSenha: string) => {
-  showTicketModal.value = false
   handleDevolverSenha(numeroSenha)
+  showTicketModal.value = false
   modalSourceForTicket.value = null
 }
 
 const handleAusenteFromTicketModal = (numeroSenha: string) => {
-  showTicketModal.value = false
   handleAusente(numeroSenha)
+  showTicketModal.value = false
   modalSourceForTicket.value = null
 }
 
