@@ -116,10 +116,10 @@ onUnmounted(() => {
 }
 
 .senha-numero-confirm {
-  font-size: 6em;
+  font-size: 10em;
   font-weight: bold;
   margin: 20px 0;
-  padding: 20px;
+  padding: 30px;
   border-radius: 12px;
   letter-spacing: 4px;
   white-space: nowrap;
