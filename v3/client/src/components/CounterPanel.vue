@@ -20,10 +20,18 @@
           @click="handleGuicheClick(guiche)"
         >
           <span class="guiche-painel-nome">{{ guiche.nome }}</span>
-          <span v-if="senhaAtual(guiche.id)" class="senha-numero">
-            {{ senhaAtual(guiche.id)?.numero }}
+          <template v-if="senhaAtual(guiche.id)">
+            <span class="senha-numero">
+              {{ senhaAtual(guiche.id)?.numero }}
+            </span>
+            <span class="tempo-atendimento">
+              <i class="fas fa-clock"></i>
+              {{ formatTempoAtendimento(senhaAtual(guiche.id)!) }}
+            </span>
+          </template>
+          <span v-else class="senha-numero vazio">
+            {{ filaVazia ? 'Fila Esgotada' : '---' }}
           </span>
-          <span v-else class="senha-numero vazio">---</span>
         </div>
       </div>
     </div>
@@ -31,8 +39,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import type { Guiche, Senha, AtendimentoAtual } from '@shared/types'
+import { formatarTempoHMS } from '../composables/useUtils'
 
 const props = withDefaults(defineProps<{
   guiches: Guiche[]
@@ -50,6 +59,22 @@ const emit = defineEmits<{
   'nao-compareceu': [guicheId: string]
 }>()
 
+// Força atualização a cada segundo para o contador
+const currentTime = ref(Date.now())
+let intervalId: number | null = null
+
+onMounted(() => {
+  intervalId = window.setInterval(() => {
+    currentTime.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (intervalId !== null) {
+    clearInterval(intervalId)
+  }
+})
+
 const guichesVisiveis = computed(() => {
   if (props.guichesExibicao.length === 0) {
     return props.guiches
@@ -64,6 +89,12 @@ const senhaAtual = (guicheId: string): Senha | undefined => {
 const getSenhaClass = (guicheId: string): string => {
   const senha = senhaAtual(guicheId)
   return senha ? senha.tipo : ''
+}
+
+const formatTempoAtendimento = (senha: Senha): string => {
+  if (!senha.chamadaTimestamp) return '0:00:00'
+  const tempoMs = currentTime.value - senha.chamadaTimestamp
+  return formatarTempoHMS(tempoMs)
 }
 
 const handleGuicheClick = (guiche: Guiche) => {
@@ -185,5 +216,18 @@ const handleGuicheClick = (guiche: Guiche) => {
 
 .senha-numero.vazio {
   color: #adb5bd;
+  font-size: 1.2rem;
+}
+
+.tempo-atendimento {
+  display: block;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  color: inherit;
+  font-weight: normal;
+}
+
+.tempo-atendimento i {
+  margin-right: 4px;
 }
 </style>

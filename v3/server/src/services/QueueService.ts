@@ -136,6 +136,11 @@ export class QueueService {
     const agora = Date.now();
     senhaChamada.status = 'chamada';
     senhaChamada.guicheAtendendo = guicheId;
+
+    // Busca nome do guichê
+    const guiche = estado.guichesConfigurados.find(g => g.id === guicheId);
+    senhaChamada.guicheNome = guiche?.nome || guicheId;
+
     senhaChamada.chamadaTimestamp = agora;
     senhaChamada.tempoEspera = agora - senhaChamada.timestamp;
 
@@ -154,23 +159,39 @@ export class QueueService {
   public chamarSenhaEspecifica(guicheId: string, numeroSenha: string): Senha | null {
     const estado = this.stateManager.getEstado();
 
-    // Verifica se guichê já está atendendo
+    // Se guichê já está atendendo, finaliza automaticamente
     if (estado.atendimentosAtuais[guicheId]) {
-      console.log(`Guichê ${guicheId} já está atendendo`);
-      return null;
+      console.log(`Guichê ${guicheId} já está atendendo - finalizando automaticamente`);
+      this.finalizarAtendimento(guicheId);
     }
 
-    // Busca senha específica
-    const senha = estado.senhas.find(s => s.numero === numeroSenha && s.status === 'espera');
+    // Busca senha específica (em qualquer status)
+    const senha = estado.senhas.find(s => s.numero === numeroSenha);
     if (!senha) {
       console.log(`Senha ${numeroSenha} não encontrada`);
       return null;
     }
 
-    // Atualiza senha
+    // Se a senha não está em espera, retorna para fila primeiro
+    if (senha.status !== 'espera') {
+      console.log(`Senha ${numeroSenha} não está em espera (${senha.status}) - devolvendo para fila`);
+      // Limpa dados de atendimento/finalização
+      senha.guicheAtendendo = undefined;
+      senha.guicheNome = undefined;
+      senha.chamadaTimestamp = undefined;
+      senha.finalizadoTimestamp = undefined;
+      senha.status = 'espera';
+    }
+
+    // Atualiza senha para chamada
     const agora = Date.now();
     senha.status = 'chamada';
     senha.guicheAtendendo = guicheId;
+
+    // Busca nome do guichê
+    const guiche = estado.guichesConfigurados.find(g => g.id === guicheId);
+    senha.guicheNome = guiche?.nome || guicheId;
+
     senha.chamadaTimestamp = agora;
     senha.tempoEspera = agora - senha.timestamp;
 
@@ -240,6 +261,7 @@ export class QueueService {
 
     // Limpa dados de atendimento
     senha.guicheAtendendo = undefined;
+    senha.guicheNome = undefined;
     senha.chamadaTimestamp = undefined;
     senha.finalizadoTimestamp = undefined;
 
@@ -292,6 +314,7 @@ export class QueueService {
 
     // Limpa dados de atendimento
     senha.guicheAtendendo = undefined;
+    senha.guicheNome = undefined;
     senha.chamadaTimestamp = undefined;
     senha.finalizadoTimestamp = undefined;
     // NÃO resetar tempoEspera e tempoAtendimento - devem continuar acumulando desde emissão

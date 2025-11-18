@@ -29,6 +29,7 @@ export interface Senha {
 
   // Campos para senhas em atendimento
   guicheAtendendo?: string;
+  guicheNome?: string;
   chamadaTimestamp?: number;
   finalizadoTimestamp?: number;
 

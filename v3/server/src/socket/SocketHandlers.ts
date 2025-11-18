@@ -54,7 +54,7 @@ export class SocketHandlers {
 
         // Emite beep para todos
         this.io.emit('beep', {
-          times: tipo === 'prioridade' ? 2 : 1,
+          times: 1,
           tipo: 'emissao',
           numero: senha.numero
         });

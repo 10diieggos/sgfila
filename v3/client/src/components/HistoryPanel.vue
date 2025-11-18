@@ -49,10 +49,7 @@
               <i class="fas fa-undo"></i>
             </button>
             <button @click="$emit('ausente', senha.numero)" class="btn-action btn-absent" title="Marcar como Ausente">
-              <i class="fas fa-user-times"></i>
-            </button>
-            <button @click="$emit('excluir', senha.numero)" class="btn-action btn-delete" title="Excluir">
-              <i class="fas fa-trash-alt"></i>
+              <i class="fas fa-user-slash"></i>
             </button>
           </div>
         </div>

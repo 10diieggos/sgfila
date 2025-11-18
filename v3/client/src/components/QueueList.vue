@@ -203,7 +203,7 @@ const mensagemVazia = computed(() => {
 
 <style scoped>
 .queue-list h3 {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   padding-bottom: 5px;
   border-bottom: 2px solid #eee;
   color: #004a8d;

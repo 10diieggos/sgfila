@@ -57,7 +57,7 @@
               </div>
               <div v-if="ticketSelecionado.guicheAtendendo" class="info-item">
                 <div class="info-label">Guichê</div>
-                <div class="info-value">{{ ticketSelecionado.guicheAtendendo }}</div>
+                <div class="info-value">{{ ticketSelecionado.guicheNome || ticketSelecionado.guicheAtendendo }}</div>
               </div>
               <div v-if="ticketSelecionado.descricao" class="info-item full-width">
                 <div class="info-label">Descrição</div>
@@ -103,7 +103,7 @@
                 class="btn-ticket-action btn-absent"
                 title="Marcar como ausente"
               >
-                <i class="fas fa-user-times"></i>
+                <i class="fas fa-user-slash"></i>
               </button>
             </div>
           </div>

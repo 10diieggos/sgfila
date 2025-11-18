@@ -444,23 +444,23 @@ const handleAusente = (numeroSenha: string) => {
 
 // Handlers - Fila
 const handleChamarSenhaEspecifica = (numeroSenha: string) => {
-  // Buscar guichês livres que estão em exibição
-  const guichesLivresExibidos = estado.value?.guichesConfigurados.filter(g => {
-    const estaLivre = g.ativo && !estado.value?.atendimentosAtuais[g.id]
+  // Buscar guichês ativos que estão em exibição (podem estar livres ou ocupados)
+  const guichesDisponiveis = estado.value?.guichesConfigurados.filter(g => {
+    const estaAtivo = g.ativo
     const estaEmExibicao = guichesExibicao.value.length === 0 || guichesExibicao.value.includes(g.id)
-    return estaLivre && estaEmExibicao
+    return estaAtivo && estaEmExibicao
   }) || []
 
-  if (guichesLivresExibidos.length === 0) {
-    alertMessage.value = 'Nenhum guichê livre disponível na exibição atual'
+  if (guichesDisponiveis.length === 0) {
+    alertMessage.value = 'Nenhum guichê ativo disponível na exibição atual'
     showAlertModal.value = true
-  } else if (guichesLivresExibidos.length === 1) {
-    // Apenas um guichê livre, chamar automaticamente
-    chamarSenhaEspecifica(guichesLivresExibidos[0].id, numeroSenha)
+  } else if (guichesDisponiveis.length === 1) {
+    // Apenas um guichê disponível, chamar automaticamente
+    chamarSenhaEspecifica(guichesDisponiveis[0].id, numeroSenha)
   } else {
-    // Múltiplos guichês livres, abrir modal de seleção
+    // Múltiplos guichês disponíveis, abrir modal de seleção
     senhaParaChamar.value = numeroSenha
-    guichesLivres.value = guichesLivresExibidos
+    guichesLivres.value = guichesDisponiveis
     showGuicheModal.value = true
   }
 }
@@ -763,9 +763,11 @@ header h1 {
 }
 
 .card h3 {
-  margin-bottom: 20px;
-  color: #495057;
-  font-size: 1.3em;
+  margin-bottom: 15px;
+  color: #004a8d;
+  font-size: 1.1em;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #eee;
 }
 
 /* Controls */
