@@ -225,6 +225,15 @@
       @ausente="handleAusenteFromTicketModal"
     />
 
+    <!-- Modal Devolver para Fila -->
+    <ReturnToQueueModal
+      :show="showReturnModal"
+      :senha="senhaSelecionadaRetorno"
+      @close="handleCloseReturnModal"
+      @devolver="handleConfirmarDevolucao"
+      @emitir-nova="handleEmitirNovaSenhaFromReturn"
+    />
+
     <!-- Modal Histórico -->
     <Teleport to="body">
       <Transition name="modal">
@@ -282,6 +291,7 @@ import NewTicketModal from './components/NewTicketModal.vue'
 import EditDescriptionModal from './components/EditDescriptionModal.vue'
 import ConfirmActionModal from './components/ConfirmActionModal.vue'
 import TicketModal from './components/TicketModal.vue'
+import ReturnToQueueModal from './components/ReturnToQueueModal.vue'
 
 // Socket.IO
 const {
@@ -295,6 +305,7 @@ const {
   excluirSenha,
   excluirAtendimento,
   devolverSenha,
+  devolverSenhaComMotivo,
   atualizarDescricao,
   atualizarProporcao,
   atualizarProporcaoContratual,
@@ -312,6 +323,7 @@ const showConfigModal = ref(false)
 const showGuicheModal = ref(false)
 const showAlertModal = ref(false)
 const showTicketModal = ref(false)
+const showReturnModal = ref(false)
 const alertMessage = ref('')
 const modalSourceForTicket = ref<'history' | 'queue' | 'attendance' | null>(null)
 const editModalOpenedFromTicket = ref(false)
@@ -319,6 +331,7 @@ const novaSenhaNumerо = ref('')
 const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
 const senhaParaEditar = ref<Senha | null>(null)
 const numeroSenhaSelecionada = ref('')
+const senhaSelecionadaRetorno = ref<Senha | null>(null)
 const guichesExibicao = ref<string[]>([])
 const senhaParaChamar = ref<string | null>(null)
 const guichesLivres = ref<Guiche[]>([])
@@ -384,7 +397,26 @@ const handleNaoCompareceu = (guicheNome: string) => {
 }
 
 const handleDevolverSenha = (numeroSenha: string) => {
-  devolverSenha(numeroSenha)
+  const senha = estado.value?.senhas.find(s => s.numero === numeroSenha)
+  if (senha) {
+    senhaSelecionadaRetorno.value = senha
+    showReturnModal.value = true
+  }
+}
+
+const handleCloseReturnModal = () => {
+  showReturnModal.value = false
+  senhaSelecionadaRetorno.value = null
+}
+
+const handleConfirmarDevolucao = (numeroSenha: string, motivo: string) => {
+  devolverSenhaComMotivo(numeroSenha, motivo)
+  handleCloseReturnModal()
+}
+
+const handleEmitirNovaSenhaFromReturn = (tipo: string) => {
+  emitirSenha(tipo as any, '')
+  handleCloseReturnModal()
 }
 
 const handleAusente = (numeroSenha: string) => {
