@@ -31,6 +31,22 @@
           />
         </div>
 
+        <!-- Emissão de Senhas -->
+        <div class="card">
+          <h3><i class="fas fa-ticket-alt"></i> Emissão de Senhas</h3>
+          <div class="controls">
+            <button @click="handleEmitirSenha('prioridade')" class="btn btn-priority btn-emit">
+              <i class="fas fa-wheelchair"></i> Prioritária
+            </button>
+            <button @click="handleEmitirSenha('normal')" class="btn btn-normal btn-emit">
+              <i class="fas fa-user"></i> Normal
+            </button>
+            <button @click="handleEmitirSenha('contratual')" class="btn btn-contract btn-emit">
+              <i class="fas fa-file-contract"></i> Contratual
+            </button>
+          </div>
+        </div>
+
         <!-- Atendimentos Atuais -->
         <div class="card">
           <CurrentAttendanceList
@@ -40,81 +56,25 @@
             @ver-detalhes="handleVerDetalhes"
           />
         </div>
-
-        <!-- Emissão de Senhas -->
-        <div class="card">
-          <h3><i class="fas fa-ticket-alt"></i> Emissão de Senhas</h3>
-          <div class="controls">
-            <button @click="handleEmitirSenha('prioridade')" class="btn btn-priority">
-              <i class="fas fa-wheelchair"></i> Prioritária
-            </button>
-            <button @click="handleEmitirSenha('normal')" class="btn btn-normal">
-              <i class="fas fa-user"></i> Normal
-            </button>
-            <button @click="handleEmitirSenha('contratual')" class="btn btn-contract">
-              <i class="fas fa-file-contract"></i> Contratual
-            </button>
-          </div>
-        </div>
-
-        <!-- Tabs de Navegação (Estatísticas, Histórico, Configurações) -->
-        <div class="card" ref="tabsCardRef">
-          <div class="tab-nav">
-            <button
-              :class="['tab-link', { active: activeTab === 'stats' }]"
-              @click="changeTab('stats')"
-            >
-              <i class="fas fa-chart-bar"></i> Estatísticas
-            </button>
-            <button
-              :class="['tab-link', { active: activeTab === 'history' }]"
-              @click="changeTab('history')"
-            >
-              <i class="fas fa-history"></i> Histórico
-            </button>
-            <button
-              :class="['tab-link', { active: activeTab === 'config' }]"
-              @click="changeTab('config')"
-            >
-              <i class="fas fa-cogs"></i> Configurações
-            </button>
-          </div>
-
-          <!-- Conteúdo das Tabs -->
-          <div class="tab-content">
-            <StatisticsPanel
-              v-if="activeTab === 'stats' && estatisticas"
-              :estatisticas="estatisticas"
-              :ticket-selecionado="ticketSelecionado"
-              :estado="estado"
-            />
-
-            <HistoryPanel
-              v-if="activeTab === 'history'"
-              :senhas="estado.senhas"
-              @ver-detalhes="handleVerDetalhes"
-              @chamar="handleChamarSenhaEspecifica"
-              @editar="handleEditarDescricao"
-              @excluir="handleExcluirSenha"
-            />
-
-            <ConfigurationPanel
-              v-if="activeTab === 'config'"
-              :guiches-globais="estado.guichesConfigurados"
-              :proporcao-prioridade="estado.proporcaoPrioridade"
-              :proporcao-contratual="estado.proporcaoContratual"
-              @atualizar-guiches-globais="atualizarGuichesGlobais"
-              @atualizar-proporcao-prioridade="atualizarProporcao"
-              @atualizar-proporcao-contratual="atualizarProporcaoContratual"
-              @atualizar-guiches-exibicao="handleAtualizarGuichesExibicao"
-              @reiniciar-sistema="handleReiniciarSistema"
-            />
-          </div>
-        </div>
       </div>
 
       <!-- Coluna Direita -->
       <div class="right-column">
+        <!-- Botões para abrir modais -->
+        <div class="card">
+          <h3><i class="fas fa-layer-group"></i> Painéis</h3>
+          <div class="modal-buttons">
+            <button @click="showStatsModal = true" class="btn-modal btn-stats">
+              <i class="fas fa-chart-bar"></i> Estatísticas
+            </button>
+            <button @click="showHistoryModal = true" class="btn-modal btn-history">
+              <i class="fas fa-history"></i> Histórico
+            </button>
+            <button @click="showConfigModal = true" class="btn-modal btn-config">
+              <i class="fas fa-cogs"></i> Configurações
+            </button>
+          </div>
+        </div>
         <!-- Fila de Espera -->
         <div class="card">
           <QueueList
@@ -164,11 +124,63 @@
       @confirm="handleConfirmAction"
       @cancel="showConfirmModal = false"
     />
+
+    <!-- Modal Estatísticas -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showStatsModal" class="modal-overlay" @click.self="showStatsModal = false">
+          <div class="modal-content" @click.stop>
+            <StatisticsPanel
+              :estatisticas="estatisticas"
+              :ticket-selecionado="ticketSelecionado"
+              :estado="estado"
+            />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Modal Histórico -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showHistoryModal" class="modal-overlay" @click.self="showHistoryModal = false">
+          <div class="modal-content" @click.stop>
+            <HistoryPanel
+              :senhas="estado.senhas"
+              @ver-detalhes="handleVerDetalhes"
+              @chamar="handleChamarSenhaEspecifica"
+              @editar="handleEditarDescricao"
+              @excluir="handleExcluirSenha"
+            />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Modal Configurações -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showConfigModal" class="modal-overlay" @click.self="showConfigModal = false">
+          <div class="modal-content" @click.stop>
+            <ConfigurationPanel
+              :guiches-globais="estado.guichesConfigurados"
+              :proporcao-prioridade="estado.proporcaoPrioridade"
+              :proporcao-contratual="estado.proporcaoContratual"
+              @atualizar-guiches-globais="atualizarGuichesGlobais"
+              @atualizar-proporcao-prioridade="atualizarProporcao"
+              @atualizar-proporcao-contratual="atualizarProporcaoContratual"
+              @atualizar-guiches-exibicao="handleAtualizarGuichesExibicao"
+              @reiniciar-sistema="handleReiniciarSistema"
+            />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { useSocket } from './composables/useSocket'
 import type { Senha, Guiche } from '@shared/types'
 
@@ -203,10 +215,12 @@ const {
 } = useSocket()
 
 // State
-const activeTab = ref<'stats' | 'history' | 'config'>('stats')
 const showNewTicketModal = ref(false)
 const showEditModal = ref(false)
 const showConfirmModal = ref(false)
+const showStatsModal = ref(false)
+const showHistoryModal = ref(false)
+const showConfigModal = ref(false)
 const novaSenhaNumerо = ref('')
 const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
 const senhaParaEditar = ref<Senha | null>(null)
@@ -219,20 +233,6 @@ const confirmModalData = ref({
   action: '' as 'excluir' | 'nao-compareceu' | '',
   data: {} as any
 })
-const tabsCardRef = ref<HTMLElement>()
-
-// Scroll para o topo do card de tabs
-const scrollToTabs = () => {
-  nextTick(() => {
-    tabsCardRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  })
-}
-
-// Mudar aba com scroll
-const changeTab = (tab: 'stats' | 'history' | 'config') => {
-  activeTab.value = tab
-  scrollToTabs()
-}
 
 // Computed
 const senhasEspera = computed(() => {
@@ -340,7 +340,7 @@ const handleVerDetalhes = (numeroSenha: string) => {
   const senha = estado.value?.senhas.find(s => s.numero === numeroSenha)
   if (senha) {
     ticketSelecionado.value = senha
-    activeTab.value = 'stats'
+    showStatsModal.value = true
   }
 }
 
@@ -633,5 +633,116 @@ header h1 {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Emission buttons - triple height */
+.btn-emit {
+  height: 120px;
+  font-size: 1.3em;
+}
+
+/* Modal buttons */
+.modal-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.btn-modal {
+  padding: 12px 20px;
+  border: 2px solid;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-modal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-stats {
+  color: #667eea;
+  border-color: #667eea;
+}
+
+.btn-stats:hover {
+  background: #667eea;
+  color: white;
+}
+
+.btn-history {
+  color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-history:hover {
+  background: #28a745;
+  color: white;
+}
+
+.btn-config {
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-config:hover {
+  background: #6c757d;
+  color: white;
+}
+
+/* Modal overlay and content */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal transitions */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.3s ease;
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.9);
 }
 </style>

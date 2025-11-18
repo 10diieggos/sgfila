@@ -1,5 +1,5 @@
 <template>
-  <div class="configuration-panel" ref="panelRef">
+  <div class="configuration-panel">
     <!-- Sub-tabs -->
     <div class="sub-tab-nav">
       <button
@@ -189,7 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import type { Guiche } from '@shared/types'
 
 const props = defineProps<{
@@ -207,20 +207,12 @@ const emit = defineEmits<{
 }>()
 
 const activeSubTab = ref<'guiches' | 'proporcao' | 'reiniciar'>('guiches')
-const panelRef = ref<HTMLElement>()
 
-// Scroll para o topo do card
-const scrollToPanel = () => {
-  nextTick(() => {
-    panelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  })
-}
-
-// Mudar sub-aba com scroll
+// Mudar sub-aba
 const changeSubTab = (tab: 'guiches' | 'proporcao' | 'reiniciar') => {
   activeSubTab.value = tab
-  scrollToPanel()
 }
+
 const guichesGlobaisLocal = ref<Guiche[]>([])
 const proporcaoPrioridadeLocal = ref(2)
 const proporcaoContratualLocal = ref(1)

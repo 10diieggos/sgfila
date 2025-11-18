@@ -1,5 +1,5 @@
 <template>
-  <div class="statistics-panel" ref="panelRef">
+  <div class="statistics-panel">
     <!-- Sub-tabs -->
     <div class="sub-tab-nav">
       <button
@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Estatisticas, Senha, EstadoSistema } from '@shared/types'
 import { formatarTempoHMS, formatarTempo } from '../composables/useUtils'
 
@@ -185,26 +185,16 @@ const props = defineProps<{
 }>()
 
 const activeSubTab = ref<'geral' | 'ticket'>('geral')
-const panelRef = ref<HTMLElement>()
 
-// Scroll para o topo do card
-const scrollToPanel = () => {
-  nextTick(() => {
-    panelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  })
-}
-
-// Mudar sub-aba com scroll
+// Mudar sub-aba
 const changeSubTab = (tab: 'geral' | 'ticket') => {
   activeSubTab.value = tab
-  scrollToPanel()
 }
 
 // Automaticamente muda para aba ticket quando um ticket é selecionado
 watch(() => props.ticketSelecionado, (newTicket) => {
   if (newTicket) {
     activeSubTab.value = 'ticket'
-    scrollToPanel()
   }
 })
 
