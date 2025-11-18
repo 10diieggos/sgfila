@@ -54,32 +54,11 @@
             <button @click="handleEmitirSenha('contratual')" class="btn btn-contract">
               <i class="fas fa-file-contract"></i> Contratual
             </button>
-            <button @click="showResetModal = true" class="btn btn-reset">
-              <i class="fas fa-redo"></i> Reiniciar Sistema
-            </button>
           </div>
         </div>
 
-        <!-- Fila de Espera -->
+        <!-- Tabs de Navegação (Estatísticas, Histórico, Configurações) -->
         <div class="card">
-          <QueueList
-            :senhas="estado.senhas || []"
-            :proporcao-prioridade="estado.proporcaoPrioridade"
-            :proporcao-contratual="estado.proporcaoContratual"
-            :contador-prioridade-desde-ultima-normal="estado.contadorPrioridadeDesdeUltimaNormal"
-            :contador-contratual-desde-ultima-normal="estado.contadorContratualDesdeUltimaNormal"
-            @ver-detalhes="handleVerDetalhes"
-            @chamar="handleChamarSenhaEspecifica"
-            @editar="handleEditarDescricao"
-            @excluir="handleExcluirSenha"
-          />
-        </div>
-      </div>
-
-      <!-- Coluna Direita -->
-      <div class="right-column">
-        <div class="card">
-          <!-- Tabs de Navegação -->
           <div class="tab-nav">
             <button
               :class="['tab-link', { active: activeTab === 'stats' }]"
@@ -114,6 +93,9 @@
               v-if="activeTab === 'history'"
               :senhas="estado.senhas"
               @ver-detalhes="handleVerDetalhes"
+              @chamar="handleChamarSenhaEspecifica"
+              @editar="handleEditarDescricao"
+              @excluir="handleExcluirSenha"
             />
 
             <ConfigurationPanel
@@ -125,8 +107,27 @@
               @atualizar-proporcao-prioridade="atualizarProporcao"
               @atualizar-proporcao-contratual="atualizarProporcaoContratual"
               @atualizar-guiches-exibicao="handleAtualizarGuichesExibicao"
+              @reiniciar-sistema="handleReiniciarSistema"
             />
           </div>
+        </div>
+      </div>
+
+      <!-- Coluna Direita -->
+      <div class="right-column">
+        <!-- Fila de Espera -->
+        <div class="card">
+          <QueueList
+            :senhas="estado.senhas || []"
+            :proporcao-prioridade="estado.proporcaoPrioridade"
+            :proporcao-contratual="estado.proporcaoContratual"
+            :contador-prioridade-desde-ultima-normal="estado.contadorPrioridadeDesdeUltimaNormal"
+            :contador-contratual-desde-ultima-normal="estado.contadorContratualDesdeUltimaNormal"
+            @ver-detalhes="handleVerDetalhes"
+            @chamar="handleChamarSenhaEspecifica"
+            @editar="handleEditarDescricao"
+            @excluir="handleExcluirSenha"
+          />
         </div>
       </div>
     </div>
@@ -155,12 +156,6 @@
       @save="handleSalvarEdicaoDescricao"
     />
 
-    <SystemResetModal
-      :show="showResetModal"
-      @confirm="handleReiniciarSistema"
-      @cancel="showResetModal = false"
-    />
-
     <ConfirmActionModal
       :show="showConfirmModal"
       :title="confirmModalData.title"
@@ -186,7 +181,6 @@ import HistoryPanel from './components/HistoryPanel.vue'
 import ConfigurationPanel from './components/ConfigurationPanel.vue'
 import NewTicketModal from './components/NewTicketModal.vue'
 import EditDescriptionModal from './components/EditDescriptionModal.vue'
-import SystemResetModal from './components/SystemResetModal.vue'
 import ConfirmActionModal from './components/ConfirmActionModal.vue'
 
 // Socket.IO
@@ -212,7 +206,6 @@ const {
 const activeTab = ref<'stats' | 'history' | 'config'>('stats')
 const showNewTicketModal = ref(false)
 const showEditModal = ref(false)
-const showResetModal = ref(false)
 const showConfirmModal = ref(false)
 const novaSenhaNumerо = ref('')
 const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
@@ -340,7 +333,6 @@ const handleVerDetalhes = (numeroSenha: string) => {
 // Handlers - Sistema
 const handleReiniciarSistema = () => {
   reiniciarSistema()
-  showResetModal.value = false
 }
 
 const handleConfirmAction = () => {

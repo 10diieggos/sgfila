@@ -14,6 +14,12 @@
       >
         <i class="fas fa-balance-scale-right"></i> Proporção
       </button>
+      <button
+        :class="['sub-tab-link', { active: activeSubTab === 'reiniciar' }]"
+        @click="activeSubTab = 'reiniciar'"
+      >
+        <i class="fas fa-redo"></i> Reiniciar
+      </button>
     </div>
 
     <!-- Conteúdo Guichês -->
@@ -155,6 +161,30 @@
         </div>
       </div>
     </div>
+
+    <!-- Conteúdo Reiniciar -->
+    <div v-if="activeSubTab === 'reiniciar'" class="sub-tab-content">
+      <h2><i class="fas fa-redo"></i> Reiniciar Sistema</h2>
+      <p class="hint">
+        Esta ação irá reiniciar completamente o sistema, zerando todos os contadores
+        e removendo todas as senhas (em espera, em atendimento e histórico).
+      </p>
+
+      <div class="warning-box">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+          <strong>⚠️ ATENÇÃO:</strong>
+          <p>
+            Esta ação é <strong>irreversível</strong> e irá apagar todos os dados do dia.
+            Certifique-se de que deseja realmente reiniciar o sistema antes de confirmar.
+          </p>
+        </div>
+      </div>
+
+      <button class="btn btn-reset-danger" @click="confirmarReinicio">
+        <i class="fas fa-redo"></i> Reiniciar Sistema Agora
+      </button>
+    </div>
   </div>
 </template>
 
@@ -173,9 +203,10 @@ const emit = defineEmits<{
   'atualizar-proporcao-prioridade': [valor: number]
   'atualizar-proporcao-contratual': [valor: number]
   'atualizar-guiches-exibicao': [guiches: string[]]
+  'reiniciar-sistema': []
 }>()
 
-const activeSubTab = ref<'guiches' | 'proporcao'>('guiches')
+const activeSubTab = ref<'guiches' | 'proporcao' | 'reiniciar'>('guiches')
 const guichesGlobaisLocal = ref<Guiche[]>([])
 const proporcaoPrioridadeLocal = ref(2)
 const proporcaoContratualLocal = ref(1)
@@ -238,6 +269,13 @@ const toggleGuicheExibicao = (nome: string) => {
   // Salvar no localStorage
   localStorage.setItem('sgfila_guiches_exibicao', JSON.stringify(guichesExibicaoLocal.value))
   emit('atualizar-guiches-exibicao', guichesExibicaoLocal.value)
+}
+
+const confirmarReinicio = () => {
+  const confirmacao = confirm('⚠️ ATENÇÃO: Esta ação irá apagar TODOS os dados do sistema (senhas, histórico, contadores).\n\nTem certeza que deseja continuar?')
+  if (confirmacao) {
+    emit('reiniciar-sistema')
+  }
 }
 </script>
 
@@ -554,5 +592,44 @@ input:checked + .toggle-slider:before {
   margin: 0;
   color: #495057;
   line-height: 1.6;
+}
+
+.warning-box {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.warning-box i {
+  color: #856404;
+  font-size: 1.5em;
+}
+
+.warning-box strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #856404;
+}
+
+.warning-box p {
+  margin: 0;
+  color: #856404;
+  line-height: 1.6;
+}
+
+.btn-reset-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  padding: 15px 30px;
+  font-size: 1.1em;
+}
+
+.btn-reset-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 </style>

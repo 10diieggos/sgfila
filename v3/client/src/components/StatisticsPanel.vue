@@ -398,7 +398,7 @@ const serviceEstimate = computed(() => {
 }
 
 .stats-table thead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #004a8d;
   color: white;
 }
 
@@ -426,15 +426,15 @@ const serviceEstimate = computed(() => {
 }
 
 .badge-tipo.prioridade {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: #ff6b6b;
 }
 
 .badge-tipo.contratual {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: #845ef7;
 }
 
 .badge-tipo.normal {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: #4dabf7;
 }
 
 .guiche-stats-grid {
