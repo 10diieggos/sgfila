@@ -27,12 +27,12 @@
           <i :class="getIconClass(senha.tipo)"></i>
           <strong>{{ senha.numero }}</strong>
           <div v-if="senha.descricao" class="ticket-description" v-html="formatarDescricao(senha.descricao)"></div>
-          <span :class="['status-badge', senha.status]">
-            {{ getStatusLabel(senha.status) }}
-          </span>
         </div>
 
         <div class="ticket-controls">
+          <span :class="['status-badge', senha.status]">
+            {{ getStatusLabel(senha.status) }}
+          </span>
           <span class="wait-time">{{ formatarTempoHMS(senha.tempoEspera + senha.tempoAtendimento) }}</span>
 
           <div class="action-buttons">
@@ -44,6 +44,12 @@
             </button>
             <button @click="$emit('editar', senha.numero)" class="btn-action btn-edit" title="Editar Descrição">
               <i class="fas fa-edit"></i>
+            </button>
+            <button @click="$emit('retornar', senha.numero)" class="btn-action btn-return" title="Retornar à Fila">
+              <i class="fas fa-undo"></i>
+            </button>
+            <button @click="$emit('ausente', senha.numero)" class="btn-action btn-absent" title="Marcar como Ausente">
+              <i class="fas fa-user-times"></i>
             </button>
             <button @click="$emit('excluir', senha.numero)" class="btn-action btn-delete" title="Excluir">
               <i class="fas fa-trash-alt"></i>
@@ -69,14 +75,16 @@ defineEmits<{
   'chamar': [numero: string]
   'editar': [numero: string]
   'excluir': [numero: string]
+  'retornar': [numero: string]
+  'ausente': [numero: string]
 }>()
 
 const termoBusca = ref('')
 
 const senhasHistorico = computed(() => {
   return props.senhas
-    .filter(s => s.status === 'atendida' || s.status === 'nao_compareceu')
-    .sort((a, b) => (b.finalizadoTimestamp || b.timestamp) - (a.finalizadoTimestamp || a.timestamp))
+    .filter(s => s.status === 'atendida' || s.status === 'nao_compareceu' || s.status === 'excluida')
+    .sort((a, b) => b.timestamp - a.timestamp) // Ordenar por entrada (mais recentes primeiro)
 })
 
 const senhasFiltradas = computed(() => {
@@ -97,7 +105,8 @@ const senhasFiltradas = computed(() => {
 const getStatusLabel = (status: string): string => {
   const labels: Record<string, string> = {
     'atendida': 'Atendida',
-    'nao_compareceu': 'Não Compareceu'
+    'nao_compareceu': 'Ausente',
+    'excluida': 'Excluída'
   }
   return labels[status] || status
 }
@@ -241,6 +250,12 @@ const getStatusLabel = (status: string): string => {
   flex: 1;
 }
 
+.ticket-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .status-badge {
   padding: 4px 10px;
   border-radius: 12px;
@@ -258,10 +273,9 @@ const getStatusLabel = (status: string): string => {
   color: #856404;
 }
 
-.ticket-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+.status-badge.excluida {
+  background: #f8d7da;
+  color: #721c24;
 }
 
 .wait-time {
@@ -298,32 +312,52 @@ const getStatusLabel = (status: string): string => {
 }
 
 .btn-call {
-  color: #28a745;
-  border-color: #28a745;
+  color: #51cf66;
+  border-color: #51cf66;
 }
 
 .btn-call:hover {
-  background-color: #28a745;
+  background-color: #51cf66;
   color: white;
 }
 
 .btn-edit {
+  color: #4dabf7;
+  border-color: #4dabf7;
+}
+
+.btn-edit:hover {
+  background-color: #4dabf7;
+  color: white;
+}
+
+.btn-return {
+  color: #845ef7;
+  border-color: #845ef7;
+}
+
+.btn-return:hover {
+  background-color: #845ef7;
+  color: white;
+}
+
+.btn-absent {
   color: #ffc107;
   border-color: #ffc107;
 }
 
-.btn-edit:hover {
+.btn-absent:hover {
   background-color: #ffc107;
   color: white;
 }
 
 .btn-delete {
-  color: #dc3545;
-  border-color: #dc3545;
+  color: #ff6b6b;
+  border-color: #ff6b6b;
 }
 
 .btn-delete:hover {
-  background-color: #dc3545;
+  background-color: #ff6b6b;
   color: white;
 }
 </style>

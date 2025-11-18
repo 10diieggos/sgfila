@@ -53,7 +53,7 @@ const extractSenhaNumber = (message: string): string => {
 
 const getConfirmClass = () => {
   if (props.title.includes('Excluir')) return 'btn-danger'
-  if (props.title.includes('Não Compareceu')) return 'btn-warning'
+  if (props.title.includes('Ausente')) return 'btn-warning'
   return 'btn-primary'
 }
 

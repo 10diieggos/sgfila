@@ -204,13 +204,25 @@
           <div class="modal-content modal-content-paineis" @click.stop>
             <StatisticsPanel
               :estatisticas="estatisticas"
-              :ticket-selecionado="ticketSelecionado"
-              :estado="estado"
             />
           </div>
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Modal Ticket -->
+    <TicketModal
+      :show="showTicketModal"
+      :ticket-selecionado="ticketSelecionado"
+      :estatisticas="estatisticas"
+      :estado="estado"
+      @close="handleCloseTicketModal"
+      @chamar="handleChamarFromTicketModal"
+      @editar="handleEditarFromTicketModal"
+      @excluir="handleExcluirFromTicketModal"
+      @retornar="handleRetornarFromTicketModal"
+      @ausente="handleAusenteFromTicketModal"
+    />
 
     <!-- Modal Histórico -->
     <Teleport to="body">
@@ -223,6 +235,8 @@
               @chamar="handleChamarSenhaEspecifica"
               @editar="handleEditarDescricao"
               @excluir="handleExcluirSenha"
+              @retornar="handleDevolverSenha"
+              @ausente="handleAusente"
             />
           </div>
         </div>
@@ -266,6 +280,7 @@ import ConfigurationPanel from './components/ConfigurationPanel.vue'
 import NewTicketModal from './components/NewTicketModal.vue'
 import EditDescriptionModal from './components/EditDescriptionModal.vue'
 import ConfirmActionModal from './components/ConfirmActionModal.vue'
+import TicketModal from './components/TicketModal.vue'
 
 // Socket.IO
 const {
@@ -295,7 +310,9 @@ const showHistoryModal = ref(false)
 const showConfigModal = ref(false)
 const showGuicheModal = ref(false)
 const showAlertModal = ref(false)
+const showTicketModal = ref(false)
 const alertMessage = ref('')
+const modalSourceForTicket = ref<'history' | 'queue' | 'attendance' | null>(null)
 const novaSenhaNumerо = ref('')
 const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
 const senhaParaEditar = ref<Senha | null>(null)
@@ -309,7 +326,7 @@ const confirmModalData = ref({
   message: '',
   confirmText: 'Confirmar',
   tipoSenha: '' as 'prioridade' | 'normal' | 'contratual' | '',
-  action: '' as 'excluir' | 'nao-compareceu' | '',
+  action: '' as 'excluir' | 'ausente' | '',
   data: {} as any
 })
 
@@ -351,11 +368,11 @@ const handleNaoCompareceu = (guicheNome: string) => {
   const senha = estado.value?.atendimentosAtuais[guicheNome]
   if (senha) {
     confirmModalData.value = {
-      title: 'Marcar como Não Compareceu',
+      title: 'Marcar como Ausente',
       message: `Confirma que a senha ${senha.numero} não compareceu ao atendimento?`,
       confirmText: 'Confirmar',
       tipoSenha: senha.tipo,
-      action: 'nao-compareceu',
+      action: 'ausente',
       data: { numeroSenha: senha.numero }
     }
     showConfirmModal.value = true
@@ -369,11 +386,11 @@ const handleDevolverSenha = (numeroSenha: string) => {
 const handleAusente = (numeroSenha: string) => {
   const senha = estado.value?.senhas.find(s => s.numero === numeroSenha)
   confirmModalData.value = {
-    title: 'Marcar como Não Compareceu',
+    title: 'Marcar como Ausente',
     message: `Confirma que a senha ${numeroSenha} não compareceu ao atendimento?`,
     confirmText: 'Confirmar',
     tipoSenha: senha?.tipo || 'normal',
-    action: 'nao-compareceu',
+    action: 'ausente',
     data: { numeroSenha }
   }
   showConfirmModal.value = true
@@ -442,8 +459,60 @@ const handleVerDetalhes = (numeroSenha: string) => {
   const senha = estado.value?.senhas.find(s => s.numero === numeroSenha)
   if (senha) {
     ticketSelecionado.value = senha
-    showStatsModal.value = true
+
+    // Determinar de qual modal veio a solicitação
+    if (showHistoryModal.value) {
+      modalSourceForTicket.value = 'history'
+      showHistoryModal.value = false
+    } else if (showStatsModal.value) {
+      modalSourceForTicket.value = 'queue'
+    } else {
+      modalSourceForTicket.value = 'queue'
+    }
+
+    showTicketModal.value = true
   }
+}
+
+const handleCloseTicketModal = () => {
+  showTicketModal.value = false
+
+  // Reabrir History se foi a fonte
+  if (modalSourceForTicket.value === 'history') {
+    showHistoryModal.value = true
+  }
+
+  modalSourceForTicket.value = null
+}
+
+const handleChamarFromTicketModal = (numeroSenha: string) => {
+  showTicketModal.value = false
+  handleChamarSenhaEspecifica(numeroSenha)
+  modalSourceForTicket.value = null
+}
+
+const handleEditarFromTicketModal = (numeroSenha: string) => {
+  showTicketModal.value = false
+  handleEditarDescricao(numeroSenha)
+  modalSourceForTicket.value = null
+}
+
+const handleExcluirFromTicketModal = (numeroSenha: string) => {
+  showTicketModal.value = false
+  handleExcluirSenha(numeroSenha)
+  modalSourceForTicket.value = null
+}
+
+const handleRetornarFromTicketModal = (numeroSenha: string) => {
+  showTicketModal.value = false
+  handleDevolverSenha(numeroSenha)
+  modalSourceForTicket.value = null
+}
+
+const handleAusenteFromTicketModal = (numeroSenha: string) => {
+  showTicketModal.value = false
+  handleAusente(numeroSenha)
+  modalSourceForTicket.value = null
 }
 
 // Handlers - Sistema
@@ -454,7 +523,7 @@ const handleReiniciarSistema = () => {
 const handleConfirmAction = () => {
   if (confirmModalData.value.action === 'excluir') {
     excluirSenha(confirmModalData.value.data.numeroSenha)
-  } else if (confirmModalData.value.action === 'nao-compareceu') {
+  } else if (confirmModalData.value.action === 'ausente') {
     excluirAtendimento(confirmModalData.value.data.numeroSenha)
   }
   showConfirmModal.value = false
