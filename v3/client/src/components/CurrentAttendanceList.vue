@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import type { Senha, AtendimentoAtual } from '@shared/types'
 import { formatarTempoHMS } from '../composables/useUtils'
 
@@ -67,6 +67,22 @@ defineEmits<{
   'ver-detalhes': [numeroSenha: string]
 }>()
 
+// Força atualização a cada segundo
+const currentTime = ref(Date.now())
+let intervalId: number | null = null
+
+onMounted(() => {
+  intervalId = window.setInterval(() => {
+    currentTime.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (intervalId !== null) {
+    clearInterval(intervalId)
+  }
+})
+
 const senhasAtendendo = computed(() => {
   return Object.entries(props.atendimentosAtuais).map(([guiche, senha]) => ({
     guiche,
@@ -76,9 +92,10 @@ const senhasAtendendo = computed(() => {
 
 const formatTempoAtendimento = (senha: Senha): string => {
   if (!senha.chamadaTimestamp) return '0:00:00'
-  const tempoMs = Date.now() - senha.chamadaTimestamp
+  const tempoMs = currentTime.value - senha.chamadaTimestamp
   return formatarTempoHMS(tempoMs)
 }
+
 </script>
 
 <style scoped>

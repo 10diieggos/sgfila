@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Estatisticas, Senha, EstadoSistema } from '@shared/types'
 import { formatarTempoHMS, formatarTempo } from '../composables/useUtils'
 
@@ -185,6 +185,13 @@ const props = defineProps<{
 }>()
 
 const activeSubTab = ref<'geral' | 'ticket'>('geral')
+
+// Automaticamente muda para aba ticket quando um ticket é selecionado
+watch(() => props.ticketSelecionado, (newTicket) => {
+  if (newTicket) {
+    activeSubTab.value = 'ticket'
+  }
+})
 
 const getTipoLabel = (tipo: string): string => {
   const labels: Record<string, string> = {

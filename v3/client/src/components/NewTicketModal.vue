@@ -121,7 +121,7 @@ onUnmounted(() => {
   background: white;
   border-radius: 16px;
   padding: 40px;
-  max-width: 500px;
+  max-width: 650px;
   width: 90%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   text-align: center;
@@ -136,12 +136,14 @@ onUnmounted(() => {
 }
 
 .senha-gerada-numero {
-  font-size: 8em;
+  font-size: 10em;
   font-weight: bold;
   margin: 20px 0;
   padding: 30px;
   border-radius: 12px;
   letter-spacing: 4px;
+  white-space: nowrap;
+  overflow: visible;
 }
 
 /* Cores por tipo */

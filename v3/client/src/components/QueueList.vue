@@ -44,7 +44,7 @@
         </div>
 
         <div class="ticket-controls">
-          <span class="wait-time">{{ formatarTempoHMS(Date.now() - senha.timestamp) }}</span>
+          <span class="wait-time">{{ formatarTempoHMS(currentTime - senha.timestamp) }}</span>
 
           <div class="action-buttons">
             <button @click="$emit('ver-detalhes', senha.numero)" class="btn-action btn-info" title="Ver Detalhes">
@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { Senha, FiltroFila } from '@shared/types'
 import { getIconClass, formatarDescricao, formatarTempoHMS } from '@/composables/useUtils'
 
@@ -99,6 +99,22 @@ defineEmits<{
 // State
 const filtroAtivo = ref<FiltroFila>('emissao')
 const termoBusca = ref('')
+
+// Força atualização a cada segundo
+const currentTime = ref(Date.now())
+let intervalId: number | null = null
+
+onMounted(() => {
+  intervalId = window.setInterval(() => {
+    currentTime.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (intervalId !== null) {
+    clearInterval(intervalId)
+  }
+})
 
 // Filtros disponíveis
 const filtros = [
