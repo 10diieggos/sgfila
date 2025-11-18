@@ -1,16 +1,16 @@
 <template>
-  <div class="statistics-panel">
+  <div class="statistics-panel" ref="panelRef">
     <!-- Sub-tabs -->
     <div class="sub-tab-nav">
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'geral' }]"
-        @click="activeSubTab = 'geral'"
+        @click="changeSubTab('geral')"
       >
         <i class="fas fa-chart-bar"></i> Geral
       </button>
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'ticket' }]"
-        @click="activeSubTab = 'ticket'"
+        @click="changeSubTab('ticket')"
       >
         <i class="fas fa-ticket-alt"></i> Ticket
       </button>
@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import type { Estatisticas, Senha, EstadoSistema } from '@shared/types'
 import { formatarTempoHMS, formatarTempo } from '../composables/useUtils'
 
@@ -185,11 +185,26 @@ const props = defineProps<{
 }>()
 
 const activeSubTab = ref<'geral' | 'ticket'>('geral')
+const panelRef = ref<HTMLElement>()
+
+// Scroll para o topo do card
+const scrollToPanel = () => {
+  nextTick(() => {
+    panelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+}
+
+// Mudar sub-aba com scroll
+const changeSubTab = (tab: 'geral' | 'ticket') => {
+  activeSubTab.value = tab
+  scrollToPanel()
+}
 
 // Automaticamente muda para aba ticket quando um ticket é selecionado
 watch(() => props.ticketSelecionado, (newTicket) => {
   if (newTicket) {
     activeSubTab.value = 'ticket'
+    scrollToPanel()
   }
 })
 
@@ -330,6 +345,7 @@ const serviceEstimate = computed(() => {
 }
 
 .sub-tab-link {
+  flex: 1;
   padding: 12px 20px;
   border: none;
   background: none;

@@ -1,22 +1,22 @@
 <template>
-  <div class="configuration-panel">
+  <div class="configuration-panel" ref="panelRef">
     <!-- Sub-tabs -->
     <div class="sub-tab-nav">
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'guiches' }]"
-        @click="activeSubTab = 'guiches'"
+        @click="changeSubTab('guiches')"
       >
         <i class="fas fa-desktop"></i> Guichês
       </button>
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'proporcao' }]"
-        @click="activeSubTab = 'proporcao'"
+        @click="changeSubTab('proporcao')"
       >
         <i class="fas fa-balance-scale-right"></i> Proporção
       </button>
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'reiniciar' }]"
-        @click="activeSubTab = 'reiniciar'"
+        @click="changeSubTab('reiniciar')"
       >
         <i class="fas fa-redo"></i> Reiniciar
       </button>
@@ -189,7 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import type { Guiche } from '@shared/types'
 
 const props = defineProps<{
@@ -207,6 +207,20 @@ const emit = defineEmits<{
 }>()
 
 const activeSubTab = ref<'guiches' | 'proporcao' | 'reiniciar'>('guiches')
+const panelRef = ref<HTMLElement>()
+
+// Scroll para o topo do card
+const scrollToPanel = () => {
+  nextTick(() => {
+    panelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+}
+
+// Mudar sub-aba com scroll
+const changeSubTab = (tab: 'guiches' | 'proporcao' | 'reiniciar') => {
+  activeSubTab.value = tab
+  scrollToPanel()
+}
 const guichesGlobaisLocal = ref<Guiche[]>([])
 const proporcaoPrioridadeLocal = ref(2)
 const proporcaoContratualLocal = ref(1)
@@ -292,6 +306,7 @@ const confirmarReinicio = () => {
 }
 
 .sub-tab-link {
+  flex: 1;
   padding: 12px 20px;
   border: none;
   background: none;

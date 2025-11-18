@@ -58,23 +58,23 @@
         </div>
 
         <!-- Tabs de Navegação (Estatísticas, Histórico, Configurações) -->
-        <div class="card">
+        <div class="card" ref="tabsCardRef">
           <div class="tab-nav">
             <button
               :class="['tab-link', { active: activeTab === 'stats' }]"
-              @click="activeTab = 'stats'"
+              @click="changeTab('stats')"
             >
               <i class="fas fa-chart-bar"></i> Estatísticas
             </button>
             <button
               :class="['tab-link', { active: activeTab === 'history' }]"
-              @click="activeTab = 'history'"
+              @click="changeTab('history')"
             >
               <i class="fas fa-history"></i> Histórico
             </button>
             <button
               :class="['tab-link', { active: activeTab === 'config' }]"
-              @click="activeTab = 'config'"
+              @click="changeTab('config')"
             >
               <i class="fas fa-cogs"></i> Configurações
             </button>
@@ -168,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useSocket } from './composables/useSocket'
 import type { Senha, Guiche } from '@shared/types'
 
@@ -219,6 +219,20 @@ const confirmModalData = ref({
   action: '' as 'excluir' | 'nao-compareceu' | '',
   data: {} as any
 })
+const tabsCardRef = ref<HTMLElement>()
+
+// Scroll para o topo do card de tabs
+const scrollToTabs = () => {
+  nextTick(() => {
+    tabsCardRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+}
+
+// Mudar aba com scroll
+const changeTab = (tab: 'stats' | 'history' | 'config') => {
+  activeTab.value = tab
+  scrollToTabs()
+}
 
 // Computed
 const senhasEspera = computed(() => {
@@ -552,6 +566,7 @@ header h1 {
 }
 
 .tab-link {
+  flex: 1;
   padding: 15px 25px;
   border: none;
   background: none;
@@ -563,6 +578,7 @@ header h1 {
   font-size: 1em;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
