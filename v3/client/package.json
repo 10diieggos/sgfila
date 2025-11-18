@@ -1,0 +1,30 @@
+{
+  "name": "sgfila-client",
+  "version": "3.0.0",
+  "description": "SGFILA v3 - Client (Vue 3 + TypeScript)",
+  "type": "module",
+  "scripts": {
+    "dev": "node node_modules/vite/bin/vite.js",
+    "dev:win": "node_modules\\.bin\\vite.cmd",
+    "build": "node node_modules/vue-tsc/bin/vue-tsc.js && node node_modules/vite/bin/vite.js build",
+    "preview": "node node_modules/vite/bin/vite.js preview",
+    "lint": "node node_modules/eslint/bin/eslint.js . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "type-check": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.6.1",
+    "vue": "^3.3.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitejs/plugin-vue": "^4.5.2",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "eslint": "^8.54.0",
+    "eslint-plugin-vue": "^9.19.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "vue-tsc": "^1.8.25"
+  }
+}
