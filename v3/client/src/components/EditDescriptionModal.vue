@@ -1,31 +1,21 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>Editar Descrição - {{ numeroSenha }}</h3>
-            <button class="close-btn" @click="$emit('close')">&times;</button>
-          </div>
+      <div v-if="show" class="modal-overlay modal-edit" @click.self="handleClickOverlay" @keydown="handleKeyDown">
+        <div class="modal-content-edit-senha" @click.stop>
+          <span class="modal-label">Editar Descrição</span>
+          <div :class="['senha-numero', tipoSenha]">{{ numeroSenha }}</div>
 
-          <div class="form-group">
-            <label for="editar-descricao">Descrição:</label>
+          <div class="form-group-modal-senha">
+            <label for="edit-senha-descricao">Descrição (Pressione Enter para salvar):</label>
             <textarea
-              id="editar-descricao"
+              id="edit-senha-descricao"
               ref="textareaRef"
-              v-model="descricaoLocal"
-              rows="4"
-              placeholder="Digite a descrição..."
+              v-model="descricao"
+              rows="3"
+              placeholder="Ex: Alteração de CPF..."
+              @keydown.enter.prevent="handleSalvar"
             ></textarea>
-          </div>
-
-          <div class="modal-actions">
-            <button class="btn btn-save" @click="handleSalvar">
-              <i class="fas fa-save"></i> Salvar
-            </button>
-            <button class="btn btn-cancel" @click="$emit('close')">
-              Cancelar
-            </button>
           </div>
         </div>
       </div>
@@ -34,12 +24,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import type { TipoSenha } from '@shared/types'
 
 const props = defineProps<{
   show: boolean
   numeroSenha: string
   descricao: string
+  tipoSenha?: TipoSenha
 }>()
 
 const emit = defineEmits<{
@@ -47,25 +39,57 @@ const emit = defineEmits<{
   'save': [descricao: string]
 }>()
 
-const descricaoLocal = ref('')
+const descricao = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
 
+// Watch para quando modal abre
 watch(() => props.show, async (newVal) => {
   if (newVal) {
-    descricaoLocal.value = props.descricao
+    descricao.value = props.descricao
     await nextTick()
     textareaRef.value?.focus()
   }
 })
 
-const handleSalvar = () => {
-  emit('save', descricaoLocal.value.trim())
+const handleClickOverlay = () => {
+  fecharModal()
+}
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (!props.show) return
+
+  const isEnter = e.key === 'Enter'
+  const isEscape = e.key === 'Escape'
+
+  if (isEnter) {
+    e.preventDefault()
+    handleSalvar()
+  } else if (isEscape) {
+    fecharModal()
+  }
+}
+
+const fecharModal = () => {
   emit('close')
 }
+
+const handleSalvar = () => {
+  emit('save', descricao.value.trim())
+  emit('close')
+}
+
+// Adicionar listener global
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <style scoped>
-.modal-overlay {
+.modal-overlay.modal-edit {
   position: fixed;
   top: 0;
   left: 0;
@@ -75,67 +99,75 @@ const handleSalvar = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 3500;
   backdrop-filter: blur(4px);
 }
 
-.modal-content {
+.modal-content-edit-senha {
   background: white;
-  border-radius: 12px;
-  padding: 0;
-  max-width: 500px;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 650px;
   width: 90%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
+  text-align: center;
 }
 
-.modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 20px 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.modal-label {
+  display: block;
+  font-size: 1.2em;
+  color: #495057;
+  margin-bottom: 20px;
+  font-weight: 600;
 }
 
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.3em;
+.senha-numero {
+  font-size: 8em;
+  font-weight: bold;
+  margin: 20px 0;
+  padding: 30px;
+  border-radius: 12px;
+  letter-spacing: 4px;
+  white-space: nowrap;
+  overflow: visible;
 }
 
-.close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 2em;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: background 0.3s;
+/* Cores por tipo */
+.senha-numero.prioridade {
+  color: #ff6b6b;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
 }
 
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.senha-numero.normal {
+  color: #4dabf7;
+  background: linear-gradient(135deg, #f0f8ff 0%, #d0ebff 100%);
 }
 
-.form-group {
-  padding: 25px;
+.senha-numero.contratual {
+  color: #845ef7;
+  background: linear-gradient(135deg, #f3e8ff 0%, #e5d4ff 100%);
 }
 
-.form-group label {
+/* Fallback se não tiver tipo */
+.senha-numero:not(.prioridade):not(.normal):not(.contratual) {
+  color: #667eea;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.form-group-modal-senha {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.form-group-modal-senha label {
   display: block;
   margin-bottom: 10px;
   color: #495057;
   font-weight: 500;
+  font-size: 0.9em;
 }
 
-.form-group textarea {
+.form-group-modal-senha textarea {
   width: 100%;
   padding: 12px;
   border: 2px solid #e9ecef;
@@ -146,46 +178,9 @@ const handleSalvar = () => {
   transition: border-color 0.3s;
 }
 
-.form-group textarea:focus {
+.form-group-modal-senha textarea:focus {
   outline: none;
   border-color: #667eea;
-}
-
-.modal-actions {
-  padding: 20px 25px;
-  background: #f8f9fa;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-save {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-save:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.btn-cancel {
-  background: #e9ecef;
-  color: #495057;
-}
-
-.btn-cancel:hover {
-  background: #dee2e6;
 }
 
 /* Transitions */
@@ -199,13 +194,13 @@ const handleSalvar = () => {
   opacity: 0;
 }
 
-.modal-enter-active .modal-content,
-.modal-leave-active .modal-content {
+.modal-enter-active .modal-content-edit-senha,
+.modal-leave-active .modal-content-edit-senha {
   transition: transform 0.3s ease;
 }
 
-.modal-enter-from .modal-content,
-.modal-leave-to .modal-content {
+.modal-enter-from .modal-content-edit-senha,
+.modal-leave-to .modal-content-edit-senha {
   transform: scale(0.9);
 }
 </style>

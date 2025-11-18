@@ -9,6 +9,38 @@
       </div>
     </header>
 
+    <!-- Alerta Legal - Prioridades -->
+    <div v-if="estado" class="alert-priorities">
+      <i class="fas fa-info-circle"></i>
+      <strong>Prioridades legais:</strong>
+      <div class="priority-icons">
+        <span class="priority-icon" title="Idosos (60 anos ou mais)">
+          <i class="fas fa-user-clock"></i>
+        </span>
+        <span class="priority-icon" title="Gestantes">
+          <i class="fas fa-person-pregnant"></i>
+        </span>
+        <span class="priority-icon" title="Lactantes (mães amamentando)">
+          <i class="fas fa-baby"></i>
+        </span>
+        <span class="priority-icon" title="Pessoas com crianças de colo">
+          <i class="fas fa-child"></i>
+        </span>
+        <span class="priority-icon" title="Pessoas com deficiência física">
+          <i class="fas fa-wheelchair"></i>
+        </span>
+        <span class="priority-icon" title="Pessoas com deficiência visual">
+          <i class="fas fa-blind"></i>
+        </span>
+        <span class="priority-icon" title="Pessoas com deficiência auditiva">
+          <i class="fas fa-deaf"></i>
+        </span>
+        <span class="priority-icon" title="Pessoas com Transtorno do Espectro Autista (TEA)">
+          <i class="fas fa-puzzle-piece"></i>
+        </span>
+      </div>
+    </div>
+
     <!-- Loading -->
     <div v-if="!estado" class="loading">
       <i class="fas fa-spinner fa-spin"></i> Carregando sistema...
@@ -92,13 +124,6 @@
       </div>
     </div>
 
-    <!-- Alerta Legal -->
-    <div v-if="estado" class="alert">
-      <i class="fas fa-info-circle"></i>
-      <strong>Prioridades legais:</strong>
-      Idosos (60+), gestantes, lactantes, pessoas com crianças de colo e pessoas com deficiência têm direito a atendimento prioritário.
-    </div>
-
     <!-- Modais -->
     <NewTicketModal
       :show="showNewTicketModal"
@@ -112,6 +137,7 @@
       :show="showEditModal"
       :numero-senha="senhaParaEditar?.numero || ''"
       :descricao="senhaParaEditar?.descricao || ''"
+      :tipo-senha="senhaParaEditar?.tipo"
       @close="showEditModal = false"
       @save="handleSalvarEdicaoDescricao"
     />
@@ -121,15 +147,40 @@
       :title="confirmModalData.title"
       :message="confirmModalData.message"
       :confirm-text="confirmModalData.confirmText"
+      :tipo-senha="confirmModalData.tipoSenha"
       @confirm="handleConfirmAction"
       @cancel="showConfirmModal = false"
     />
 
+    <!-- Modal Seleção de Guichê -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showGuicheModal" class="modal-overlay-guiche" @click.self="showGuicheModal = false">
+          <div class="modal-content-guiche" @click.stop>
+            <div class="guiche-grid">
+              <div
+                v-for="guiche in guichesLivres"
+                :key="guiche.nome"
+                class="guiche-card-selecao"
+                @click="handleSelecionarGuiche(guiche.nome)"
+              >
+                <div class="guiche-icon">
+                  <i class="fas fa-desktop"></i>
+                </div>
+                <div class="guiche-nome">{{ guiche.nome }}</div>
+                <div class="guiche-status">Disponível</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Modal Estatísticas -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showStatsModal" class="modal-overlay" @click.self="showStatsModal = false">
-          <div class="modal-content" @click.stop>
+        <div v-if="showStatsModal" class="modal-overlay modal-paineis" @click.self="showStatsModal = false">
+          <div class="modal-content modal-content-paineis" @click.stop>
             <StatisticsPanel
               :estatisticas="estatisticas"
               :ticket-selecionado="ticketSelecionado"
@@ -143,8 +194,8 @@
     <!-- Modal Histórico -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showHistoryModal" class="modal-overlay" @click.self="showHistoryModal = false">
-          <div class="modal-content" @click.stop>
+        <div v-if="showHistoryModal" class="modal-overlay modal-paineis" @click.self="showHistoryModal = false">
+          <div class="modal-content modal-content-paineis" @click.stop>
             <HistoryPanel
               :senhas="estado.senhas"
               @ver-detalhes="handleVerDetalhes"
@@ -160,8 +211,8 @@
     <!-- Modal Configurações -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showConfigModal" class="modal-overlay" @click.self="showConfigModal = false">
-          <div class="modal-content" @click.stop>
+        <div v-if="showConfigModal" class="modal-overlay modal-paineis" @click.self="showConfigModal = false">
+          <div class="modal-content modal-content-paineis" @click.stop>
             <ConfigurationPanel
               :guiches-globais="estado.guichesConfigurados"
               :proporcao-prioridade="estado.proporcaoPrioridade"
@@ -221,15 +272,19 @@ const showConfirmModal = ref(false)
 const showStatsModal = ref(false)
 const showHistoryModal = ref(false)
 const showConfigModal = ref(false)
+const showGuicheModal = ref(false)
 const novaSenhaNumerо = ref('')
 const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
 const senhaParaEditar = ref<Senha | null>(null)
 const ticketSelecionado = ref<Senha | null>(null)
 const guichesExibicao = ref<string[]>([])
+const senhaParaChamar = ref<string | null>(null)
+const guichesLivres = ref<Guiche[]>([])
 const confirmModalData = ref({
   title: '',
   message: '',
   confirmText: 'Confirmar',
+  tipoSenha: '' as 'prioridade' | 'normal' | 'contratual' | '',
   action: '' as 'excluir' | 'nao-compareceu' | '',
   data: {} as any
 })
@@ -275,6 +330,7 @@ const handleNaoCompareceu = (guicheNome: string) => {
       title: 'Marcar como Não Compareceu',
       message: `Confirma que a senha ${senha.numero} não compareceu ao atendimento?`,
       confirmText: 'Confirmar',
+      tipoSenha: senha.tipo,
       action: 'nao-compareceu',
       data: { numeroSenha: senha.numero }
     }
@@ -287,10 +343,12 @@ const handleDevolverSenha = (numeroSenha: string) => {
 }
 
 const handleAusente = (numeroSenha: string) => {
+  const senha = estado.value?.senhas.find(s => s.numero === numeroSenha)
   confirmModalData.value = {
     title: 'Marcar como Não Compareceu',
     message: `Confirma que a senha ${numeroSenha} não compareceu ao atendimento?`,
     confirmText: 'Confirmar',
+    tipoSenha: senha?.tipo || 'normal',
     action: 'nao-compareceu',
     data: { numeroSenha }
   }
@@ -299,15 +357,32 @@ const handleAusente = (numeroSenha: string) => {
 
 // Handlers - Fila
 const handleChamarSenhaEspecifica = (numeroSenha: string) => {
-  // Buscar primeiro guichê livre
-  const guicheLivre = estado.value?.guichesConfigurados.find(g =>
-    g.ativo && !estado.value?.atendimentosAtuais[g.nome]
-  )
+  // Buscar guichês livres que estão em exibição
+  const guichesLivresExibidos = estado.value?.guichesConfigurados.filter(g => {
+    const estaLivre = g.ativo && !estado.value?.atendimentosAtuais[g.nome]
+    const estaEmExibicao = guichesExibicao.value.length === 0 || guichesExibicao.value.includes(g.nome)
+    return estaLivre && estaEmExibicao
+  }) || []
 
-  if (guicheLivre) {
-    chamarSenhaEspecifica(guicheLivre.nome, numeroSenha)
+  if (guichesLivresExibidos.length === 0) {
+    alert('Nenhum guichê livre disponível na exibição atual')
+  } else if (guichesLivresExibidos.length === 1) {
+    // Apenas um guichê livre, chamar automaticamente
+    chamarSenhaEspecifica(guichesLivresExibidos[0].nome, numeroSenha)
   } else {
-    alert('Nenhum guichê livre disponível')
+    // Múltiplos guichês livres, abrir modal de seleção
+    senhaParaChamar.value = numeroSenha
+    guichesLivres.value = guichesLivresExibidos
+    showGuicheModal.value = true
+  }
+}
+
+const handleSelecionarGuiche = (guicheNome: string) => {
+  if (senhaParaChamar.value) {
+    chamarSenhaEspecifica(guicheNome, senhaParaChamar.value)
+    showGuicheModal.value = false
+    senhaParaChamar.value = null
+    guichesLivres.value = []
   }
 }
 
@@ -326,10 +401,12 @@ const handleSalvarEdicaoDescricao = (descricao: string) => {
 }
 
 const handleExcluirSenha = (numeroSenha: string) => {
+  const senha = estado.value?.senhas.find(s => s.numero === numeroSenha)
   confirmModalData.value = {
     title: 'Excluir Senha',
     message: `Tem certeza que deseja excluir a senha ${numeroSenha} da fila?`,
     confirmText: 'Excluir',
+    tipoSenha: senha?.tipo || 'normal',
     action: 'excluir',
     data: { numeroSenha }
   }
@@ -390,7 +467,7 @@ header {
   color: white;
   padding: 15px;
   border-radius: 10px 10px 0 0;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -425,6 +502,59 @@ header h1 {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* Alert - Prioridades Legais */
+.alert-priorities {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 4px solid #2196f3;
+  border-right: 4px solid #2196f3;
+  color: #0d47a1;
+  padding: 15px 20px;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.alert-priorities i.fa-info-circle {
+  font-size: 1.3em;
+  color: #2196f3;
+}
+
+.alert-priorities strong {
+  margin-right: 10px;
+}
+
+.priority-icons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.priority-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: white;
+  border-radius: 50%;
+  color: #2196f3;
+  font-size: 1.1em;
+  cursor: help;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.priority-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: #2196f3;
+  color: white;
 }
 
 /* Loading */
@@ -597,24 +727,6 @@ header h1 {
   min-height: 400px;
 }
 
-/* Alert */
-.alert {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border-left: 4px solid #2196f3;
-  color: #0d47a1;
-  padding: 20px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  line-height: 1.6;
-}
-
-.alert i {
-  font-size: 1.5em;
-  color: #2196f3;
-}
-
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
@@ -714,6 +826,11 @@ header h1 {
   backdrop-filter: blur(4px);
 }
 
+/* Modal overlay para painéis - z-index mais alto */
+.modal-overlay.modal-paineis {
+  z-index: 3000;
+}
+
 .modal-content {
   background: white;
   border-radius: 12px;
@@ -723,6 +840,77 @@ header h1 {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal content para painéis - 70% da largura do container */
+.modal-content-paineis {
+  max-width: 1120px; /* 70% de 1600px */
+  width: 70%;
+}
+
+/* Modal Seleção de Guichê */
+.modal-overlay-guiche {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3500;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content-guiche {
+  background: transparent;
+  border-radius: 12px;
+  max-width: 900px;
+  width: 90%;
+}
+
+.guiche-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.guiche-card-selecao {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 3px solid transparent;
+}
+
+.guiche-card-selecao:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-color: #667eea;
+}
+
+.guiche-icon {
+  font-size: 3em;
+  color: #667eea;
+  margin-bottom: 15px;
+}
+
+.guiche-nome {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 8px;
+}
+
+.guiche-status {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 0.95em;
 }
 
 /* Modal transitions */
@@ -743,6 +931,26 @@ header h1 {
 
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
+  transform: scale(0.9);
+}
+
+.modal-enter-active .modal-content-paineis,
+.modal-leave-active .modal-content-paineis {
+  transition: transform 0.3s ease;
+}
+
+.modal-enter-from .modal-content-paineis,
+.modal-leave-to .modal-content-paineis {
+  transform: scale(0.9);
+}
+
+.modal-enter-active .modal-content-guiche,
+.modal-leave-active .modal-content-guiche {
+  transition: transform 0.3s ease;
+}
+
+.modal-enter-from .modal-content-guiche,
+.modal-leave-to .modal-content-guiche {
   transform: scale(0.9);
 }
 </style>

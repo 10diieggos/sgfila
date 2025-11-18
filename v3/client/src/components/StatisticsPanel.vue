@@ -196,7 +196,7 @@ watch(() => props.ticketSelecionado, (newTicket) => {
   if (newTicket) {
     activeSubTab.value = 'ticket'
   }
-})
+}, { immediate: true })
 
 const getTipoLabel = (tipo: string): string => {
   const labels: Record<string, string> = {
