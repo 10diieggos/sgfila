@@ -152,6 +152,27 @@
       @cancel="showConfirmModal = false"
     />
 
+    <!-- Modal Alerta -->
+    <Teleport to="body">
+      <Transition name="modal" @after-enter="focusAlertModal">
+        <div
+          v-if="showAlertModal"
+          ref="alertModalRef"
+          class="modal-overlay-alert"
+          @click="showAlertModal = false"
+          @keydown="showAlertModal = false"
+          tabindex="0"
+        >
+          <div class="modal-content-alert" @click.stop>
+            <div class="alert-icon">
+              <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <p class="alert-text">{{ alertMessage }}</p>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Modal Seleção de Guichê -->
     <Teleport to="body">
       <Transition name="modal">
@@ -273,6 +294,8 @@ const showStatsModal = ref(false)
 const showHistoryModal = ref(false)
 const showConfigModal = ref(false)
 const showGuicheModal = ref(false)
+const showAlertModal = ref(false)
+const alertMessage = ref('')
 const novaSenhaNumerо = ref('')
 const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
 const senhaParaEditar = ref<Senha | null>(null)
@@ -280,6 +303,7 @@ const ticketSelecionado = ref<Senha | null>(null)
 const guichesExibicao = ref<string[]>([])
 const senhaParaChamar = ref<string | null>(null)
 const guichesLivres = ref<Guiche[]>([])
+const alertModalRef = ref<HTMLElement>()
 const confirmModalData = ref({
   title: '',
   message: '',
@@ -365,7 +389,8 @@ const handleChamarSenhaEspecifica = (numeroSenha: string) => {
   }) || []
 
   if (guichesLivresExibidos.length === 0) {
-    alert('Nenhum guichê livre disponível na exibição atual')
+    alertMessage.value = 'Nenhum guichê livre disponível na exibição atual'
+    showAlertModal.value = true
   } else if (guichesLivresExibidos.length === 1) {
     // Apenas um guichê livre, chamar automaticamente
     chamarSenhaEspecifica(guichesLivresExibidos[0].nome, numeroSenha)
@@ -437,6 +462,10 @@ const handleConfirmAction = () => {
 
 const handleAtualizarGuichesExibicao = (guiches: string[]) => {
   guichesExibicao.value = guiches
+}
+
+const focusAlertModal = () => {
+  alertModalRef.value?.focus()
 }
 </script>
 
@@ -913,6 +942,60 @@ header h1 {
   font-size: 0.95em;
 }
 
+/* Modal Alerta */
+.modal-overlay-alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  outline: none;
+}
+
+.modal-content-alert {
+  background: white;
+  border-radius: 16px;
+  padding: 40px 50px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.alert-icon {
+  font-size: 4em;
+  color: #ffc107;
+  margin-bottom: 20px;
+  animation: pulse-icon 1.5s infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.alert-text {
+  font-size: 1.2em;
+  color: #495057;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.6;
+}
+
 /* Modal transitions */
 .modal-enter-active,
 .modal-leave-active {
@@ -951,6 +1034,16 @@ header h1 {
 
 .modal-enter-from .modal-content-guiche,
 .modal-leave-to .modal-content-guiche {
+  transform: scale(0.9);
+}
+
+.modal-enter-active .modal-content-alert,
+.modal-leave-active .modal-content-alert {
+  transition: transform 0.3s ease;
+}
+
+.modal-enter-from .modal-content-alert,
+.modal-leave-to .modal-content-alert {
   transform: scale(0.9);
 }
 </style>
