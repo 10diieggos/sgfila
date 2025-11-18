@@ -294,57 +294,22 @@ export class QueueService {
     senha.guicheAtendendo = undefined;
     senha.chamadaTimestamp = undefined;
     senha.finalizadoTimestamp = undefined;
-    senha.tempoEspera = 0;
-    senha.tempoAtendimento = 0;
+    // NÃO resetar tempoEspera e tempoAtendimento - devem continuar acumulando desde emissão
 
     // Aplica estratégia de reposicionamento baseada no motivo
     let posicaoAtribuida: number | undefined;
 
-    switch (motivo) {
-      case 'retorno_impressao':
-        // Fila especial de retorno - usa timestamp negativo para prioridade
-        senha.timestamp = Date.now() - 1000000000; // Alta prioridade
-        posicaoAtribuida = 1;
-        console.log(`Retorno por impressão: ${numeroSenha} - Alta prioridade`);
-        break;
-
-      case 'erro_operacional':
-        // Posição original aproximada - mantém timestamp original
-        posicaoAtribuida = senha.posicaoOriginal || 1;
-        console.log(`Erro operacional: ${numeroSenha} - Mantém posição original (aprox.)`);
-        break;
-
-      case 'ausente_retornou':
-      case 'reabertura_atendimento':
-        // Terceira posição da fila atual
-        const senhasEsperaOrdenadas = estado.senhas
-          .filter(s => s.status === 'espera')
-          .sort((a, b) => {
-            // Prioridade para retorno_impressao
-            const aPrioridade = a.timestamp < 0 ? -1 : 1;
-            const bPrioridade = b.timestamp < 0 ? -1 : 1;
-            if (aPrioridade !== bPrioridade) return aPrioridade - bPrioridade;
-            return a.timestamp - b.timestamp;
-          });
-
-        // Define timestamp para ficar na terceira posição
-        if (senhasEsperaOrdenadas.length === 0) {
-          senha.timestamp = Date.now();
-          posicaoAtribuida = 1;
-        } else if (senhasEsperaOrdenadas.length === 1) {
-          senha.timestamp = senhasEsperaOrdenadas[0].timestamp + 1;
-          posicaoAtribuida = 2;
-        } else if (senhasEsperaOrdenadas.length === 2) {
-          senha.timestamp = senhasEsperaOrdenadas[1].timestamp + 1;
-          posicaoAtribuida = 3;
-        } else {
-          // Posicionar após a segunda senha
-          senha.timestamp = senhasEsperaOrdenadas[2].timestamp - 1;
-          posicaoAtribuida = 3;
-        }
-
-        console.log(`${motivo}: ${numeroSenha} - Terceira posição (${posicaoAtribuida})`);
-        break;
+    if (motivo === 'erro_operacional') {
+      // Apenas erro_operacional tenta restaurar posição original
+      // Mantém timestamp original (emissão) para ordem natural
+      posicaoAtribuida = senha.posicaoOriginal || 1;
+      console.log(`Erro operacional: ${numeroSenha} - Mantém posição original`);
+    } else {
+      // Todos os outros motivos: preservar timestamp original de emissão
+      // Isso garante ordem natural da fila (mais antigas primeiro)
+      // NÃO modificar senha.timestamp - já está definido desde a emissão
+      posicaoAtribuida = undefined; // Será determinado pela ordenação natural
+      console.log(`${motivo}: ${numeroSenha} - Retorna pela ordem de emissão`);
     }
 
     // Atualiza status
