@@ -28,6 +28,7 @@
             <div class="motivos-grid">
               <!-- Retorno após Impressão -->
               <button
+                v-if="motivosDisponiveis.retorno_impressao"
                 class="btn-motivo"
                 :class="{ selected: motivoSelecionado === 'retorno_impressao', bloqueado: validacao.retorno_impressao.bloqueado }"
                 :disabled="validacao.retorno_impressao.bloqueado"
@@ -48,6 +49,7 @@
 
               <!-- Erro Operacional -->
               <button
+                v-if="motivosDisponiveis.erro_operacional"
                 class="btn-motivo"
                 :class="{ selected: motivoSelecionado === 'erro_operacional', bloqueado: validacao.erro_operacional.bloqueado }"
                 :disabled="validacao.erro_operacional.bloqueado"
@@ -68,6 +70,7 @@
 
               <!-- Cliente Ausente que Retornou -->
               <button
+                v-if="motivosDisponiveis.ausente_retornou"
                 class="btn-motivo"
                 :class="{ selected: motivoSelecionado === 'ausente_retornou', bloqueado: validacao.ausente_retornou.bloqueado }"
                 :disabled="validacao.ausente_retornou.bloqueado"
@@ -88,6 +91,7 @@
 
               <!-- Reabertura de Atendimento -->
               <button
+                v-if="motivosDisponiveis.reabertura_atendimento"
                 class="btn-motivo"
                 :class="{ selected: motivoSelecionado === 'reabertura_atendimento', bloqueado: validacao.reabertura_atendimento.bloqueado }"
                 :disabled="validacao.reabertura_atendimento.bloqueado"
@@ -118,20 +122,6 @@
               <i class="fas fa-plus-circle"></i> Emitir Nova Senha
             </button>
           </div>
-
-          <!-- Ações -->
-          <div class="modal-actions">
-            <button class="btn-cancel" @click="handleClose">
-              Cancelar
-            </button>
-            <button
-              class="btn-confirm"
-              :disabled="!motivoSelecionado || motivoBloqueado"
-              @click="confirmarDevolucao"
-            >
-              <i class="fas fa-check"></i> Confirmar Devolução
-            </button>
-          </div>
         </div>
       </div>
     </Transition>
@@ -156,6 +146,60 @@ const emit = defineEmits<{
 type MotivoRetorno = 'retorno_impressao' | 'erro_operacional' | 'ausente_retornou' | 'reabertura_atendimento'
 
 const motivoSelecionado = ref<MotivoRetorno | null>(null)
+
+// Determina quais motivos devem ser exibidos baseado no status da senha
+const motivosDisponiveis = computed(() => {
+  if (!props.senha) {
+    return {
+      retorno_impressao: false,
+      erro_operacional: false,
+      ausente_retornou: false,
+      reabertura_atendimento: false
+    }
+  }
+
+  const status = props.senha.status
+
+  // Regras por status:
+  // - nao_compareceu (Ausente): apenas 'ausente_retornou' e 'erro_operacional'
+  // - atendida (Atendida): todos EXCETO 'ausente_retornou'
+  // - excluida (Excluída): apenas 'erro_operacional'
+
+  if (status === 'nao_compareceu') {
+    return {
+      retorno_impressao: false,
+      erro_operacional: true,
+      ausente_retornou: true,
+      reabertura_atendimento: false
+    }
+  }
+
+  if (status === 'atendida') {
+    return {
+      retorno_impressao: true,
+      erro_operacional: true,
+      ausente_retornou: false,
+      reabertura_atendimento: true
+    }
+  }
+
+  if (status === 'excluida') {
+    return {
+      retorno_impressao: false,
+      erro_operacional: true,
+      ausente_retornou: false,
+      reabertura_atendimento: false
+    }
+  }
+
+  // Padrão: mostrar tudo
+  return {
+    retorno_impressao: true,
+    erro_operacional: true,
+    ausente_retornou: true,
+    reabertura_atendimento: true
+  }
+})
 
 const validacao = computed(() => {
   if (!props.senha) {
@@ -198,18 +242,20 @@ const motivoBloqueado = computed(() => {
 
 const selecionarMotivo = (motivo: MotivoRetorno) => {
   motivoSelecionado.value = motivo
+
+  // Confirma imediatamente se não estiver bloqueado
+  if (!props.senha) return
+
+  const isBloqueado = validacao.value[motivo].bloqueado
+  if (!isBloqueado) {
+    emit('devolver', props.senha.numero, motivo)
+    motivoSelecionado.value = null
+  }
 }
 
 const handleClose = () => {
   motivoSelecionado.value = null
   emit('close')
-}
-
-const confirmarDevolucao = () => {
-  if (!props.senha || !motivoSelecionado.value || motivoBloqueado.value) return
-
-  emit('devolver', props.senha.numero, motivoSelecionado.value)
-  motivoSelecionado.value = null
 }
 
 const emitirNovaSenha = () => {
@@ -524,49 +570,6 @@ const formatTempoHistorico = (): string => {
   box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
 }
 
-.modal-actions {
-  display: flex;
-  gap: 15px;
-  justify-content: flex-end;
-}
-
-.btn-cancel,
-.btn-confirm {
-  padding: 12px 30px;
-  border: 2px solid;
-  border-radius: 8px;
-  background-color: transparent;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-cancel {
-  color: #868e96;
-  border-color: #868e96;
-}
-
-.btn-cancel:hover {
-  background-color: #868e96;
-  color: white;
-}
-
-.btn-confirm {
-  color: #667eea;
-  border-color: #667eea;
-}
-
-.btn-confirm:hover:not(:disabled) {
-  background-color: #667eea;
-  color: white;
-}
-
-.btn-confirm:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Transitions */
 .modal-enter-active,
 .modal-leave-active {
@@ -597,15 +600,6 @@ const formatTempoHistorico = (): string => {
   .senha-info {
     flex-direction: column;
     text-align: center;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .btn-cancel,
-  .btn-confirm {
-    width: 100%;
   }
 }
 </style>
