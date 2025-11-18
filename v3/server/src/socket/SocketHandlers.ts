@@ -200,10 +200,24 @@ export class SocketHandlers {
 
     socket.on('atualizarGuichesGlobais', (guiches) => {
       try {
-        this.stateManager.atualizarGuiches(guiches);
+        const resultado = this.stateManager.atualizarGuiches(guiches);
+
+        if (!resultado.sucesso) {
+          // Envia mensagem de erro ao cliente
+          socket.emit('erroOperacao', {
+            mensagem: resultado.erro || 'Erro ao atualizar guichês',
+            tipo: 'atualizarGuiches'
+          });
+          return;
+        }
+
         this.emitirEstadoAtualizado();
       } catch (error) {
         console.error('Erro ao atualizar guichês globais:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro inesperado ao atualizar guichês',
+          tipo: 'atualizarGuiches'
+        });
       }
     });
 

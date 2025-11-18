@@ -34,14 +34,15 @@
       <div class="guiche-checkbox-list">
         <label
           v-for="guiche in guichesGlobais"
-          :key="'exib-' + guiche.nome"
+          :key="'exib-' + guiche.id"
           class="checkbox-item"
         >
           <input
             type="checkbox"
-            :value="guiche.nome"
-            :checked="guichesExibicaoLocal.includes(guiche.nome)"
-            @change="toggleGuicheExibicao(guiche.nome)"
+            :value="guiche.id"
+            :checked="guichesExibicaoLocal.includes(guiche.id)"
+            :disabled="!guiche.ativo"
+            @change="toggleGuicheExibicao(guiche.id)"
           />
           <span>{{ guiche.nome }}</span>
           <span v-if="!guiche.ativo" class="badge-inactive">Inativo</span>
@@ -60,8 +61,8 @@
 
       <div class="guiche-list">
         <div
-          v-for="(guiche, index) in guichesGlobaisLocal"
-          :key="'global-' + index"
+          v-for="guiche in guichesGlobaisLocal"
+          :key="'global-' + guiche.id"
           class="guiche-item"
         >
           <input
@@ -69,20 +70,21 @@
             v-model="guiche.nome"
             placeholder="Nome do guichê"
             class="guiche-input"
+            @input="salvarGuichesGlobais"
             @blur="salvarGuichesGlobais"
           />
           <label class="toggle-switch">
             <input
               type="checkbox"
               v-model="guiche.ativo"
-              @change="salvarGuichesGlobais"
+              @change="handleToggleAtivo(guiche)"
             />
             <span class="toggle-slider"></span>
           </label>
           <span class="status-label">{{ guiche.ativo ? 'Ativo' : 'Inativo' }}</span>
           <button
             class="btn-icon btn-delete"
-            @click="removerGuiche(index)"
+            @click="removerGuiche(guiche.id)"
             title="Remover guichê"
           >
             <i class="fas fa-trash"></i>
@@ -241,15 +243,33 @@ watch(() => props.proporcaoContratual, (newVal) => {
 
 const adicionarGuiche = () => {
   const numeroGuiche = guichesGlobaisLocal.value.length + 1
+  // ID será gerado pelo servidor - enviar sem ID
   guichesGlobaisLocal.value.push({
+    id: '', // Será preenchido pelo servidor
     nome: `Guichê ${numeroGuiche}`,
     ativo: true
   })
   salvarGuichesGlobais()
 }
 
-const removerGuiche = (index: number) => {
-  guichesGlobaisLocal.value.splice(index, 1)
+const removerGuiche = (id: string) => {
+  const index = guichesGlobaisLocal.value.findIndex(g => g.id === id)
+  if (index > -1) {
+    guichesGlobaisLocal.value.splice(index, 1)
+    salvarGuichesGlobais()
+  }
+}
+
+const handleToggleAtivo = (guiche: Guiche) => {
+  // Se desativar, remover dos guichês de exibição
+  if (!guiche.ativo) {
+    const index = guichesExibicaoLocal.value.indexOf(guiche.id)
+    if (index > -1) {
+      guichesExibicaoLocal.value.splice(index, 1)
+      localStorage.setItem('sgfila_guiches_exibicao', JSON.stringify(guichesExibicaoLocal.value))
+      emit('atualizar-guiches-exibicao', guichesExibicaoLocal.value)
+    }
+  }
   salvarGuichesGlobais()
 }
 
@@ -265,12 +285,12 @@ const salvarProporcaoContratual = () => {
   emit('atualizar-proporcao-contratual', proporcaoContratualLocal.value)
 }
 
-const toggleGuicheExibicao = (nome: string) => {
-  const index = guichesExibicaoLocal.value.indexOf(nome)
+const toggleGuicheExibicao = (id: string) => {
+  const index = guichesExibicaoLocal.value.indexOf(id)
   if (index > -1) {
     guichesExibicaoLocal.value.splice(index, 1)
   } else {
-    guichesExibicaoLocal.value.push(nome)
+    guichesExibicaoLocal.value.push(id)
   }
   // Salvar no localStorage
   localStorage.setItem('sgfila_guiches_exibicao', JSON.stringify(guichesExibicaoLocal.value))
@@ -373,6 +393,11 @@ const confirmarReinicio = () => {
   width: 18px;
   height: 18px;
   cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .badge-inactive {

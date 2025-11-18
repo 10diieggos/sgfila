@@ -46,12 +46,13 @@ export interface Senha {
 // ============================================
 
 export interface Guiche {
+  id: string;
   nome: string;
   ativo: boolean;
 }
 
 export interface AtendimentoAtual {
-  [guicheNome: string]: Senha;
+  [guicheId: string]: Senha;
 }
 
 // ============================================
@@ -112,7 +113,7 @@ export interface Estatisticas {
     normal: DetalhesTipo;
   };
   detalhesPorGuiche: {
-    [guicheNome: string]: DetalhesGuiche;
+    [guicheId: string]: DetalhesGuiche;
   };
   guichesAtivos: number;
 }
@@ -125,6 +126,7 @@ export interface ServerToClientEvents {
   estadoAtualizado: (payload: { estado: EstadoSistema; estatisticas: Estatisticas }) => void;
   beep: (dados: { times: number; tipo: 'emissao' | 'chamada'; numero?: string }) => void;
   sistemaReiniciado: () => void;
+  erroOperacao: (dados: { mensagem: string; tipo: string }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -150,7 +152,7 @@ export interface ClientToServerEvents {
 export type FiltroFila = 'emissao' | 'automatica' | 'tipo';
 
 export interface ConfiguracaoGuiche {
-  guichesExibicao: string[];
+  guichesExibicao: string[]; // Array de IDs de guichês
 }
 
 export type TabType = 'stats' | 'history' | 'config';

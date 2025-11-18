@@ -24,6 +24,16 @@ export function useSocket() {
   const estatisticas = ref<Estatisticas | null>(null)
   const { beep } = useBeep()
 
+  // Callback para erros (pode ser definido externamente)
+  let onErrorCallback: ((mensagem: string, tipo: string) => void) | null = null
+
+  /**
+   * Define o callback para tratar erros do servidor
+   */
+  const setErrorHandler = (callback: (mensagem: string, tipo: string) => void) => {
+    onErrorCallback = callback
+  }
+
   /**
    * Conecta ao servidor Socket.IO
    */
@@ -47,6 +57,16 @@ export function useSocket() {
 
     socket.value.on('beep', (dados) => {
       beep(dados)
+    })
+
+    socket.value.on('erroOperacao', (dados) => {
+      console.error(`Erro na operação ${dados.tipo}:`, dados.mensagem)
+      if (onErrorCallback) {
+        onErrorCallback(dados.mensagem, dados.tipo)
+      } else {
+        // Fallback: mostrar alert se não houver callback
+        alert(`Erro: ${dados.mensagem}`)
+      }
     })
 
     socket.value.on('sistemaReiniciado', () => {
@@ -141,6 +161,7 @@ export function useSocket() {
     // Métodos
     connect,
     disconnect,
+    setErrorHandler,
     emitirSenha,
     chamarSenha,
     chamarSenhaEspecifica,

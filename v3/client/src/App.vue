@@ -83,6 +83,7 @@
         <div class="card">
           <CurrentAttendanceList
             :atendimentos-atuais="estado.atendimentosAtuais"
+            :guiches="estado.guichesConfigurados"
             @devolver="handleDevolverSenha"
             @ausente="handleAusente"
             @ver-detalhes="handleVerDetalhes"
@@ -182,9 +183,9 @@
             <div class="guiche-grid">
               <div
                 v-for="guiche in guichesLivres"
-                :key="guiche.nome"
+                :key="guiche.id"
                 class="guiche-card-selecao"
-                @click="handleSelecionarGuiche(guiche.nome)"
+                @click="handleSelecionarGuiche(guiche.id)"
               >
                 <div class="guiche-icon">
                   <i class="fas fa-desktop"></i>
@@ -205,6 +206,7 @@
           <div class="modal-content modal-content-paineis" @click.stop>
             <StatisticsPanel
               :estatisticas="estatisticas"
+              :guiches="estado.guichesConfigurados"
             />
           </div>
         </div>
@@ -298,6 +300,7 @@ const {
   connected,
   estado,
   estatisticas,
+  setErrorHandler,
   emitirSenha,
   chamarSenha,
   chamarSenhaEspecifica,
@@ -312,6 +315,12 @@ const {
   atualizarGuichesGlobais,
   reiniciarSistema
 } = useSocket()
+
+// Configurar handler de erros do servidor
+setErrorHandler((mensagem: string) => {
+  alertMessage.value = mensagem
+  showAlertModal.value = true
+})
 
 // State
 const showNewTicketModal = ref(false)
@@ -372,16 +381,16 @@ const handleSalvarDescricaoNovaSenha = (descricao: string) => {
 }
 
 // Handlers - Guichês
-const handleChamarGuiche = (guicheNome: string) => {
-  chamarSenha(guicheNome)
+const handleChamarGuiche = (guicheId: string) => {
+  chamarSenha(guicheId)
 }
 
-const handleFinalizarAtendimento = (guicheNome: string) => {
-  finalizarAtendimento(guicheNome)
+const handleFinalizarAtendimento = (guicheId: string) => {
+  finalizarAtendimento(guicheId)
 }
 
-const handleNaoCompareceu = (guicheNome: string) => {
-  const senha = estado.value?.atendimentosAtuais[guicheNome]
+const handleNaoCompareceu = (guicheId: string) => {
+  const senha = estado.value?.atendimentosAtuais[guicheId]
   if (senha) {
     confirmModalData.value = {
       title: 'Ausente',
@@ -437,8 +446,8 @@ const handleAusente = (numeroSenha: string) => {
 const handleChamarSenhaEspecifica = (numeroSenha: string) => {
   // Buscar guichês livres que estão em exibição
   const guichesLivresExibidos = estado.value?.guichesConfigurados.filter(g => {
-    const estaLivre = g.ativo && !estado.value?.atendimentosAtuais[g.nome]
-    const estaEmExibicao = guichesExibicao.value.length === 0 || guichesExibicao.value.includes(g.nome)
+    const estaLivre = g.ativo && !estado.value?.atendimentosAtuais[g.id]
+    const estaEmExibicao = guichesExibicao.value.length === 0 || guichesExibicao.value.includes(g.id)
     return estaLivre && estaEmExibicao
   }) || []
 
@@ -447,7 +456,7 @@ const handleChamarSenhaEspecifica = (numeroSenha: string) => {
     showAlertModal.value = true
   } else if (guichesLivresExibidos.length === 1) {
     // Apenas um guichê livre, chamar automaticamente
-    chamarSenhaEspecifica(guichesLivresExibidos[0].nome, numeroSenha)
+    chamarSenhaEspecifica(guichesLivresExibidos[0].id, numeroSenha)
   } else {
     // Múltiplos guichês livres, abrir modal de seleção
     senhaParaChamar.value = numeroSenha
@@ -456,9 +465,9 @@ const handleChamarSenhaEspecifica = (numeroSenha: string) => {
   }
 }
 
-const handleSelecionarGuiche = (guicheNome: string) => {
+const handleSelecionarGuiche = (guicheId: string) => {
   if (senhaParaChamar.value) {
-    chamarSenhaEspecifica(guicheNome, senhaParaChamar.value)
+    chamarSenhaEspecifica(guicheId, senhaParaChamar.value)
     showGuicheModal.value = false
     senhaParaChamar.value = null
     guichesLivres.value = []

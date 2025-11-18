@@ -54,11 +54,12 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import type { Senha, AtendimentoAtual } from '@shared/types'
+import type { Senha, AtendimentoAtual, Guiche } from '@shared/types'
 import { formatarTempoHMS } from '../composables/useUtils'
 
 const props = defineProps<{
   atendimentosAtuais: AtendimentoAtual
+  guiches: Guiche[]
 }>()
 
 defineEmits<{
@@ -84,10 +85,13 @@ onUnmounted(() => {
 })
 
 const senhasAtendendo = computed(() => {
-  return Object.entries(props.atendimentosAtuais).map(([guiche, senha]) => ({
-    guiche,
-    senha
-  }))
+  return Object.entries(props.atendimentosAtuais).map(([guicheId, senha]) => {
+    const guiche = props.guiches.find(g => g.id === guicheId)
+    return {
+      guiche: guiche?.nome || guicheId,
+      senha
+    }
+  })
 })
 
 const formatTempoAtendimento = (senha: Senha): string => {

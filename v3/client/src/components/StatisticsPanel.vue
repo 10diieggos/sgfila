@@ -56,11 +56,11 @@
       </div>
       <div v-else class="guiche-stats-grid">
         <div
-          v-for="(dados, guiche) in estatisticas.detalhesPorGuiche"
-          :key="guiche"
+          v-for="(dados, guicheId) in estatisticas.detalhesPorGuiche"
+          :key="guicheId"
           class="guiche-stat-card"
         >
-          <h4>{{ guiche }}</h4>
+          <h4>{{ getGuicheNome(guicheId) }}</h4>
           <div class="guiche-stat-item">
             <span class="label">Atendidas:</span>
             <strong>{{ dados.atendidas }}</strong>
@@ -88,11 +88,17 @@
 </template>
 
 <script setup lang="ts">
-import type { Estatisticas } from '@shared/types'
+import type { Estatisticas, Guiche } from '@shared/types'
 
-defineProps<{
+const props = defineProps<{
   estatisticas: Estatisticas
+  guiches: Guiche[]
 }>()
+
+const getGuicheNome = (guicheId: string): string => {
+  const guiche = props.guiches.find(g => g.id === guicheId)
+  return guiche?.nome || guicheId
+}
 
 const getTipoLabel = (tipo: string): string => {
   const labels: Record<string, string> = {

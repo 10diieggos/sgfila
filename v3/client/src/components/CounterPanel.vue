@@ -11,17 +11,17 @@
     <div v-else class="counter-panels">
       <div
         v-for="guiche in guichesVisiveis"
-        :key="guiche.nome"
+        :key="guiche.id"
         class="guiche-painel"
       >
         <div
-          :class="['senha-atual-guiche', getSenhaClass(guiche.nome), { 'disabled': !guiche.ativo }]"
-          :data-guiche-id="guiche.nome"
+          :class="['senha-atual-guiche', getSenhaClass(guiche.id), { 'disabled': !guiche.ativo }]"
+          :data-guiche-id="guiche.id"
           @click="handleGuicheClick(guiche)"
         >
           <span class="guiche-painel-nome">{{ guiche.nome }}</span>
-          <span v-if="senhaAtual(guiche.nome)" class="senha-numero">
-            {{ senhaAtual(guiche.nome)?.numero }}
+          <span v-if="senhaAtual(guiche.id)" class="senha-numero">
+            {{ senhaAtual(guiche.id)?.numero }}
           </span>
           <span v-else class="senha-numero vazio">---</span>
         </div>
@@ -45,38 +45,38 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  'chamar': [guicheNome: string]
-  'finalizar': [guicheNome: string]
-  'nao-compareceu': [guicheNome: string]
+  'chamar': [guicheId: string]
+  'finalizar': [guicheId: string]
+  'nao-compareceu': [guicheId: string]
 }>()
 
 const guichesVisiveis = computed(() => {
   if (props.guichesExibicao.length === 0) {
     return props.guiches
   }
-  return props.guiches.filter(g => props.guichesExibicao.includes(g.nome))
+  return props.guiches.filter(g => props.guichesExibicao.includes(g.id))
 })
 
-const senhaAtual = (guicheNome: string): Senha | undefined => {
-  return props.atendimentosAtuais[guicheNome]
+const senhaAtual = (guicheId: string): Senha | undefined => {
+  return props.atendimentosAtuais[guicheId]
 }
 
-const getSenhaClass = (guicheNome: string): string => {
-  const senha = senhaAtual(guicheNome)
+const getSenhaClass = (guicheId: string): string => {
+  const senha = senhaAtual(guicheId)
   return senha ? senha.tipo : ''
 }
 
 const handleGuicheClick = (guiche: Guiche) => {
   if (!guiche.ativo) return
 
-  const senha = senhaAtual(guiche.nome)
+  const senha = senhaAtual(guiche.id)
   if (senha) {
     // Se tem senha, finaliza
-    emit('finalizar', guiche.nome)
+    emit('finalizar', guiche.id)
   } else {
     // Se não tem senha, chama próxima
     if (!props.filaVazia) {
-      emit('chamar', guiche.nome)
+      emit('chamar', guiche.id)
     }
   }
 }

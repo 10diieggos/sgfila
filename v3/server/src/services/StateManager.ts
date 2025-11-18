@@ -114,11 +114,45 @@ export class StateManager {
   }
 
   /**
-   * Atualiza guichês globais
+   * Gera um ID único para guichê (timestamp + random)
    */
-  public atualizarGuiches(guiches: Guiche[]): void {
-    this.estado.guichesConfigurados = guiches;
+  private gerarIdGuiche(): string {
+    return `guiche_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Atualiza guichês globais
+   * - Mantém IDs existentes
+   * - Gera novos IDs para guichês sem ID
+   * - Valida exclusão de guichês em uso
+   */
+  public atualizarGuiches(guiches: Guiche[]): { sucesso: boolean; erro?: string } {
+    // Garantir que todos os guichês tenham ID
+    const guichesComId = guiches.map(guiche => {
+      if (!guiche.id) {
+        return { ...guiche, id: this.gerarIdGuiche() };
+      }
+      return guiche;
+    });
+
+    // Verificar se algum guichê sendo removido está em atendimento
+    const idsNovos = new Set(guichesComId.map(g => g.id));
+    const idsAntigos = this.estado.guichesConfigurados.map(g => g.id);
+    const idsRemovidos = idsAntigos.filter(id => !idsNovos.has(id));
+
+    for (const idRemovido of idsRemovidos) {
+      if (this.estado.atendimentosAtuais[idRemovido]) {
+        const guicheRemovido = this.estado.guichesConfigurados.find(g => g.id === idRemovido);
+        return {
+          sucesso: false,
+          erro: `Não é possível remover "${guicheRemovido?.nome || 'guichê'}": há uma senha em atendimento. Encerre o atendimento primeiro.`
+        };
+      }
+    }
+
+    this.estado.guichesConfigurados = guichesComId;
     this.salvarEstado();
+    return { sucesso: true };
   }
 
   /**
