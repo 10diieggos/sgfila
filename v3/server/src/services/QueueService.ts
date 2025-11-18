@@ -255,13 +255,22 @@ export class QueueService {
   public excluirSenha(numeroSenha: string): boolean {
     const estado = this.stateManager.getEstado();
 
-    const index = estado.senhas.findIndex(s => s.numero === numeroSenha);
-    if (index === -1) {
+    const senha = estado.senhas.find(s => s.numero === numeroSenha);
+    if (!senha) {
       console.log(`Senha ${numeroSenha} não encontrada`);
       return false;
     }
 
-    estado.senhas.splice(index, 1);
+    // Marca como excluída ao invés de remover
+    senha.status = 'excluida';
+    senha.finalizadoTimestamp = Date.now();
+
+    // Remove dos atendimentos atuais se estiver lá
+    const guiche = senha.guicheAtendendo;
+    if (guiche && estado.atendimentosAtuais[guiche]) {
+      delete estado.atendimentosAtuais[guiche];
+    }
+
     this.stateManager.setEstado(estado);
 
     console.log(`Senha ${numeroSenha} excluída`);
@@ -282,6 +291,7 @@ export class QueueService {
 
     // Marca como não compareceu
     senha.status = 'nao_compareceu';
+    senha.finalizadoTimestamp = Date.now();
 
     // Remove dos atendimentos atuais se estiver lá
     const guiche = senha.guicheAtendendo;
