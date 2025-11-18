@@ -129,6 +129,22 @@ export class SocketHandlers {
       }
     });
 
+    socket.on('devolverSenhaComMotivo', ({ numeroSenha, motivo }) => {
+      try {
+        const senha = this.queueService.devolverSenhaComMotivo(numeroSenha, motivo);
+
+        if (senha) {
+          console.log(`Senha ${numeroSenha} devolvida com motivo: ${motivo}`);
+        } else {
+          console.log(`Devolução bloqueada para senha ${numeroSenha} com motivo: ${motivo}`);
+        }
+
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao devolver senha com motivo:', error);
+      }
+    });
+
     // ========================================
     // EXCLUSÃO
     // ========================================

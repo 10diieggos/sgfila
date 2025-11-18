@@ -99,6 +99,10 @@ export function useSocket() {
     socket.value?.emit('devolverSenha', { numeroSenha })
   }
 
+  const devolverSenhaComMotivo = (numeroSenha: string, motivo: string) => {
+    socket.value?.emit('devolverSenhaComMotivo', { numeroSenha, motivo })
+  }
+
   const atualizarDescricao = (numeroSenha: string, descricao: string) => {
     socket.value?.emit('atualizarDescricao', { numeroSenha, descricao })
   }
@@ -144,6 +148,7 @@ export function useSocket() {
     excluirSenha,
     excluirAtendimento,
     devolverSenha,
+    devolverSenhaComMotivo,
     atualizarDescricao,
     atualizarProporcao,
     atualizarProporcaoContratual,

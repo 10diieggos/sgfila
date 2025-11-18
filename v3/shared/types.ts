@@ -9,6 +9,15 @@
 
 export type TipoSenha = 'prioridade' | 'contratual' | 'normal';
 export type StatusSenha = 'espera' | 'chamada' | 'atendida' | 'nao_compareceu' | 'excluida';
+export type MotivoRetorno = 'retorno_impressao' | 'erro_operacional' | 'ausente_retornou' | 'reabertura_atendimento';
+
+export interface RegistroDevolucao {
+  timestamp: number;
+  motivo: MotivoRetorno;
+  timestampHistorico: number;
+  tempoDecorridoMinutos: number;
+  posicaoAtribuida?: number;
+}
 
 export interface Senha {
   numero: string;
@@ -26,6 +35,10 @@ export interface Senha {
   // Métricas de tempo
   tempoEspera: number;
   tempoAtendimento: number;
+
+  // Campos para controle de devoluções
+  posicaoOriginal?: number;
+  historicoDevolucoes?: RegistroDevolucao[];
 }
 
 // ============================================
@@ -122,6 +135,7 @@ export interface ClientToServerEvents {
   excluirSenha: (dados: { numeroSenha: string }) => void;
   excluirAtendimento: (dados: { numeroSenha: string }) => void;
   devolverSenha: (dados: { numeroSenha: string }) => void;
+  devolverSenhaComMotivo: (dados: { numeroSenha: string; motivo: MotivoRetorno }) => void;
   atualizarDescricao: (dados: { numeroSenha: string; descricao: string }) => void;
   atualizarProporcao: (novaProporcao: number) => void;
   atualizarProporcaoContratual: (novaProporcao: number) => void;
