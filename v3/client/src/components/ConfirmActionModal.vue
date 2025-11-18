@@ -4,7 +4,7 @@
       <div v-if="show" class="modal-overlay modal-confirm" @click.self="handleCancel" @keydown="handleKeyDown">
         <div class="modal-content-confirm" @click.stop>
           <span class="modal-label">{{ title }}</span>
-          <div v-if="tipoSenha" :class="['senha-numero-confirm', tipoSenha]">{{ extractSenhaNumber(message) }}</div>
+          <div v-if="tipoSenha" :class="['senha-numero-confirm', tipoSenha]">{{ numeroSenha || extractSenhaNumber(message) }}</div>
 
           <div class="modal-actions-confirm">
             <button :class="['btn-confirm', getConfirmClass()]" @click="handleConfirm">
@@ -31,6 +31,7 @@ const props = withDefaults(defineProps<{
   confirmText?: string
   cancelText?: string
   tipoSenha?: TipoSenha
+  numeroSenha?: string
 }>(), {
   title: 'Confirmar Ação',
   confirmText: 'Confirmar',

@@ -148,6 +148,7 @@
       :message="confirmModalData.message"
       :confirm-text="confirmModalData.confirmText"
       :tipo-senha="confirmModalData.tipoSenha"
+      :numero-senha="confirmModalData.numeroSenha"
       @confirm="handleConfirmAction"
       @cancel="showConfirmModal = false"
     />
@@ -327,6 +328,7 @@ const confirmModalData = ref({
   message: '',
   confirmText: 'Confirmar',
   tipoSenha: '' as 'prioridade' | 'normal' | 'contratual' | '',
+  numeroSenha: '',
   action: '' as 'excluir' | 'ausente' | '',
   data: {} as any
 })
@@ -373,6 +375,7 @@ const handleNaoCompareceu = (guicheNome: string) => {
       message: `Confirma que a senha ${senha.numero} não compareceu ao atendimento?`,
       confirmText: 'Confirmar',
       tipoSenha: senha.tipo,
+      numeroSenha: senha.numero,
       action: 'ausente',
       data: { numeroSenha: senha.numero }
     }
@@ -391,6 +394,7 @@ const handleAusente = (numeroSenha: string) => {
     message: `Confirma que a senha ${numeroSenha} não compareceu ao atendimento?`,
     confirmText: 'Confirmar',
     tipoSenha: senha?.tipo || 'normal',
+    numeroSenha: numeroSenha,
     action: 'ausente',
     data: { numeroSenha }
   }
@@ -462,6 +466,7 @@ const handleExcluirSenha = (numeroSenha: string) => {
     message: `Tem certeza que deseja excluir a senha ${numeroSenha} da fila?`,
     confirmText: 'Excluir',
     tipoSenha: senha?.tipo || 'normal',
+    numeroSenha: numeroSenha,
     action: 'excluir',
     data: { numeroSenha }
   }
