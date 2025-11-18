@@ -215,28 +215,37 @@ export class QueueService {
   public devolverSenha(numeroSenha: string): Senha | null {
     const estado = this.stateManager.getEstado();
 
-    const senha = estado.senhas.find(s => s.numero === numeroSenha && s.status === 'chamada');
+    const senha = estado.senhas.find(s => s.numero === numeroSenha);
     if (!senha) {
-      console.log(`Senha ${numeroSenha} não está em chamada`);
+      console.log(`Senha ${numeroSenha} não encontrada`);
+      return null;
+    }
+
+    // Não pode devolver senha que já está em espera
+    if (senha.status === 'espera') {
+      console.log(`Senha ${numeroSenha} já está na fila de espera`);
       return null;
     }
 
     // Restaura para espera
     senha.status = 'espera';
     senha.tempoEspera = 0;
+    senha.tempoAtendimento = 0;
 
-    // Remove dos atendimentos atuais
+    // Remove dos atendimentos atuais (se estiver em chamada)
     const guiche = senha.guicheAtendendo;
     if (guiche && estado.atendimentosAtuais[guiche]) {
       delete estado.atendimentosAtuais[guiche];
     }
 
+    // Limpa dados de atendimento
     senha.guicheAtendendo = undefined;
     senha.chamadaTimestamp = undefined;
+    senha.finalizadoTimestamp = undefined;
 
     this.stateManager.setEstado(estado);
 
-    console.log(`Senha ${numeroSenha} devolvida para fila`);
+    console.log(`Senha ${numeroSenha} devolvida para fila (status anterior: ${senha.status})`);
     return senha;
   }
 
