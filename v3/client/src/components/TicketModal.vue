@@ -121,7 +121,7 @@ import { useRealtimeTimer, calcularTempoEsperaRealtime, calcularTempoAtendimento
 
 const props = defineProps<{
   show: boolean
-  ticketSelecionado: Senha | null
+  numeroSenha: string
   estatisticas: Estatisticas
   estado?: EstadoSistema
 }>()
@@ -134,6 +134,12 @@ const emit = defineEmits<{
   'retornar': [numero: string]
   'ausente': [numero: string]
 }>()
+
+// Buscar senha atualizada do estado (sempre dinâmica)
+const ticketSelecionado = computed(() => {
+  if (!props.estado || !props.numeroSenha) return null
+  return props.estado.senhas.find(s => s.numero === props.numeroSenha) || null
+})
 
 const handleClose = () => {
   emit('close')
@@ -173,7 +179,7 @@ const formatTimestamp = (timestamp: number): string => {
 
 // Queue position calculation
 const queuePosition = computed(() => {
-  if (!props.ticketSelecionado || !props.estado || props.ticketSelecionado.status !== 'espera') {
+  if (!ticketSelecionado.value || !props.estado || ticketSelecionado.value.status !== 'espera') {
     return { position: -1, peopleAhead: 'N/A' }
   }
 
@@ -219,7 +225,7 @@ const queuePosition = computed(() => {
     }
   }
 
-  const position = filaSimulada.findIndex(s => s.numero === props.ticketSelecionado!.numero)
+  const position = filaSimulada.findIndex(s => s.numero === ticketSelecionado.value!.numero)
   const peopleAhead = position !== -1 ? `${position} pessoas na frente` : 'N/A'
 
   return { position, peopleAhead, filaSimulada }
@@ -227,7 +233,7 @@ const queuePosition = computed(() => {
 
 // Service time estimate calculation
 const serviceEstimate = computed(() => {
-  if (!props.ticketSelecionado || props.ticketSelecionado.status !== 'espera' || !props.estado) {
+  if (!ticketSelecionado.value || ticketSelecionado.value.status !== 'espera' || !props.estado) {
     return { estimateMs: 0, estimateFormatted: '---', eta: '---' }
   }
 
@@ -264,13 +270,13 @@ const serviceEstimate = computed(() => {
 
 // Real-time time updates
 const tempoEsperaRealtime = useRealtimeTimer(() => {
-  if (!props.ticketSelecionado) return 0
-  return calcularTempoEsperaRealtime(props.ticketSelecionado)
+  if (!ticketSelecionado.value) return 0
+  return calcularTempoEsperaRealtime(ticketSelecionado.value)
 })
 
 const tempoAtendimentoRealtime = useRealtimeTimer(() => {
-  if (!props.ticketSelecionado) return 0
-  return calcularTempoAtendimentoRealtime(props.ticketSelecionado)
+  if (!ticketSelecionado.value) return 0
+  return calcularTempoAtendimentoRealtime(ticketSelecionado.value)
 })
 </script>
 

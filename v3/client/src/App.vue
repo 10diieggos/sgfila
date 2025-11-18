@@ -214,7 +214,7 @@
     <!-- Modal Ticket -->
     <TicketModal
       :show="showTicketModal"
-      :ticket-selecionado="ticketSelecionado"
+      :numero-senha="numeroSenhaSelecionada"
       :estatisticas="estatisticas"
       :estado="estado"
       @close="handleCloseTicketModal"
@@ -318,7 +318,7 @@ const editModalOpenedFromTicket = ref(false)
 const novaSenhaNumerо = ref('')
 const novaSenhaTipo = ref<'prioridade' | 'normal' | 'contratual'>('normal')
 const senhaParaEditar = ref<Senha | null>(null)
-const ticketSelecionado = ref<Senha | null>(null)
+const numeroSenhaSelecionada = ref('')
 const guichesExibicao = ref<string[]>([])
 const senhaParaChamar = ref<string | null>(null)
 const guichesLivres = ref<Guiche[]>([])
@@ -476,7 +476,7 @@ const handleExcluirSenha = (numeroSenha: string) => {
 const handleVerDetalhes = (numeroSenha: string) => {
   const senha = estado.value?.senhas.find(s => s.numero === numeroSenha)
   if (senha) {
-    ticketSelecionado.value = senha
+    numeroSenhaSelecionada.value = numeroSenha
 
     // Determinar de qual modal veio a solicitação
     if (showHistoryModal.value) {
