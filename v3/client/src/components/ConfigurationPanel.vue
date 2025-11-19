@@ -15,6 +15,18 @@
         <i class="fas fa-balance-scale-right"></i> Proporção
       </button>
       <button
+        :class="['sub-tab-link', { active: activeSubTab === 'interface' }]"
+        @click="changeSubTab('interface')"
+      >
+        <i class="fas fa-palette"></i> Interface
+      </button>
+      <button
+        :class="['sub-tab-link', { active: activeSubTab === 'notificacoes' }]"
+        @click="changeSubTab('notificacoes')"
+      >
+        <i class="fas fa-bell"></i> Notificações
+      </button>
+      <button
         :class="['sub-tab-link', { active: activeSubTab === 'reiniciar' }]"
         @click="changeSubTab('reiniciar')"
       >
@@ -164,6 +176,202 @@
       </div>
     </div>
 
+    <!-- Conteúdo Interface -->
+    <div v-if="activeSubTab === 'interface'" class="sub-tab-content">
+      <h2><i class="fas fa-palette"></i> Configurações de Interface</h2>
+      <p class="hint">
+        Personalize a aparência e o comportamento visual do sistema.
+      </p>
+
+      <div class="config-section">
+        <h3>Tema</h3>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" value="claro" v-model="interfaceConfig.tema" @change="salvarInterface" />
+            <span><i class="fas fa-sun"></i> Claro</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="escuro" v-model="interfaceConfig.tema" @change="salvarInterface" />
+            <span><i class="fas fa-moon"></i> Escuro</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="auto" v-model="interfaceConfig.tema" @change="salvarInterface" />
+            <span><i class="fas fa-adjust"></i> Automático</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Tamanho da Fonte (Senhas)</h3>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" value="pequeno" v-model="interfaceConfig.tamanhoFonteSenhas" @change="salvarInterface" />
+            <span>Pequeno</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="medio" v-model="interfaceConfig.tamanhoFonteSenhas" @change="salvarInterface" />
+            <span>Médio</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="grande" v-model="interfaceConfig.tamanhoFonteSenhas" @change="salvarInterface" />
+            <span>Grande</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="extra-grande" v-model="interfaceConfig.tamanhoFonteSenhas" @change="salvarInterface" />
+            <span>Extra Grande</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Formato do Número da Senha</h3>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" value="com-hifen" v-model="interfaceConfig.formatoNumeroSenha" @change="salvarInterface" />
+            <span>Com hífen (P-001)</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="sem-hifen" v-model="interfaceConfig.formatoNumeroSenha" @change="salvarInterface" />
+            <span>Sem hífen (P001)</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="apenas-numero" v-model="interfaceConfig.formatoNumeroSenha" @change="salvarInterface" />
+            <span>Apenas número (001)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Opções de Exibição</h3>
+        <div class="checkbox-list">
+          <label class="checkbox-item-config">
+            <input type="checkbox" v-model="interfaceConfig.mostrarDescricaoSenha" @change="salvarInterface" />
+            <span>Mostrar descrição das senhas</span>
+          </label>
+          <label class="checkbox-item-config">
+            <input type="checkbox" v-model="interfaceConfig.mostrarTempoEspera" @change="salvarInterface" />
+            <span>Mostrar tempo de espera</span>
+          </label>
+          <label class="checkbox-item-config">
+            <input type="checkbox" v-model="interfaceConfig.mostrarTempoAtendimento" @change="salvarInterface" />
+            <span>Mostrar tempo de atendimento</span>
+          </label>
+          <label class="checkbox-item-config">
+            <input type="checkbox" v-model="interfaceConfig.exibirIconesPrioridade" @change="salvarInterface" />
+            <span>Exibir ícones de prioridade</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <div>
+          <strong>Nota:</strong>
+          <p>Algumas alterações podem exigir recarregar a página para serem totalmente aplicadas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteúdo Notificações -->
+    <div v-if="activeSubTab === 'notificacoes'" class="sub-tab-content">
+      <h2><i class="fas fa-bell"></i> Configurações de Notificações</h2>
+      <p class="hint">
+        Configure alertas sonoros e notificações do sistema.
+      </p>
+
+      <div class="config-section">
+        <h3>Som</h3>
+        <label class="checkbox-item-config large">
+          <input type="checkbox" v-model="notificacoesConfig.somAtivo" @change="salvarNotificacoes" />
+          <span><strong>Ativar som</strong></span>
+        </label>
+
+        <div v-if="notificacoesConfig.somAtivo" class="config-subsection">
+          <div class="slider-control">
+            <label>
+              Volume do Som: <strong>{{ notificacoesConfig.volumeSom }}%</strong>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              v-model.number="notificacoesConfig.volumeSom"
+              @change="salvarNotificacoes"
+              class="slider"
+            />
+          </div>
+
+          <div class="number-control">
+            <label>Número de beeps na emissão:</label>
+            <input
+              type="number"
+              min="1"
+              max="5"
+              v-model.number="notificacoesConfig.beepsEmissao"
+              @change="salvarNotificacoes"
+              class="number-input"
+            />
+          </div>
+
+          <div class="number-control">
+            <label>Número de beeps na chamada:</label>
+            <input
+              type="number"
+              min="1"
+              max="10"
+              v-model.number="notificacoesConfig.beepsChamada"
+              @change="salvarNotificacoes"
+              class="number-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Alertas</h3>
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="notificacoesConfig.alertaFilaCheia" @change="salvarNotificacoes" />
+          <span>Alertar quando fila estiver cheia</span>
+        </label>
+
+        <div v-if="notificacoesConfig.alertaFilaCheia" class="config-subsection">
+          <div class="number-control">
+            <label>Limite para fila cheia:</label>
+            <input
+              type="number"
+              min="10"
+              max="500"
+              step="10"
+              v-model.number="notificacoesConfig.limiteFilaCheia"
+              @change="salvarNotificacoes"
+              class="number-input"
+            />
+            <span class="input-hint">senhas</span>
+          </div>
+        </div>
+
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="notificacoesConfig.alertaGuicheInativo" @change="salvarNotificacoes" />
+          <span>Alertar quando guichê ficar inativo</span>
+        </label>
+
+        <div v-if="notificacoesConfig.alertaGuicheInativo" class="config-subsection">
+          <div class="number-control">
+            <label>Tempo de inatividade:</label>
+            <input
+              type="number"
+              min="1"
+              max="60"
+              v-model.number="notificacoesConfig.tempoInativoMinutos"
+              @change="salvarNotificacoes"
+              class="number-input"
+            />
+            <span class="input-hint">minutos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Conteúdo Reiniciar -->
     <div v-if="activeSubTab === 'reiniciar'" class="sub-tab-content">
       <h2><i class="fas fa-redo"></i> Reiniciar Sistema</h2>
@@ -192,13 +400,13 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import type { Guiche } from '@shared/types'
+import type { Guiche, ConfiguracaoInterface, ConfiguracaoNotificacoes } from '../../../shared/types'
 
 const props = withDefaults(defineProps<{
   guichesGlobais: Guiche[]
   proporcaoPrioridade: number
   proporcaoContratual: number
-  initialTab?: 'guiches' | 'proporcao' | 'reiniciar'
+  initialTab?: 'guiches' | 'proporcao' | 'interface' | 'notificacoes' | 'reiniciar'
 }>(), {
   initialTab: 'guiches'
 })
@@ -208,13 +416,15 @@ const emit = defineEmits<{
   'atualizar-proporcao-prioridade': [valor: number]
   'atualizar-proporcao-contratual': [valor: number]
   'atualizar-guiches-exibicao': [guiches: string[]]
+  'atualizar-interface': [config: ConfiguracaoInterface]
+  'atualizar-notificacoes': [config: ConfiguracaoNotificacoes]
   'reiniciar-sistema': []
 }>()
 
-const activeSubTab = ref<'guiches' | 'proporcao' | 'reiniciar'>(props.initialTab)
+const activeSubTab = ref<'guiches' | 'proporcao' | 'interface' | 'notificacoes' | 'reiniciar'>(props.initialTab)
 
 // Mudar sub-aba
-const changeSubTab = (tab: 'guiches' | 'proporcao' | 'reiniciar') => {
+const changeSubTab = (tab: 'guiches' | 'proporcao' | 'interface' | 'notificacoes' | 'reiniciar') => {
   activeSubTab.value = tab
 }
 
@@ -303,6 +513,38 @@ const toggleGuicheExibicao = (id: string) => {
   // Salvar no localStorage
   localStorage.setItem('sgfila_guiches_exibicao', JSON.stringify(guichesExibicaoLocal.value))
   emit('atualizar-guiches-exibicao', guichesExibicaoLocal.value)
+}
+
+// Configurações de Interface
+const interfaceConfig = ref<ConfiguracaoInterface>({
+  tema: 'claro',
+  tamanhoFonteSenhas: 'grande',
+  formatoNumeroSenha: 'com-hifen',
+  mostrarDescricaoSenha: true,
+  mostrarTempoEspera: true,
+  mostrarTempoAtendimento: true,
+  ordenacaoFilaPadrao: 'emissao',
+  exibirIconesPrioridade: true
+})
+
+const salvarInterface = () => {
+  emit('atualizar-interface', interfaceConfig.value)
+}
+
+// Configurações de Notificações
+const notificacoesConfig = ref<ConfiguracaoNotificacoes>({
+  somAtivo: true,
+  volumeSom: 80,
+  beepsEmissao: 1,
+  beepsChamada: 3,
+  alertaFilaCheia: false,
+  limiteFilaCheia: 100,
+  alertaGuicheInativo: false,
+  tempoInativoMinutos: 10
+})
+
+const salvarNotificacoes = () => {
+  emit('atualizar-notificacoes', notificacoesConfig.value)
 }
 
 const confirmarReinicio = () => {
@@ -671,5 +913,172 @@ input:checked + .toggle-slider:before {
 .btn-reset-danger:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.config-section {
+  margin-bottom: 35px;
+  padding: 25px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.config-section h3 {
+  margin: 0 0 20px 0;
+  color: #495057;
+  font-size: 1.1em;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.radio-item:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.radio-item input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.radio-item span {
+  color: #495057;
+  font-weight: 500;
+}
+
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkbox-item-config {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.checkbox-item-config:hover {
+  background: #f8f9ff;
+}
+
+.checkbox-item-config.large {
+  padding: 20px;
+  border: 2px solid #e9ecef;
+}
+
+.checkbox-item-config input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.checkbox-item-config span {
+  color: #495057;
+}
+
+.config-subsection {
+  margin-top: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.slider-control {
+  margin-bottom: 20px;
+}
+
+.slider-control label {
+  display: block;
+  margin-bottom: 10px;
+  color: #495057;
+  font-weight: 600;
+}
+
+.slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #e9ecef;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+}
+
+.number-control {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.number-control:last-child {
+  margin-bottom: 0;
+}
+
+.number-control label {
+  flex: 1;
+  color: #495057;
+  font-weight: 500;
+}
+
+.number-input {
+  width: 100px;
+  padding: 10px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1em;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+
+.number-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.input-hint {
+  color: #868e96;
+  font-size: 0.9em;
 }
 </style>
