@@ -166,7 +166,7 @@ const props = defineProps<{
 }>()
 
 // Composables
-const socket = useSocket()
+const { socket } = useSocket()
 
 // State
 const estatisticas = ref<EstatisticasAvancadas | null>(null)
@@ -196,7 +196,7 @@ const handleAplicarFiltro = (dados: {
   carregando.value = true
 
   // Solicita estatísticas ao servidor
-  socket.emit('solicitarEstatisticasPeriodo', dados)
+  socket.value?.emit('solicitarEstatisticasPeriodo', dados)
 }
 
 const getGuicheNome = (guicheId: string): string => {
@@ -215,8 +215,10 @@ const getTipoLabel = (tipo: string): string => {
 
 // Socket event handlers
 onMounted(() => {
+  if (!socket.value) return
+
   // Escuta estatísticas agregadas do servidor
-  socket.on('estatisticasAgregadas', (dados) => {
+  socket.value.on('estatisticasAgregadas', (dados: any) => {
     console.log('Estatísticas recebidas:', dados)
     estatisticas.value = dados.estatisticas
     periodoDescricao.value = dados.periodoDescricao
@@ -233,7 +235,7 @@ onMounted(() => {
   })
 
   // Escuta atualizações de estado em tempo real (quando filtro = dia)
-  socket.on('estadoAtualizado', ({ estatisticas: stats }) => {
+  socket.value.on('estadoAtualizado', ({ estatisticas: stats }: any) => {
     // Se não está carregando dados históricos e tem estatísticas avançadas
     if (!carregando.value && (stats as any).distribuicaoPorHora) {
       estatisticas.value = stats as EstatisticasAvancadas
@@ -243,7 +245,7 @@ onMounted(() => {
   })
 
   // Escuta erros
-  socket.on('erroOperacao', (dados) => {
+  socket.value.on('erroOperacao', (dados: any) => {
     if (dados.tipo === 'estatisticasHistoricas') {
       console.error('Erro ao carregar estatísticas:', dados.mensagem)
       carregando.value = false
