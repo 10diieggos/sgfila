@@ -8,6 +8,7 @@ import type { ClientToServerEvents, ServerToClientEvents } from '../../../shared
 import { StateManager } from '../services/StateManager.js';
 import { QueueService } from '../services/QueueService.js';
 import { StatisticsService } from '../services/StatisticsService.js';
+import { AdvancedStatisticsService } from '../services/AdvancedStatisticsService.js';
 
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type TypedServer = SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
@@ -16,11 +17,13 @@ export class SocketHandlers {
   private stateManager: StateManager;
   private queueService: QueueService;
   private io: TypedServer;
+  private useAdvancedStats: boolean;
 
-  constructor(io: TypedServer) {
+  constructor(io: TypedServer, useAdvancedStats: boolean = false) {
     this.io = io;
     this.stateManager = StateManager.getInstance();
     this.queueService = new QueueService();
+    this.useAdvancedStats = useAdvancedStats;
   }
 
   /**
@@ -28,7 +31,11 @@ export class SocketHandlers {
    */
   private emitirEstadoAtualizado(): void {
     const estado = this.stateManager.getEstado();
-    const estatisticas = StatisticsService.calcularEstatisticas(estado);
+
+    // Usa estatísticas avançadas se habilitado, senão usa básicas
+    const estatisticas = this.useAdvancedStats
+      ? AdvancedStatisticsService.calcularEstatisticasAvancadas(estado)
+      : StatisticsService.calcularEstatisticas(estado);
 
     this.io.emit('estadoAtualizado', { estado, estatisticas });
   }
@@ -41,7 +48,9 @@ export class SocketHandlers {
 
     // Envia estado inicial
     const estado = this.stateManager.getEstado();
-    const estatisticas = StatisticsService.calcularEstatisticas(estado);
+    const estatisticas = this.useAdvancedStats
+      ? AdvancedStatisticsService.calcularEstatisticasAvancadas(estado)
+      : StatisticsService.calcularEstatisticas(estado);
     socket.emit('estadoAtualizado', { estado, estatisticas });
 
     // ========================================

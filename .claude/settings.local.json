@@ -18,7 +18,9 @@
       "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" \"./node_modules/typescript/lib/tsc.js\")",
       "Bash(timeout:*)",
       "Bash(./START.bat)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(C:/Users/Diego/Downloads/nodep/node.exe node_modules/typescript/lib/tsc.js:*)",
+      "Bash(C:/Users/Diego/Downloads/nodep/node.exe dist/server.js)"
     ],
     "deny": [],
     "ask": []

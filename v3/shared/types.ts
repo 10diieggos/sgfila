@@ -77,7 +77,7 @@ export interface EstadoSistema {
 }
 
 // ============================================
-// ESTATÍSTICAS
+// ESTATÍSTICAS BÁSICAS
 // ============================================
 
 export interface DetalhesTipo {
@@ -118,6 +118,117 @@ export interface Estatisticas {
     [guicheId: string]: DetalhesGuiche;
   };
   guichesAtivos: number;
+}
+
+// ============================================
+// ESTATÍSTICAS AVANÇADAS
+// ============================================
+
+export interface FiltroPeriodo {
+  inicio: number; // timestamp
+  fim: number; // timestamp
+  tipo: 'hora' | 'dia' | 'semana' | 'mes' | 'personalizado';
+}
+
+export interface EstatisticasPorHora {
+  hora: number; // 0-23
+  emitidas: number;
+  atendidas: number;
+  naoCompareceu: number;
+  tempoMedioEsperaMs: number;
+  tempoMedioAtendimentoMs: number;
+  pico: boolean; // marca horários de pico
+}
+
+export interface EstatisticasPorAtendente {
+  guicheId: string;
+  guicheNome: string;
+  totalAtendimentos: number;
+  tempoMedioAtendimentoMs: number;
+  tempoTotalAtivoMs: number; // tempo que ficou com senhas em atendimento
+  eficiencia: number; // atendimentos por hora
+  taxaOcupacao: number; // % do tempo ocupado
+  maiorTempoAtendimentoMs: number;
+  menorTempoAtendimentoMs: number;
+}
+
+export interface EstatisticasDevolucoes {
+  totalDevolucoes: number;
+  porMotivo: {
+    [motivo: string]: {
+      quantidade: number;
+      percentual: number;
+    };
+  };
+  tempoMedioAteRetornoMs: number;
+}
+
+export interface EstatisticasQualidade {
+  taxaAtendimento: number; // % de senhas atendidas vs emitidas
+  taxaNaoComparecimento: number; // % de não comparecimento
+  taxaDevolucao: number; // % de devoluções
+  eficienciaGeral: number; // atendimentos por hora (todos os guichês)
+  tempoOciosoMedioMs: number; // tempo médio entre atendimentos
+}
+
+export interface PicoAtendimento {
+  horarioInicio: number; // hora 0-23
+  horarioFim: number;
+  quantidadeSenhas: number;
+  descricao: string;
+}
+
+export interface ProjecaoAtendimento {
+  senhasRestantes: number;
+  tempoEstimadoFinalizacaoMs: number;
+  horarioEstimadoFinalizacao: string;
+  baseadoEm: 'tempo-medio' | 'tempo-atual' | 'historico';
+}
+
+export interface EstatisticasAvancadas extends Estatisticas {
+  // Metadados
+  dataReferencia: string; // YYYY-MM-DD (horário de Brasília)
+  timestampInicio: number;
+  timestampFim: number;
+  periodoAtivo: boolean; // false se for histórico
+  modoTeste: boolean; // identifica se são dados de teste
+
+  // Distribuição temporal
+  distribuicaoPorHora: EstatisticasPorHora[];
+  horasPico: PicoAtendimento[];
+
+  // Performance por atendente
+  performancePorAtendente: EstatisticasPorAtendente[];
+
+  // Devoluções
+  devolucoes: EstatisticasDevolucoes;
+
+  // Qualidade do serviço
+  qualidade: EstatisticasQualidade;
+
+  // Projeções
+  projecao: ProjecaoAtendimento | null;
+
+  // Estatísticas agregadas
+  mediaAtendimentosPorHora: number;
+  picoMaximoAtendimentos: number;
+  horarioPicoMaximo: string;
+  periodoMenorMovimento: string;
+}
+
+export interface EstatisticasSnapshot {
+  timestamp: number; // momento do snapshot
+  hora: number; // hora de Brasília 0-23
+  estatisticas: EstatisticasAvancadas;
+}
+
+export interface ArquivoEstatisticasDia {
+  data: string; // YYYY-MM-DD (horário de Brasília)
+  modoTeste: boolean;
+  criadoEm: number;
+  atualizadoEm: number;
+  snapshots: EstatisticasSnapshot[]; // snapshot a cada hora ou em eventos importantes
+  estatisticasFinais: EstatisticasAvancadas | null; // estatísticas do dia completo (preenchido ao final)
 }
 
 // ============================================

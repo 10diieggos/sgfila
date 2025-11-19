@@ -10,6 +10,9 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import type { ClientToServerEvents, ServerToClientEvents } from '../../shared/types.js';
 import { SocketHandlers } from './socket/SocketHandlers.js';
+import { StatisticsPersistence } from './services/StatisticsPersistence.js';
+import { AdvancedStatisticsService } from './services/AdvancedStatisticsService.js';
+import { StateManager } from './services/StateManager.js';
 
 // Setup __dirname para ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -17,6 +20,8 @@ const __dirname = dirname(__filename);
 
 // Configuração
 const PORT = process.env.PORT || 3000;
+const MODO_TESTE = process.env.MODO_TESTE === 'true' || false;
+const INTERVALO_SNAPSHOT_MS = 3600000; // 1 hora
 
 // Cria aplicação Express
 const app = express();
@@ -39,21 +44,62 @@ app.get('/', (req, res) => {
   res.sendFile(join(clientPath, 'index.html'));
 });
 
-// Configura handlers Socket.IO
-const socketHandlers = new SocketHandlers(io);
+// Inicializa serviço de persistência de estatísticas
+const statisticsPersistence = new StatisticsPersistence(__dirname, MODO_TESTE);
+let ultimoSnapshotTimestamp: number | null = null;
+
+// Inicializa pasta de estatísticas
+statisticsPersistence.inicializar().catch(erro => {
+  console.error('Erro ao inicializar persistência de estatísticas:', erro);
+});
+
+// Função para salvar snapshot de estatísticas
+async function salvarSnapshotSeNecessario() {
+  try {
+    const agora = Date.now();
+
+    // Verifica se precisa criar snapshot (a cada hora)
+    if (!ultimoSnapshotTimestamp || (agora - ultimoSnapshotTimestamp) >= INTERVALO_SNAPSHOT_MS) {
+      const stateManager = StateManager.getInstance();
+      const estado = stateManager.getEstado();
+
+      const estatisticasAvancadas = AdvancedStatisticsService.calcularEstatisticasAvancadas(
+        estado,
+        MODO_TESTE
+      );
+
+      await statisticsPersistence.adicionarSnapshot(estatisticasAvancadas);
+      await statisticsPersistence.atualizarEstatisticasFinais(estatisticasAvancadas);
+
+      ultimoSnapshotTimestamp = agora;
+    }
+  } catch (erro) {
+    console.error('Erro ao salvar snapshot de estatísticas:', erro);
+  }
+}
+
+// Intervalo para verificar e salvar snapshots (verifica a cada 5 minutos)
+setInterval(salvarSnapshotSeNecessario, 300000); // 5 minutos
+
+// Configura handlers Socket.IO (com estatísticas avançadas habilitadas)
+const socketHandlers = new SocketHandlers(io, true);
 
 io.on('connection', (socket) => {
   socketHandlers.setupHandlers(socket);
 });
 
 // Inicia servidor
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log('=================================');
   console.log('SGFILA v3.0 - TypeScript + Vue 3');
   console.log('=================================');
   console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`Modo teste: ${MODO_TESTE ? 'ATIVADO' : 'DESATIVADO'}`);
   console.log('Pressione Ctrl+C para parar');
   console.log('=================================');
+
+  // Salva snapshot inicial
+  await salvarSnapshotSeNecessario();
 });
 
 // Tratamento de erros
