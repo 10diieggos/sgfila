@@ -244,7 +244,7 @@
             <HistoryPanel
               :senhas="estado.senhas"
               @ver-detalhes="handleVerDetalhes"
-              @chamar="handleChamarSenhaEspecifica"
+              @chamar="handleChamarFromHistoryModal"
               @editar="handleEditarDescricao"
               @excluir="handleExcluirSenha"
               @retornar="handleDevolverSenha"
@@ -443,25 +443,29 @@ const handleAusente = (numeroSenha: string) => {
 }
 
 // Handlers - Fila
-const handleChamarSenhaEspecifica = (numeroSenha: string) => {
-  // Buscar guichês ativos que estão em exibição (podem estar livres ou ocupados)
+const handleChamarSenhaEspecifica = (numeroSenha: string): boolean => {
+  // Buscar guichês ativos que estão em exibição E estão livres (não ocupados)
   const guichesDisponiveis = estado.value?.guichesConfigurados.filter(g => {
     const estaAtivo = g.ativo
     const estaEmExibicao = guichesExibicao.value.length === 0 || guichesExibicao.value.includes(g.id)
-    return estaAtivo && estaEmExibicao
+    const estaLivre = !estado.value?.atendimentosAtuais[g.id]
+    return estaAtivo && estaEmExibicao && estaLivre
   }) || []
 
   if (guichesDisponiveis.length === 0) {
-    alertMessage.value = 'Nenhum guichê ativo disponível na exibição atual'
+    alertMessage.value = 'Nenhum guichê livre disponível na exibição atual'
     showAlertModal.value = true
+    return false
   } else if (guichesDisponiveis.length === 1) {
-    // Apenas um guichê disponível, chamar automaticamente
+    // Apenas um guichê livre, chamar automaticamente
     chamarSenhaEspecifica(guichesDisponiveis[0].id, numeroSenha)
+    return true
   } else {
-    // Múltiplos guichês disponíveis, abrir modal de seleção
+    // Múltiplos guichês livres, abrir modal de seleção
     senhaParaChamar.value = numeroSenha
     guichesLivres.value = guichesDisponiveis
     showGuicheModal.value = true
+    return true
   }
 }
 
@@ -545,9 +549,18 @@ const handleCloseTicketModal = () => {
 }
 
 const handleChamarFromTicketModal = (numeroSenha: string) => {
-  handleChamarSenhaEspecifica(numeroSenha)
-  showTicketModal.value = false
-  modalSourceForTicket.value = null
+  const sucesso = handleChamarSenhaEspecifica(numeroSenha)
+  if (sucesso) {
+    showTicketModal.value = false
+    modalSourceForTicket.value = null
+  }
+}
+
+const handleChamarFromHistoryModal = (numeroSenha: string) => {
+  const sucesso = handleChamarSenhaEspecifica(numeroSenha)
+  if (sucesso) {
+    showHistoryModal.value = false
+  }
 }
 
 const handleEditarFromTicketModal = (numeroSenha: string) => {
