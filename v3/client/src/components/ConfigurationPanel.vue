@@ -15,6 +15,24 @@
         <i class="fas fa-balance-scale-right"></i> Proporção
       </button>
       <button
+        :class="['sub-tab-link', { active: activeSubTab === 'tipos' }]"
+        @click="changeSubTab('tipos')"
+      >
+        <i class="fas fa-ticket-alt"></i> Tipos
+      </button>
+      <button
+        :class="['sub-tab-link', { active: activeSubTab === 'retornos' }]"
+        @click="changeSubTab('retornos')"
+      >
+        <i class="fas fa-undo"></i> Retornos
+      </button>
+      <button
+        :class="['sub-tab-link', { active: activeSubTab === 'comportamento' }]"
+        @click="changeSubTab('comportamento')"
+      >
+        <i class="fas fa-cogs"></i> Comportamento
+      </button>
+      <button
         :class="['sub-tab-link', { active: activeSubTab === 'interface' }]"
         @click="changeSubTab('interface')"
       >
@@ -25,6 +43,12 @@
         @click="changeSubTab('notificacoes')"
       >
         <i class="fas fa-bell"></i> Notificações
+      </button>
+      <button
+        :class="['sub-tab-link', { active: activeSubTab === 'seguranca' }]"
+        @click="changeSubTab('seguranca')"
+      >
+        <i class="fas fa-shield-alt"></i> Segurança
       </button>
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'reiniciar' }]"
@@ -172,6 +196,257 @@
             sempre respeitando a ordem de chegada dentro de cada tipo.
             Senhas prioritárias têm precedência sobre contratuais.
           </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteúdo Tipos de Senha -->
+    <div v-if="activeSubTab === 'tipos'" class="sub-tab-content">
+      <h2><i class="fas fa-ticket-alt"></i> Tipos de Senha</h2>
+      <p class="hint">
+        Configure os tipos de senha disponíveis no sistema, incluindo cores, prefixos e subtipos.
+      </p>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <div>
+          <strong>Importante:</strong>
+          <p>Alterações nos tipos de senha afetam todo o sistema. Tipos desativados não estarão disponíveis para emissão.</p>
+        </div>
+      </div>
+
+      <div v-for="(tipo, index) in tiposConfig" :key="tipo.id" class="tipo-senha-card">
+        <div class="tipo-header">
+          <div class="tipo-badge" :style="{ background: tipo.corFundo, color: tipo.cor }">
+            <i :class="'fas fa-' + tipo.icone"></i> {{ tipo.nome }}
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" v-model="tipo.ativo" @change="salvarTipos" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="tipo-config-grid">
+          <div class="config-item">
+            <label>Nome Completo:</label>
+            <input type="text" v-model="tipo.nomeCompleto" @blur="salvarTipos" class="config-input" />
+          </div>
+
+          <div class="config-item">
+            <label>Prefixo:</label>
+            <input type="text" v-model="tipo.prefixo" maxlength="3" @blur="salvarTipos" class="config-input small" />
+          </div>
+
+          <div class="config-item">
+            <label>Cor do Texto:</label>
+            <input type="color" v-model="tipo.cor" @change="salvarTipos" class="config-input-color" />
+          </div>
+
+          <div class="config-item">
+            <label>Cor de Fundo:</label>
+            <input type="color" v-model="tipo.corFundo" @change="salvarTipos" class="config-input-color" />
+          </div>
+        </div>
+
+        <div class="config-item">
+          <label>Subtipos (separados por vírgula):</label>
+          <input
+            type="text"
+            :value="tipo.subtipos.join(', ')"
+            @blur="atualizarSubtipos(index, $event)"
+            class="config-input"
+            placeholder="Ex: Idoso, Gestante, Deficiente"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteúdo Motivos de Retorno -->
+    <div v-if="activeSubTab === 'retornos'" class="sub-tab-content">
+      <h2><i class="fas fa-undo"></i> Motivos de Retorno</h2>
+      <p class="hint">
+        Configure os motivos disponíveis para devolução de senhas à fila.
+      </p>
+
+      <div v-for="motivo in motivosConfig" :key="motivo.id" class="motivo-card">
+        <div class="motivo-header">
+          <div class="motivo-title">
+            <i :class="'fas fa-' + motivo.icone" :style="{ color: motivo.cor }"></i>
+            <strong>{{ motivo.nome }}</strong>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" v-model="motivo.ativo" @change="salvarMotivos" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="motivo-body">
+          <div class="config-item">
+            <label>Descrição:</label>
+            <input type="text" v-model="motivo.descricao" @blur="salvarMotivos" class="config-input" />
+          </div>
+
+          <div class="config-grid-2">
+            <div class="config-item">
+              <label>Prazo (minutos):</label>
+              <input
+                type="number"
+                v-model.number="motivo.prazoMinutos"
+                min="0"
+                max="120"
+                @blur="salvarMotivos"
+                class="config-input"
+                placeholder="Sem prazo"
+              />
+            </div>
+
+            <div class="config-item">
+              <label>Posição na Fila:</label>
+              <select v-model="motivo.posicionamentoFila" @change="salvarMotivos" class="config-select">
+                <option value="inicio">Início</option>
+                <option value="meio">Meio</option>
+                <option value="fim">Fim</option>
+                <option value="original">Posição Original</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteúdo Comportamento da Fila -->
+    <div v-if="activeSubTab === 'comportamento'" class="sub-tab-content">
+      <h2><i class="fas fa-cogs"></i> Comportamento da Fila</h2>
+      <p class="hint">
+        Configure como o sistema gerencia a fila de atendimento.
+      </p>
+
+      <div class="config-section">
+        <h3>Algoritmo de Chamada</h3>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" value="proporcao" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <span>
+              <strong>Proporção</strong> - Respeita proporção entre tipos
+            </span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="round_robin" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <span>
+              <strong>Round Robin</strong> - Alterna entre tipos igualmente
+            </span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="fifo" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <span>
+              <strong>FIFO</strong> - Primeiro a entrar, primeiro a sair
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Opções de Chamada</h3>
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="comportamentoConfig.permitirPularSenhas" @change="salvarComportamento" />
+          <span>Permitir pular senhas (chamar senha específica)</span>
+        </label>
+
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="comportamentoConfig.chamarProximaAutomatica" @change="salvarComportamento" />
+          <span>Chamar próxima senha automaticamente após finalizar</span>
+        </label>
+      </div>
+
+      <div class="config-section">
+        <h3>Timeouts e Alertas</h3>
+        <div class="config-item">
+          <label>Auto-finalizar atendimento após (minutos):</label>
+          <input
+            type="number"
+            v-model.number="comportamentoConfig.autoFinalizarMinutos"
+            min="0"
+            max="120"
+            @blur="salvarComportamento"
+            class="config-input"
+            placeholder="Desativado"
+          />
+          <p class="input-hint">0 ou vazio = desativado</p>
+        </div>
+
+        <div class="config-item">
+          <label>Tempo máximo de espera (minutos):</label>
+          <input
+            type="number"
+            v-model.number="comportamentoConfig.tempoEsperaMaximoMinutos"
+            min="0"
+            max="300"
+            @blur="salvarComportamento"
+            class="config-input"
+            placeholder="Sem limite"
+          />
+        </div>
+
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="comportamentoConfig.alertarTempoEsperaExcedido" @change="salvarComportamento" />
+          <span>Alertar quando tempo máximo de espera for excedido</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Conteúdo Segurança -->
+    <div v-if="activeSubTab === 'seguranca'" class="sub-tab-content">
+      <h2><i class="fas fa-shield-alt"></i> Segurança</h2>
+      <p class="hint">
+        Configure opções de segurança e proteção do sistema.
+      </p>
+
+      <div class="config-section">
+        <h3>Confirmações</h3>
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="segurancaConfig.exigirConfirmacaoExclusao" @change="salvarSeguranca" />
+          <span>Exigir confirmação para excluir senhas</span>
+        </label>
+
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="segurancaConfig.exigirConfirmacaoReinicio" @change="salvarSeguranca" />
+          <span>Exigir confirmação para reiniciar sistema</span>
+        </label>
+      </div>
+
+      <div class="config-section">
+        <h3>Auditoria e Backup</h3>
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="segurancaConfig.logAuditoria" @change="salvarSeguranca" />
+          <span>Manter log de auditoria de operações</span>
+        </label>
+
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="segurancaConfig.backupAutomatico" @change="salvarSeguranca" />
+          <span>Ativar backup automático</span>
+        </label>
+
+        <div v-if="segurancaConfig.backupAutomatico" class="config-subsection">
+          <div class="config-item">
+            <label>Intervalo de backup (minutos):</label>
+            <input
+              type="number"
+              v-model.number="segurancaConfig.intervaloBackupMinutos"
+              min="5"
+              max="1440"
+              step="5"
+              @blur="salvarSeguranca"
+              class="config-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+          <strong>Nota de Segurança:</strong>
+          <p>As configurações de segurança são importantes para proteger a integridade dos dados do sistema. Certifique-se de configurá-las adequadamente.</p>
         </div>
       </div>
     </div>
@@ -400,13 +675,23 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import type { Guiche, ConfiguracaoInterface, ConfiguracaoNotificacoes } from '../../../shared/types'
+import type {
+  Guiche,
+  ConfiguracaoInterface,
+  ConfiguracaoNotificacoes,
+  ConfiguracaoTipoSenha,
+  ConfiguracaoMotivoRetorno,
+  ConfiguracaoComportamentoFila,
+  ConfiguracaoSeguranca
+} from '../../../shared/types'
+
+type SubTab = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes' | 'seguranca' | 'reiniciar'
 
 const props = withDefaults(defineProps<{
   guichesGlobais: Guiche[]
   proporcaoPrioridade: number
   proporcaoContratual: number
-  initialTab?: 'guiches' | 'proporcao' | 'interface' | 'notificacoes' | 'reiniciar'
+  initialTab?: SubTab
 }>(), {
   initialTab: 'guiches'
 })
@@ -416,15 +701,19 @@ const emit = defineEmits<{
   'atualizar-proporcao-prioridade': [valor: number]
   'atualizar-proporcao-contratual': [valor: number]
   'atualizar-guiches-exibicao': [guiches: string[]]
+  'atualizar-tipos': [tipos: ConfiguracaoTipoSenha[]]
+  'atualizar-motivos': [motivos: ConfiguracaoMotivoRetorno[]]
+  'atualizar-comportamento': [config: ConfiguracaoComportamentoFila]
   'atualizar-interface': [config: ConfiguracaoInterface]
   'atualizar-notificacoes': [config: ConfiguracaoNotificacoes]
+  'atualizar-seguranca': [config: ConfiguracaoSeguranca]
   'reiniciar-sistema': []
 }>()
 
-const activeSubTab = ref<'guiches' | 'proporcao' | 'interface' | 'notificacoes' | 'reiniciar'>(props.initialTab)
+const activeSubTab = ref<SubTab>(props.initialTab)
 
 // Mudar sub-aba
-const changeSubTab = (tab: 'guiches' | 'proporcao' | 'interface' | 'notificacoes' | 'reiniciar') => {
+const changeSubTab = (tab: SubTab) => {
   activeSubTab.value = tab
 }
 
@@ -515,6 +804,119 @@ const toggleGuicheExibicao = (id: string) => {
   emit('atualizar-guiches-exibicao', guichesExibicaoLocal.value)
 }
 
+// Configurações de Tipos de Senha
+const tiposConfig = ref<ConfiguracaoTipoSenha[]>([
+  {
+    id: 'prioridade',
+    nome: 'Prioritária',
+    nomeCompleto: 'Atendimento Prioritário',
+    prefixo: 'P',
+    cor: '#ff6b6b',
+    corFundo: '#fff5f5',
+    icone: 'wheelchair',
+    ativo: true,
+    ordem: 1,
+    subtipos: ['Idoso', 'Gestante', 'Deficiente', 'Lactante', 'Criança de Colo']
+  },
+  {
+    id: 'contratual',
+    nome: 'Contratual',
+    nomeCompleto: 'Cliente Contratual',
+    prefixo: 'C',
+    cor: '#845ef7',
+    corFundo: '#f3e8ff',
+    icone: 'file-contract',
+    ativo: true,
+    ordem: 2,
+    subtipos: ['Empresa', 'Governo', 'Parceiro']
+  },
+  {
+    id: 'normal',
+    nome: 'Normal',
+    nomeCompleto: 'Atendimento Normal',
+    prefixo: 'N',
+    cor: '#4dabf7',
+    corFundo: '#f0f8ff',
+    icone: 'user',
+    ativo: true,
+    ordem: 3,
+    subtipos: ['Geral', 'Consulta', 'Reclamação']
+  }
+])
+
+const atualizarSubtipos = (index: number, event: Event) => {
+  const input = event.target as HTMLInputElement
+  const subtipos = input.value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+  tiposConfig.value[index].subtipos = subtipos
+  salvarTipos()
+}
+
+const salvarTipos = () => {
+  emit('atualizar-tipos', tiposConfig.value)
+}
+
+// Configurações de Motivos de Retorno
+const motivosConfig = ref<ConfiguracaoMotivoRetorno[]>([
+  {
+    id: 'retorno_impressao',
+    nome: 'Erro de Impressão',
+    descricao: 'Senha emitida com erro na impressão',
+    icone: 'print',
+    cor: '#ffc107',
+    prazoMinutos: 5,
+    posicionamentoFila: 'inicio',
+    ativo: true
+  },
+  {
+    id: 'erro_operacional',
+    nome: 'Erro Operacional',
+    descricao: 'Erro durante o atendimento que requer reabrir',
+    icone: 'exclamation-triangle',
+    cor: '#dc3545',
+    prazoMinutos: 10,
+    posicionamentoFila: 'inicio',
+    ativo: true
+  },
+  {
+    id: 'ausente_retornou',
+    nome: 'Ausente Retornou',
+    descricao: 'Cliente não compareceu mas retornou',
+    icone: 'user-clock',
+    cor: '#17a2b8',
+    prazoMinutos: 30,
+    posicionamentoFila: 'fim',
+    ativo: true
+  },
+  {
+    id: 'reabertura_atendimento',
+    nome: 'Reabertura de Atendimento',
+    descricao: 'Atendimento precisa ser reaberto',
+    icone: 'redo',
+    cor: '#6c757d',
+    prazoMinutos: null,
+    posicionamentoFila: 'original',
+    ativo: true
+  }
+])
+
+const salvarMotivos = () => {
+  emit('atualizar-motivos', motivosConfig.value)
+}
+
+// Configurações de Comportamento da Fila
+const comportamentoConfig = ref<ConfiguracaoComportamentoFila>({
+  algoritmo: 'proporcao',
+  permitirPularSenhas: true,
+  autoFinalizarMinutos: null,
+  chamarProximaAutomatica: false,
+  tempoEsperaMaximoMinutos: null,
+  alertarTempoEsperaExcedido: false
+})
+
+const salvarComportamento = () => {
+  emit('atualizar-comportamento', comportamentoConfig.value)
+}
+
 // Configurações de Interface
 const interfaceConfig = ref<ConfiguracaoInterface>({
   tema: 'claro',
@@ -545,6 +947,20 @@ const notificacoesConfig = ref<ConfiguracaoNotificacoes>({
 
 const salvarNotificacoes = () => {
   emit('atualizar-notificacoes', notificacoesConfig.value)
+}
+
+// Configurações de Segurança
+const segurancaConfig = ref<ConfiguracaoSeguranca>({
+  senhaAdmin: null,
+  exigirConfirmacaoExclusao: true,
+  exigirConfirmacaoReinicio: true,
+  logAuditoria: false,
+  backupAutomatico: false,
+  intervaloBackupMinutos: 60
+})
+
+const salvarSeguranca = () => {
+  emit('atualizar-seguranca', segurancaConfig.value)
 }
 
 const confirmarReinicio = () => {
@@ -1080,5 +1496,182 @@ input:checked + .toggle-slider:before {
 .input-hint {
   color: #868e96;
   font-size: 0.9em;
+}
+
+/* Tipos de Senha */
+.tipo-senha-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+
+.tipo-senha-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.tipo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.05em;
+}
+
+.tipo-badge i {
+  font-size: 1.2em;
+}
+
+.tipo-config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-item label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9em;
+}
+
+.config-input {
+  padding: 10px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1em;
+  transition: border-color 0.3s;
+}
+
+.config-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.config-input.small {
+  width: 80px;
+}
+
+.config-input-color {
+  width: 60px;
+  height: 42px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.config-input-color:hover {
+  border-color: #667eea;
+}
+
+/* Motivos de Retorno */
+.motivo-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+
+.motivo-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.motivo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.motivo-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05em;
+}
+
+.motivo-title i {
+  font-size: 1.3em;
+}
+
+.motivo-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.config-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.config-select {
+  padding: 10px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1em;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.config-select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.config-select:hover {
+  border-color: #adb5bd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .tipo-config-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .tipo-config-grid,
+  .config-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .sub-tab-link {
+    padding: 10px 12px;
+    font-size: 0.85em;
+  }
+
+  .sub-tab-link i {
+    display: block;
+    margin-bottom: 4px;
+  }
 }
 </style>
