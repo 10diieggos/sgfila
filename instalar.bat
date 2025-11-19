@@ -47,31 +47,29 @@ if exist "..\node.exe" (
     exit /b 1
 )
 
-REM Adicionar Node.js ao PATH temporariamente
-set PATH=!NODE_DIR!;%PATH%
-echo   - Node.js adicionado ao PATH temporario
-
-REM Verificar versoes
+REM Verificar versoes (apenas informativo)
 echo.
 echo Versoes detectadas:
-!NODE_PATH! --version
-!NPM_PATH! --version
+call %NODE_PATH% --version
+call %NPM_PATH% --version
 
-if errorlevel 1 (
-    echo   ERRO: Node.js nao pode ser executado!
-    pause
-    exit /b 1
-)
-
-echo   - Node.js configurado com sucesso
+echo   - Node.js detectado, continuando instalacao...
 echo.
 
 REM ========================================
 REM 2. Instalar Dependencias do Servidor
 REM ========================================
 
+echo [DEBUG] Diretorio atual: %CD%
+echo [DEBUG] NODE_PATH: %NODE_PATH%
+echo [DEBUG] NPM_PATH: %NPM_PATH%
+dir "..\node.exe" >nul 2>&1 && echo [DEBUG] node.exe encontrado na pasta pai || echo [DEBUG] node.exe NAO encontrado na pasta pai
+
 echo [2/8] Instalando dependencias do servidor...
 cd v3\server
+
+REM Configurar PATH para que npm tenha acesso ao node durante a instalacao
+set PATH=!NODE_DIR!;%PATH%
 
 if exist "node_modules" (
     echo   - Pasta node_modules ja existe, pulando instalacao...
@@ -82,9 +80,17 @@ if exist "node_modules" (
 
     if errorlevel 1 (
         echo   ERRO: Falha ao instalar dependencias do servidor!
-        cd ..\..
-        pause
-        exit /b 1
+        echo   Tentando metodo alternativo...
+        
+        REM Metodo alternativo: usar node para executar npm
+        ..\..\!NODE_PATH! ..\..\!NPM_PATH! install
+        
+        if errorlevel 1 (
+            echo   ERRO: Metodo alternativo tambem falhou!
+            cd ..\..
+            pause
+            exit /b 1
+        )
     )
     echo   - Dependencias do servidor instaladas!
 )
@@ -112,8 +118,17 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if not exist "dist\server.js" (
-    echo   ERRO: Arquivo dist\server.js nao foi gerado!
+echo   - Verificando onde o arquivo foi gerado...
+if exist "dist\server\src\server.js" (
+    echo   - Arquivo encontrado em: dist\server\src\server.js
+) else if exist "dist\src\server.js" (
+    echo   - Arquivo encontrado em: dist\src\server.js
+) else if exist "dist\server.js" (
+    echo   - Arquivo encontrado em: dist\server.js
+) else (
+    echo   ERRO: Nenhum arquivo server.js encontrado!
+    echo   - Listando conteudo da pasta dist:
+    dir dist /s
     cd ..\..
     pause
     exit /b 1
@@ -226,13 +241,17 @@ echo [7/8] Criando script de inicializacao...
     echo.
     echo setlocal
     echo.
-    echo REM Detectar Node.js
-    echo if exist "..\node.exe" ^(
-    echo     set NODE_PATH=..\node.exe
-    echo ^) else if exist "..\..\node.exe" ^(
-    echo     set NODE_PATH=..\..\node.exe
+    echo REM Detectar Node.js a partir do diretorio atual do script
+    echo set SCRIPT_DIR=%%~dp0
+    echo if exist "%%SCRIPT_DIR%%..\node.exe" ^(
+    echo     set NODE_PATH=%%SCRIPT_DIR%%..\node.exe
+    echo ^) else if exist "%%SCRIPT_DIR%%..\..\node.exe" ^(
+    echo     set NODE_PATH=%%SCRIPT_DIR%%..\..\node.exe
     echo ^) else ^(
     echo     echo ERRO: Node.js nao encontrado!
+    echo     echo Procurei em:
+    echo     echo   %%SCRIPT_DIR%%..\node.exe
+    echo     echo   %%SCRIPT_DIR%%..\..\node.exe
     echo     pause
     echo     exit /b 1
     echo ^)
@@ -252,7 +271,22 @@ echo [7/8] Criando script de inicializacao...
     echo echo.
     echo.
     echo cd v3\server
-    echo %%NODE_PATH%% dist\server.js
+    echo if exist "dist\server\src\server.js" ^(
+    echo     "%%NODE_PATH%%" dist\server\src\server.js
+    echo ^) else if exist "dist\src\server.js" ^(
+    echo     "%%NODE_PATH%%" dist\src\server.js
+    echo ^) else if exist "dist\server.js" ^(
+    echo     "%%NODE_PATH%%" dist\server.js
+    echo ^) else ^(
+    echo     echo ERRO: Nenhum arquivo server.js encontrado
+    echo     echo Procurando em:
+    echo     echo   dist\server\src\server.js
+    echo     echo   dist\src\server.js
+    echo     echo   dist\server.js
+    echo     dir dist /s /b
+    echo     pause
+    echo     exit /b 1
+    echo ^)
     echo.
     echo pause
 ) > iniciar.bat
