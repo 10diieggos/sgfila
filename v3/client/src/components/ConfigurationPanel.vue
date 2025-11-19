@@ -194,11 +194,14 @@
 import { ref, watch, onMounted } from 'vue'
 import type { Guiche } from '@shared/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   guichesGlobais: Guiche[]
   proporcaoPrioridade: number
   proporcaoContratual: number
-}>()
+  initialTab?: 'guiches' | 'proporcao' | 'reiniciar'
+}>(), {
+  initialTab: 'guiches'
+})
 
 const emit = defineEmits<{
   'atualizar-guiches-globais': [guiches: Guiche[]]
@@ -208,12 +211,17 @@ const emit = defineEmits<{
   'reiniciar-sistema': []
 }>()
 
-const activeSubTab = ref<'guiches' | 'proporcao' | 'reiniciar'>('guiches')
+const activeSubTab = ref<'guiches' | 'proporcao' | 'reiniciar'>(props.initialTab)
 
 // Mudar sub-aba
 const changeSubTab = (tab: 'guiches' | 'proporcao' | 'reiniciar') => {
   activeSubTab.value = tab
 }
+
+// Watch para atualizar quando a prop initialTab mudar
+watch(() => props.initialTab, (newTab) => {
+  activeSubTab.value = newTab
+})
 
 const guichesGlobaisLocal = ref<Guiche[]>([])
 const proporcaoPrioridadeLocal = ref(2)

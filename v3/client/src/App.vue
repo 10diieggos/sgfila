@@ -60,6 +60,7 @@
             @chamar="handleChamarGuiche"
             @finalizar="handleFinalizarAtendimento"
             @nao-compareceu="handleNaoCompareceu"
+            @open-config="handleOpenConfigFromCounter"
           />
         </div>
 
@@ -264,6 +265,7 @@
               :guiches-globais="estado.guichesConfigurados"
               :proporcao-prioridade="estado.proporcaoPrioridade"
               :proporcao-contratual="estado.proporcaoContratual"
+              :initial-tab="configInitialTab"
               @atualizar-guiches-globais="atualizarGuichesGlobais"
               @atualizar-proporcao-prioridade="atualizarProporcao"
               @atualizar-proporcao-contratual="atualizarProporcaoContratual"
@@ -334,6 +336,7 @@ const showAlertModal = ref(false)
 const showTicketModal = ref(false)
 const showReturnModal = ref(false)
 const alertMessage = ref('')
+const configInitialTab = ref<'guiches' | 'proporcao' | 'reiniciar'>('guiches')
 const modalSourceForTicket = ref<'history' | 'queue' | 'attendance' | null>(null)
 const editModalOpenedFromTicket = ref(false)
 const novaSenhaNumerо = ref('')
@@ -607,6 +610,11 @@ const handleAtualizarGuichesExibicao = (guiches: string[]) => {
 
 const focusAlertModal = () => {
   alertModalRef.value?.focus()
+}
+
+const handleOpenConfigFromCounter = () => {
+  configInitialTab.value = 'guiches'
+  showConfigModal.value = true
 }
 </script>
 

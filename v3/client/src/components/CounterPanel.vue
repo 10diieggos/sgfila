@@ -1,6 +1,15 @@
 <template>
   <div class="counter-panels-wrapper">
-    <h3><i class="fas fa-desktop"></i> Painéis de Guichê</h3>
+    <div class="header-with-button">
+      <h3><i class="fas fa-desktop"></i> Painéis de Guichê</h3>
+      <button
+        class="btn-config-small"
+        @click="emit('open-config')"
+        title="Configurar Guichês"
+      >
+        <i class="fas fa-cog"></i>
+      </button>
+    </div>
 
     <div v-if="guichesVisiveis.length === 0" class="empty-state">
       <i class="fas fa-info-circle"></i>
@@ -57,6 +66,7 @@ const emit = defineEmits<{
   'chamar': [guicheId: string]
   'finalizar': [guicheId: string]
   'nao-compareceu': [guicheId: string]
+  'open-config': []
 }>()
 
 // Força atualização a cada segundo para o contador
@@ -114,12 +124,45 @@ const handleGuicheClick = (guiche: Guiche) => {
 </script>
 
 <style scoped>
-.counter-panels-wrapper h3 {
+.header-with-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
-  color: #004a8d;
-  font-size: 1.1em;
   padding-bottom: 5px;
   border-bottom: 2px solid #eee;
+}
+
+.counter-panels-wrapper h3 {
+  margin: 0;
+  color: #004a8d;
+  font-size: 1.1em;
+}
+
+.btn-config-small {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #6c757d;
+  background: transparent;
+  color: #6c757d;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-config-small:hover {
+  background: #6c757d;
+  color: white;
+  transform: scale(1.05);
+}
+
+.btn-config-small i {
+  font-size: 0.9em;
 }
 
 .empty-state {
