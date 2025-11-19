@@ -853,10 +853,27 @@ const atualizarSubtipos = (index: number, event: Event) => {
   salvarTipos()
 }
 
+// Flag para saber se estamos carregando do servidor (evita loop)
+let carregandoDoServidor = false
+
 const salvarTipos = () => {
+  if (carregandoDoServidor) {
+    console.log('⏭️ [ConfigPanel] Ignorando salvar (carregando do servidor)')
+    return
+  }
   console.log('💾 [ConfigPanel] Salvando tipos de senha:', tiposConfig.value)
   emit('atualizar-tipos', tiposConfig.value)
 }
+
+// Watch para detectar mudanças nos tipos
+watch(tiposConfig, () => {
+  if (carregandoDoServidor) {
+    console.log('⏭️ [ConfigPanel] tiposConfig mudou (servidor), ignorando')
+    return
+  }
+  console.log('🔄 [ConfigPanel] tiposConfig mudou (usuário), salvando')
+  salvarTipos()
+}, { deep: true })
 
 // Configurações de Motivos de Retorno
 const motivosConfig = ref<ConfiguracaoMotivoRetorno[]>([
@@ -903,8 +920,15 @@ const motivosConfig = ref<ConfiguracaoMotivoRetorno[]>([
 ])
 
 const salvarMotivos = () => {
+  if (carregandoDoServidor) return
   emit('atualizar-motivos', motivosConfig.value)
 }
+
+watch(motivosConfig, () => {
+  if (carregandoDoServidor) return
+  console.log('🔄 [ConfigPanel] motivosConfig mudou, salvando')
+  salvarMotivos()
+}, { deep: true })
 
 // Configurações de Comportamento da Fila
 const comportamentoConfig = ref<ConfiguracaoComportamentoFila>({
@@ -917,8 +941,15 @@ const comportamentoConfig = ref<ConfiguracaoComportamentoFila>({
 })
 
 const salvarComportamento = () => {
+  if (carregandoDoServidor) return
   emit('atualizar-comportamento', comportamentoConfig.value)
 }
+
+watch(comportamentoConfig, () => {
+  if (carregandoDoServidor) return
+  console.log('🔄 [ConfigPanel] comportamentoConfig mudou, salvando')
+  salvarComportamento()
+}, { deep: true })
 
 // Configurações de Interface
 const interfaceConfig = ref<ConfiguracaoInterface>({
@@ -933,8 +964,15 @@ const interfaceConfig = ref<ConfiguracaoInterface>({
 })
 
 const salvarInterface = () => {
+  if (carregandoDoServidor) return
   emit('atualizar-interface', interfaceConfig.value)
 }
+
+watch(interfaceConfig, () => {
+  if (carregandoDoServidor) return
+  console.log('🔄 [ConfigPanel] interfaceConfig mudou, salvando')
+  salvarInterface()
+}, { deep: true })
 
 // Configurações de Notificações
 const notificacoesConfig = ref<ConfiguracaoNotificacoes>({
@@ -949,8 +987,15 @@ const notificacoesConfig = ref<ConfiguracaoNotificacoes>({
 })
 
 const salvarNotificacoes = () => {
+  if (carregandoDoServidor) return
   emit('atualizar-notificacoes', notificacoesConfig.value)
 }
+
+watch(notificacoesConfig, () => {
+  if (carregandoDoServidor) return
+  console.log('🔄 [ConfigPanel] notificacoesConfig mudou, salvando')
+  salvarNotificacoes()
+}, { deep: true })
 
 // Configurações de Segurança
 const segurancaConfig = ref<ConfiguracaoSeguranca>({
@@ -963,8 +1008,15 @@ const segurancaConfig = ref<ConfiguracaoSeguranca>({
 })
 
 const salvarSeguranca = () => {
+  if (carregandoDoServidor) return
   emit('atualizar-seguranca', segurancaConfig.value)
 }
+
+watch(segurancaConfig, () => {
+  if (carregandoDoServidor) return
+  console.log('🔄 [ConfigPanel] segurancaConfig mudou, salvando')
+  salvarSeguranca()
+}, { deep: true })
 
 const confirmarReinicio = () => {
   const confirmacao = confirm('⚠️ ATENÇÃO: Esta ação irá apagar TODOS os dados do sistema (senhas, histórico, contadores).\n\nTem certeza que deseja continuar?')
@@ -974,7 +1026,6 @@ const confirmarReinicio = () => {
 }
 
 // Watch para sincronizar configurações do servidor
-// IMPORTANTE: Não usar deep:true para evitar loops de atualização
 watch(() => props.configuracoes, (novasConfiguracoes) => {
   console.log('📥 [ConfigPanel] Recebeu configurações do servidor')
 
@@ -982,6 +1033,9 @@ watch(() => props.configuracoes, (novasConfiguracoes) => {
     console.warn('⚠️ [ConfigPanel] Configurações são null/undefined')
     return
   }
+
+  // Ativar flag para evitar loops
+  carregandoDoServidor = true
 
   // Atualizar tipos de senha
   if (novasConfiguracoes.tiposSenha && novasConfiguracoes.tiposSenha.length > 0) {
@@ -1018,6 +1072,12 @@ watch(() => props.configuracoes, (novasConfiguracoes) => {
     console.log('✅ [ConfigPanel] Carregando segurança')
     segurancaConfig.value = { ...novasConfiguracoes.seguranca }
   }
+
+  // Desativar flag após nextTick para garantir que watches já processaram
+  setTimeout(() => {
+    carregandoDoServidor = false
+    console.log('✅ [ConfigPanel] Configurações carregadas, pronto para aceitar mudanças do usuário')
+  }, 100)
 }, { immediate: true })
 </script>
 
