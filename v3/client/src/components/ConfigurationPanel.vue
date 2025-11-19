@@ -682,7 +682,8 @@ import type {
   ConfiguracaoTipoSenha,
   ConfiguracaoMotivoRetorno,
   ConfiguracaoComportamentoFila,
-  ConfiguracaoSeguranca
+  ConfiguracaoSeguranca,
+  ConfiguracoesGerais
 } from '../../../shared/types'
 
 type SubTab = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes' | 'seguranca' | 'reiniciar'
@@ -691,6 +692,7 @@ const props = withDefaults(defineProps<{
   guichesGlobais: Guiche[]
   proporcaoPrioridade: number
   proporcaoContratual: number
+  configuracoes?: ConfiguracoesGerais
   initialTab?: SubTab
 }>(), {
   initialTab: 'guiches'
@@ -969,6 +971,41 @@ const confirmarReinicio = () => {
     emit('reiniciar-sistema')
   }
 }
+
+// Watch para sincronizar configurações do servidor
+watch(() => props.configuracoes, (novasConfiguracoes) => {
+  if (!novasConfiguracoes) return
+
+  // Atualizar tipos de senha
+  if (novasConfiguracoes.tiposSenha && novasConfiguracoes.tiposSenha.length > 0) {
+    tiposConfig.value = novasConfiguracoes.tiposSenha
+  }
+
+  // Atualizar motivos de retorno
+  if (novasConfiguracoes.motivosRetorno && novasConfiguracoes.motivosRetorno.length > 0) {
+    motivosConfig.value = novasConfiguracoes.motivosRetorno
+  }
+
+  // Atualizar comportamento da fila
+  if (novasConfiguracoes.comportamentoFila) {
+    comportamentoConfig.value = { ...novasConfiguracoes.comportamentoFila }
+  }
+
+  // Atualizar interface
+  if (novasConfiguracoes.interface) {
+    interfaceConfig.value = { ...novasConfiguracoes.interface }
+  }
+
+  // Atualizar notificações
+  if (novasConfiguracoes.notificacoes) {
+    notificacoesConfig.value = { ...novasConfiguracoes.notificacoes }
+  }
+
+  // Atualizar segurança
+  if (novasConfiguracoes.seguranca) {
+    segurancaConfig.value = { ...novasConfiguracoes.seguranca }
+  }
+}, { immediate: true, deep: true })
 </script>
 
 <style scoped>

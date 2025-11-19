@@ -263,11 +263,18 @@
               :guiches-globais="estado.guichesConfigurados"
               :proporcao-prioridade="estado.proporcaoPrioridade"
               :proporcao-contratual="estado.proporcaoContratual"
+              :configuracoes="estado.configuracoes"
               :initial-tab="configInitialTab"
               @atualizar-guiches-globais="atualizarGuichesGlobais"
               @atualizar-proporcao-prioridade="atualizarProporcao"
               @atualizar-proporcao-contratual="atualizarProporcaoContratual"
               @atualizar-guiches-exibicao="handleAtualizarGuichesExibicao"
+              @atualizar-tipos="atualizarTiposSenha"
+              @atualizar-motivos="atualizarMotivosRetorno"
+              @atualizar-comportamento="atualizarComportamentoFila"
+              @atualizar-interface="atualizarConfigInterface"
+              @atualizar-notificacoes="atualizarNotificacoes"
+              @atualizar-seguranca="atualizarSeguranca"
               @reiniciar-sistema="handleReiniciarSistema"
             />
           </div>
@@ -313,7 +320,13 @@ const {
   atualizarProporcao,
   atualizarProporcaoContratual,
   atualizarGuichesGlobais,
-  reiniciarSistema
+  reiniciarSistema,
+  atualizarTiposSenha,
+  atualizarMotivosRetorno,
+  atualizarComportamentoFila,
+  atualizarConfigInterface,
+  atualizarNotificacoes,
+  atualizarSeguranca
 } = useSocket()
 
 // Configurar handler de erros do servidor

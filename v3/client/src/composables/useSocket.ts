@@ -11,7 +11,13 @@ import type {
   EstadoSistema,
   Estatisticas,
   TipoSenha,
-  Guiche
+  Guiche,
+  ConfiguracaoTipoSenha,
+  ConfiguracaoMotivoRetorno,
+  ConfiguracaoComportamentoFila,
+  ConfiguracaoInterface,
+  ConfiguracaoNotificacoes,
+  ConfiguracaoSeguranca
 } from '@shared/types'
 import { useBeep } from './useBeep'
 
@@ -143,6 +149,30 @@ export function useSocket() {
     socket.value?.emit('reiniciarSistema')
   }
 
+  const atualizarTiposSenha = (tipos: ConfiguracaoTipoSenha[]) => {
+    socket.value?.emit('atualizarTiposSenha', tipos)
+  }
+
+  const atualizarMotivosRetorno = (motivos: ConfiguracaoMotivoRetorno[]) => {
+    socket.value?.emit('atualizarMotivosRetorno', motivos)
+  }
+
+  const atualizarComportamentoFila = (comportamento: ConfiguracaoComportamentoFila) => {
+    socket.value?.emit('atualizarComportamentoFila', comportamento)
+  }
+
+  const atualizarConfigInterface = (interfaceConfig: ConfiguracaoInterface) => {
+    socket.value?.emit('atualizarConfigInterface', interfaceConfig)
+  }
+
+  const atualizarNotificacoes = (notificacoes: ConfiguracaoNotificacoes) => {
+    socket.value?.emit('atualizarNotificacoes', notificacoes)
+  }
+
+  const atualizarSeguranca = (seguranca: ConfiguracaoSeguranca) => {
+    socket.value?.emit('atualizarSeguranca', seguranca)
+  }
+
   // Lifecycle hooks
   onMounted(() => {
     connect()
@@ -174,6 +204,12 @@ export function useSocket() {
     atualizarProporcao,
     atualizarProporcaoContratual,
     atualizarGuichesGlobais,
-    reiniciarSistema
+    reiniciarSistema,
+    atualizarTiposSenha,
+    atualizarMotivosRetorno,
+    atualizarComportamentoFila,
+    atualizarConfigInterface,
+    atualizarNotificacoes,
+    atualizarSeguranca
   }
 }
