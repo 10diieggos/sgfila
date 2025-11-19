@@ -5,7 +5,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes } from '../../../shared/types.js';
-import { CONFIG_PADRAO } from '../../../shared/types.js';
+import { getConfigPadrao } from '../../../shared/types.js';
 
 const DADOS_FILE = './dados.json';
 
@@ -44,7 +44,7 @@ export class StateManager {
       atendimentosAtuais: {},
       guichesConfigurados: [],
       dataReinicioSistema: dataFormatada,
-      configuracoes: { ...CONFIG_PADRAO }
+      configuracoes: getConfigPadrao()
     };
   }
 
@@ -70,7 +70,7 @@ export class StateManager {
         // Migração para v3.1 - Sistema de Configurações
         if (!estadoCarregado.configuracoes) {
           console.log('Migrando para sistema de configurações...');
-          estadoCarregado.configuracoes = { ...CONFIG_PADRAO };
+          estadoCarregado.configuracoes = getConfigPadrao();
         } else {
           // Mesclar configurações existentes com padrão (caso novas configs sejam adicionadas)
           estadoCarregado.configuracoes = this.mesclarConfiguracoes(estadoCarregado.configuracoes);
@@ -186,20 +186,21 @@ export class StateManager {
    * Útil quando novas configurações são adicionadas ao sistema
    */
   private mesclarConfiguracoes(configExistente: ConfiguracoesGerais): ConfiguracoesGerais {
+    const padrao = getConfigPadrao();
     return {
-      tiposSenha: configExistente.tiposSenha || CONFIG_PADRAO.tiposSenha,
-      motivosRetorno: configExistente.motivosRetorno || CONFIG_PADRAO.motivosRetorno,
-      comportamentoFila: { ...CONFIG_PADRAO.comportamentoFila, ...configExistente.comportamentoFila },
-      interface: { ...CONFIG_PADRAO.interface, ...configExistente.interface },
-      notificacoes: { ...CONFIG_PADRAO.notificacoes, ...configExistente.notificacoes },
+      tiposSenha: configExistente.tiposSenha || padrao.tiposSenha,
+      motivosRetorno: configExistente.motivosRetorno || padrao.motivosRetorno,
+      comportamentoFila: { ...padrao.comportamentoFila, ...configExistente.comportamentoFila },
+      interface: { ...padrao.interface, ...configExistente.interface },
+      notificacoes: { ...padrao.notificacoes, ...configExistente.notificacoes },
       estatisticas: {
-        metricas: { ...CONFIG_PADRAO.estatisticas.metricas, ...configExistente.estatisticas?.metricas },
-        periodoAnalise: configExistente.estatisticas?.periodoAnalise || CONFIG_PADRAO.estatisticas.periodoAnalise,
-        atualizacaoAutomatica: configExistente.estatisticas?.atualizacaoAutomatica ?? CONFIG_PADRAO.estatisticas.atualizacaoAutomatica,
-        intervaloAtualizacaoSegundos: configExistente.estatisticas?.intervaloAtualizacaoSegundos || CONFIG_PADRAO.estatisticas.intervaloAtualizacaoSegundos
+        metricas: { ...padrao.estatisticas.metricas, ...configExistente.estatisticas?.metricas },
+        periodoAnalise: configExistente.estatisticas?.periodoAnalise || padrao.estatisticas.periodoAnalise,
+        atualizacaoAutomatica: configExistente.estatisticas?.atualizacaoAutomatica ?? padrao.estatisticas.atualizacaoAutomatica,
+        intervaloAtualizacaoSegundos: configExistente.estatisticas?.intervaloAtualizacaoSegundos || padrao.estatisticas.intervaloAtualizacaoSegundos
       },
-      seguranca: { ...CONFIG_PADRAO.seguranca, ...configExistente.seguranca },
-      versao: CONFIG_PADRAO.versao,
+      seguranca: { ...padrao.seguranca, ...configExistente.seguranca },
+      versao: padrao.versao,
       ultimaAtualizacao: Date.now()
     };
   }
@@ -265,7 +266,7 @@ export class StateManager {
    * Reseta todas as configurações para o padrão
    */
   public resetarConfiguracoes(): void {
-    this.estado.configuracoes = { ...CONFIG_PADRAO };
+    this.estado.configuracoes = getConfigPadrao();
     this.salvarEstado();
     console.log('Configurações resetadas para o padrão');
   }
