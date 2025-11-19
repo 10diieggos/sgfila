@@ -152,11 +152,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, defineExpose } from 'vue'
 import { useSocket } from '../composables/useSocket'
 import StatisticsPeriodFilter from './StatisticsPeriodFilter.vue'
 import StatisticsCharts from './StatisticsCharts.vue'
 import type { EstatisticasAvancadas, Guiche } from '@shared/types'
+
+// Define component para compatibilidade com export
+defineExpose({})
 
 const props = defineProps<{
   guiches: Guiche[]
@@ -260,7 +263,10 @@ onMounted(() => {
   gap: 20px;
   padding: 20px;
   background: #f8f9fa;
-  min-height: 100vh;
+  min-height: 95vh;
+  max-height: 95vh;
+  overflow-y: auto;
+  border-radius: 12px;
 }
 
 .loading-overlay {

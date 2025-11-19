@@ -204,9 +204,12 @@
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="showStatsModal" class="modal-overlay modal-paineis modal-stats" @click.self="showStatsModal = false">
-          <div class="modal-content modal-content-paineis" @click.stop>
-            <AdvancedStatisticsPanel
-              :estatisticas="estatisticas"
+          <div class="modal-content modal-content-paineis modal-stats-content" @click.stop>
+            <button class="modal-close-btn" @click="showStatsModal = false" title="Fechar">
+              <i class="fas fa-times"></i>
+            </button>
+            <StatisticsPanelWithFilters
+              :guiches="estado.guichesConfigurados"
             />
           </div>
         </div>
@@ -293,7 +296,7 @@ import type { Senha, Guiche } from '@shared/types'
 import QueueList from './components/QueueList.vue'
 import CounterPanel from './components/CounterPanel.vue'
 import CurrentAttendanceList from './components/CurrentAttendanceList.vue'
-import AdvancedStatisticsPanel from './components/AdvancedStatisticsPanel.vue'
+import StatisticsPanelWithFilters from './components/StatisticsPanelWithFilters.vue'
 import HistoryPanel from './components/HistoryPanel.vue'
 import ConfigurationPanel from './components/ConfigurationPanel.vue'
 import NewTicketModal from './components/NewTicketModal.vue'
@@ -1042,6 +1045,43 @@ header h1 {
 .modal-content-paineis {
   max-width: 1120px; /* 70% de 1600px */
   width: 70%;
+}
+
+/* Modal de Estatísticas com Filtros - largura maior */
+.modal-stats-content {
+  max-width: 95vw;
+  width: 95%;
+  max-height: 95vh;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  position: relative;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  color: #495057;
+  transition: all 0.3s;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close-btn:hover {
+  background: #ff6b6b;
+  color: white;
+  transform: scale(1.1);
 }
 
 /* Modal Seleção de Guichê */
