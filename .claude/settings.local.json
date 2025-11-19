@@ -2,7 +2,25 @@
   "permissions": {
     "allow": [
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cmd //c instalar.bat)",
+      "Bash(cat:*)",
+      "Bash(./instalar.bat)",
+      "Bash(bash -c \"cmd.exe /c instalar.bat 2>&1\")",
+      "Bash(../../npm.cmd --version)",
+      "Bash(../../npm.cmd install)",
+      "Bash(cmd.exe //c \"..\\..\\npm.cmd install\")",
+      "Bash(cmd.exe //c \"C:\\Users\\Diego\\Downloads\\nt\\npm.cmd install\")",
+      "Bash(cmd.exe //c \"set PATH=%CD%;%PATH% && cd sg\\v3\\server && npm install\")",
+      "Bash(cmd.exe //c \"set PATH=%CD%;%PATH% && cd sg\\v3\\server && npm run build\")",
+      "Bash(cmd.exe //c \"set PATH=%CD%;%PATH% && cd sg\\v3\\client && npm install\")",
+      "Bash(cmd.exe //c \"set PATH=%CD%;%PATH% && cd sg\\v3\\client && npm run build\")",
+      "Bash(timeout 5 cmd.exe //c \"set PATH=%CD%;%PATH% && cd sg\\v3\\server && node dist/server/src/server.js\")",
+      "Bash(netstat:*)",
+      "Bash(taskkill //F //PID 20456)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

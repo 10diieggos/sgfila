@@ -27,10 +27,12 @@ echo [1/8] Detectando Node.js portatil...
 
 REM Verificar se node.exe esta na pasta pai
 if exist "..\node.exe" (
+    set NODE_DIR=%CD%\..
     set NODE_PATH=..\node.exe
     set NPM_PATH=..\npm.cmd
     echo   - Node.js encontrado na pasta pai
 ) else if exist "..\..\node.exe" (
+    set NODE_DIR=%CD%\..\..
     set NODE_PATH=..\..\node.exe
     set NPM_PATH=..\..\npm.cmd
     echo   - Node.js encontrado duas pastas acima
@@ -44,6 +46,10 @@ if exist "..\node.exe" (
     pause
     exit /b 1
 )
+
+REM Adicionar Node.js ao PATH temporariamente
+set PATH=!NODE_DIR!;%PATH%
+echo   - Node.js adicionado ao PATH temporario
 
 REM Verificar versoes
 echo.

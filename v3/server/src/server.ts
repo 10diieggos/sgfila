@@ -31,7 +31,8 @@ const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpSe
 });
 
 // Serve arquivos estáticos do cliente
-const clientPath = join(__dirname, '../../client/dist');
+// __dirname aponta para dist/server/src, precisamos ir para ../../../client/dist
+const clientPath = join(__dirname, '../../../../client/dist');
 app.use(express.static(clientPath));
 
 // Rota principal

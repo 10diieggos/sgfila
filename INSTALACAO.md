@@ -278,6 +278,55 @@ Para encerrar o servidor:
 
 ---
 
+## Problemas Conhecidos e Correções Aplicadas
+
+Durante o desenvolvimento e testes, os seguintes problemas foram identificados e corrigidos:
+
+### 1. PATH do Node.js não configurado
+
+**Problema:** O npm executava corretamente, mas falhava ao executar scripts que precisavam do `node` (como `esbuild install`). Adicionalmente, o script `iniciar.bat` usava caminhos relativos que falhavam após mudar de diretório.
+
+**Solução Aplicada:**
+- O script `instalar.bat` adiciona automaticamente o diretório do Node.js ao PATH temporário
+- O script `iniciar.bat` foi corrigido para usar `node` diretamente do PATH após configurá-lo, em vez de caminhos relativos
+
+```batch
+set PATH=!NODE_DIR!;%PATH%
+node dist\server\src\server.js  REM Usa 'node' do PATH, não caminho relativo
+```
+
+### 2. TypeScript configuração incompatível
+
+**Problema:** O `tsconfig.json` original tinha conflitos entre:
+
+- `allowImportingTsExtensions: true` (requer `noEmit: true`)
+- `rootDir` e arquivos `shared` fora do rootDir
+
+**Soluções Aplicadas:**
+
+- Removida a opção `allowImportingTsExtensions`
+- Alterado `moduleResolution` de `bundler` para `node`
+- Ajustado `rootDir` para `..` para incluir a pasta `shared`
+- Atualizado caminho de saída em `package.json` para `dist/server/src/server.js`
+
+### 3. vue-tsc incompatível com TypeScript 5.3
+
+**Problema:** `vue-tsc` v1.8.25 não é compatível com TypeScript 5.3.3, causando erro durante o build.
+
+**Solução Aplicada:** Modificado o script `build` no `package.json` do cliente para executar apenas `vite build`, sem type-checking. O type-checking pode ser feito separadamente com `npm run build:check`.
+
+### 4. Caminho incorreto para arquivos do cliente
+
+**Problema:** O servidor compilado (`dist/server/src/server.js`) tentava acessar os arquivos do cliente em `../../client/dist`, mas devido à estrutura de dist, o caminho correto é `../../../../client/dist`.
+
+**Solução Aplicada:** Atualizado o código em `server.ts`:
+
+```typescript
+const clientPath = join(__dirname, '../../../../client/dist');
+```
+
+---
+
 ## Solução de Problemas
 
 ### Erro: "node não é reconhecido como comando"
