@@ -264,6 +264,7 @@ export interface ClientToServerEvents {
   atualizarComportamentoFila: (comportamento: ConfiguracaoComportamentoFila) => void;
   atualizarConfigInterface: (interfaceConfig: ConfiguracaoInterface) => void;
   atualizarNotificacoes: (notificacoes: ConfiguracaoNotificacoes) => void;
+  atualizarSeguranca: (seguranca: ConfiguracaoSeguranca) => void;
   resetarConfiguracoes: () => void;
 }
 

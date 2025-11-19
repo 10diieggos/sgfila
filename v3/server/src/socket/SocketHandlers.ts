@@ -231,6 +231,88 @@ export class SocketHandlers {
     });
 
     // ========================================
+    // CONFIGURAÇÕES
+    // ========================================
+
+    socket.on('atualizarTiposSenha', (tipos) => {
+      try {
+        this.stateManager.atualizarTiposSenha(tipos);
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao atualizar tipos de senha:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar tipos de senha',
+          tipo: 'atualizarTiposSenha'
+        });
+      }
+    });
+
+    socket.on('atualizarMotivosRetorno', (motivos) => {
+      try {
+        this.stateManager.atualizarMotivosRetorno(motivos);
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao atualizar motivos de retorno:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar motivos de retorno',
+          tipo: 'atualizarMotivosRetorno'
+        });
+      }
+    });
+
+    socket.on('atualizarComportamentoFila', (comportamento) => {
+      try {
+        this.stateManager.atualizarComportamentoFila(comportamento);
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao atualizar comportamento da fila:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar comportamento da fila',
+          tipo: 'atualizarComportamentoFila'
+        });
+      }
+    });
+
+    socket.on('atualizarConfigInterface', (interfaceConfig) => {
+      try {
+        this.stateManager.atualizarConfigInterface(interfaceConfig);
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao atualizar configuração de interface:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar configuração de interface',
+          tipo: 'atualizarConfigInterface'
+        });
+      }
+    });
+
+    socket.on('atualizarNotificacoes', (notificacoes) => {
+      try {
+        this.stateManager.atualizarNotificacoes(notificacoes);
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao atualizar notificações:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar notificações',
+          tipo: 'atualizarNotificacoes'
+        });
+      }
+    });
+
+    socket.on('atualizarSeguranca', (seguranca) => {
+      try {
+        this.stateManager.atualizarSeguranca(seguranca);
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao atualizar segurança:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar segurança',
+          tipo: 'atualizarSeguranca'
+        });
+      }
+    });
+
+    // ========================================
     // REINICIAR SISTEMA
     // ========================================
 

@@ -4,7 +4,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes } from '../../../shared/types.js';
+import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes, ConfiguracaoSeguranca } from '../../../shared/types.js';
 import { getConfigPadrao } from '../../../shared/types.js';
 
 const DADOS_FILE = './dados.json';
@@ -258,6 +258,15 @@ export class StateManager {
    */
   public atualizarNotificacoes(notificacoes: ConfiguracaoNotificacoes): void {
     this.estado.configuracoes.notificacoes = notificacoes;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+  }
+
+  /**
+   * Atualiza configurações de segurança
+   */
+  public atualizarSeguranca(seguranca: ConfiguracaoSeguranca): void {
+    this.estado.configuracoes.seguranca = seguranca;
     this.estado.configuracoes.ultimaAtualizacao = Date.now();
     this.salvarEstado();
   }
