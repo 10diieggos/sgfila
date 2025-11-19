@@ -4,7 +4,8 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import type { EstadoSistema, Guiche } from '../../../shared/types.js';
+import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes } from '../../../shared/types.js';
+import { CONFIG_PADRAO } from '../../../shared/types.js';
 
 const DADOS_FILE = './dados.json';
 
@@ -42,7 +43,8 @@ export class StateManager {
       proporcaoContratual: 1,
       atendimentosAtuais: {},
       guichesConfigurados: [],
-      dataReinicioSistema: dataFormatada
+      dataReinicioSistema: dataFormatada,
+      configuracoes: { ...CONFIG_PADRAO }
     };
   }
 
@@ -64,6 +66,14 @@ export class StateManager {
         }
         if (!estadoCarregado.atendimentosAtuais) {
           estadoCarregado.atendimentosAtuais = {};
+        }
+        // Migração para v3.1 - Sistema de Configurações
+        if (!estadoCarregado.configuracoes) {
+          console.log('Migrando para sistema de configurações...');
+          estadoCarregado.configuracoes = { ...CONFIG_PADRAO };
+        } else {
+          // Mesclar configurações existentes com padrão (caso novas configs sejam adicionadas)
+          estadoCarregado.configuracoes = this.mesclarConfiguracoes(estadoCarregado.configuracoes);
         }
 
         console.log('Estado carregado do arquivo dados.json');
@@ -169,5 +179,101 @@ export class StateManager {
   public atualizarProporcaoContratual(proporcao: number): void {
     this.estado.proporcaoContratual = proporcao;
     this.salvarEstado();
+  }
+
+  /**
+   * Mescla configurações existentes com configurações padrão
+   * Útil quando novas configurações são adicionadas ao sistema
+   */
+  private mesclarConfiguracoes(configExistente: ConfiguracoesGerais): ConfiguracoesGerais {
+    return {
+      tiposSenha: configExistente.tiposSenha || CONFIG_PADRAO.tiposSenha,
+      motivosRetorno: configExistente.motivosRetorno || CONFIG_PADRAO.motivosRetorno,
+      comportamentoFila: { ...CONFIG_PADRAO.comportamentoFila, ...configExistente.comportamentoFila },
+      interface: { ...CONFIG_PADRAO.interface, ...configExistente.interface },
+      notificacoes: { ...CONFIG_PADRAO.notificacoes, ...configExistente.notificacoes },
+      estatisticas: {
+        metricas: { ...CONFIG_PADRAO.estatisticas.metricas, ...configExistente.estatisticas?.metricas },
+        periodoAnalise: configExistente.estatisticas?.periodoAnalise || CONFIG_PADRAO.estatisticas.periodoAnalise,
+        atualizacaoAutomatica: configExistente.estatisticas?.atualizacaoAutomatica ?? CONFIG_PADRAO.estatisticas.atualizacaoAutomatica,
+        intervaloAtualizacaoSegundos: configExistente.estatisticas?.intervaloAtualizacaoSegundos || CONFIG_PADRAO.estatisticas.intervaloAtualizacaoSegundos
+      },
+      seguranca: { ...CONFIG_PADRAO.seguranca, ...configExistente.seguranca },
+      versao: CONFIG_PADRAO.versao,
+      ultimaAtualizacao: Date.now()
+    };
+  }
+
+  /**
+   * Atualiza configurações gerais (parcial ou completa)
+   */
+  public atualizarConfiguracoes(configParcial: Partial<ConfiguracoesGerais>): void {
+    this.estado.configuracoes = {
+      ...this.estado.configuracoes,
+      ...configParcial,
+      ultimaAtualizacao: Date.now()
+    };
+    this.salvarEstado();
+  }
+
+  /**
+   * Atualiza configurações de tipos de senha
+   */
+  public atualizarTiposSenha(tipos: ConfiguracaoTipoSenha[]): void {
+    this.estado.configuracoes.tiposSenha = tipos;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+  }
+
+  /**
+   * Atualiza configurações de motivos de retorno
+   */
+  public atualizarMotivosRetorno(motivos: ConfiguracaoMotivoRetorno[]): void {
+    this.estado.configuracoes.motivosRetorno = motivos;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+  }
+
+  /**
+   * Atualiza configurações de comportamento da fila
+   */
+  public atualizarComportamentoFila(comportamento: ConfiguracaoComportamentoFila): void {
+    this.estado.configuracoes.comportamentoFila = comportamento;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+  }
+
+  /**
+   * Atualiza configurações de interface
+   */
+  public atualizarConfigInterface(interfaceConfig: ConfiguracaoInterface): void {
+    this.estado.configuracoes.interface = interfaceConfig;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+  }
+
+  /**
+   * Atualiza configurações de notificações
+   */
+  public atualizarNotificacoes(notificacoes: ConfiguracaoNotificacoes): void {
+    this.estado.configuracoes.notificacoes = notificacoes;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+  }
+
+  /**
+   * Reseta todas as configurações para o padrão
+   */
+  public resetarConfiguracoes(): void {
+    this.estado.configuracoes = { ...CONFIG_PADRAO };
+    this.salvarEstado();
+    console.log('Configurações resetadas para o padrão');
+  }
+
+  /**
+   * Retorna as configurações atuais
+   */
+  public getConfiguracoes(): ConfiguracoesGerais {
+    return this.estado.configuracoes;
   }
 }

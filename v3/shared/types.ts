@@ -73,6 +73,7 @@ export interface EstadoSistema {
   atendimentosAtuais: AtendimentoAtual;
   guichesConfigurados: Guiche[];
   dataReinicioSistema: string;
+  configuracoes: ConfiguracoesGerais;
 }
 
 // ============================================
@@ -144,6 +145,15 @@ export interface ClientToServerEvents {
   atualizarProporcaoContratual: (novaProporcao: number) => void;
   atualizarGuichesGlobais: (guiches: Guiche[]) => void;
   reiniciarSistema: () => void;
+
+  // Novos eventos para configurações
+  atualizarConfiguracoes: (configuracoes: Partial<ConfiguracoesGerais>) => void;
+  atualizarTiposSenha: (tipos: ConfiguracaoTipoSenha[]) => void;
+  atualizarMotivosRetorno: (motivos: ConfiguracaoMotivoRetorno[]) => void;
+  atualizarComportamentoFila: (comportamento: ConfiguracaoComportamentoFila) => void;
+  atualizarConfigInterface: (interfaceConfig: ConfiguracaoInterface) => void;
+  atualizarNotificacoes: (notificacoes: ConfiguracaoNotificacoes) => void;
+  resetarConfiguracoes: () => void;
 }
 
 // ============================================
@@ -158,9 +168,238 @@ export interface ConfiguracaoGuiche {
 
 export type TabType = 'stats' | 'history' | 'config';
 export type SubTabStats = 'geral' | 'ticket';
-export type SubTabConfig = 'guiches' | 'proporcao';
+export type SubTabConfig = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes';
 
 export interface ModalData {
   show: boolean;
   data?: any;
+}
+
+// ============================================
+// SISTEMA DE CONFIGURAÇÕES COMPLETO
+// ============================================
+
+export interface ConfiguracaoTipoSenha {
+  id: TipoSenha;
+  nome: string;
+  nomeCompleto: string;
+  prefixo: string;
+  cor: string;
+  corFundo: string;
+  icone: string;
+  ativo: boolean;
+  ordem: number;
+  subtipos: string[];
+}
+
+export interface ConfiguracaoMotivoRetorno {
+  id: MotivoRetorno;
+  nome: string;
+  descricao: string;
+  icone: string;
+  cor: string;
+  prazoMinutos: number | null; // null = sem prazo
+  posicionamentoFila: 'inicio' | 'meio' | 'fim' | 'original';
+  ativo: boolean;
+}
+
+export interface ConfiguracaoComportamentoFila {
+  algoritmo: 'proporcao' | 'round_robin' | 'fifo';
+  permitirPularSenhas: boolean;
+  autoFinalizarMinutos: number | null; // null = desativado
+  chamarProximaAutomatica: boolean;
+  tempoEsperaMaximoMinutos: number | null; // null = sem limite
+  alertarTempoEsperaExcedido: boolean;
+}
+
+export interface ConfiguracaoInterface {
+  tema: 'claro' | 'escuro' | 'auto';
+  tamanhoFonteSenhas: 'pequeno' | 'medio' | 'grande' | 'extra-grande';
+  formatoNumeroSenha: 'com-hifen' | 'sem-hifen' | 'apenas-numero';
+  mostrarDescricaoSenha: boolean;
+  mostrarTempoEspera: boolean;
+  mostrarTempoAtendimento: boolean;
+  ordenacaoFilaPadrao: 'emissao' | 'tipo' | 'tempo-espera';
+  exibirIconesPrioridade: boolean;
+}
+
+export interface ConfiguracaoNotificacoes {
+  somAtivo: boolean;
+  volumeSom: number; // 0-100
+  beepsEmissao: number;
+  beepsChamada: number;
+  alertaFilaCheia: boolean;
+  limiteFilaCheia: number;
+  alertaGuicheInativo: boolean;
+  tempoInativoMinutos: number;
+}
+
+export interface ConfiguracaoEstatisticas {
+  metricas: {
+    totalEmitidas: boolean;
+    totalAtendidas: boolean;
+    tempoMedioEspera: boolean;
+    tempoMedioAtendimento: boolean;
+    taxaNaoComparecimento: boolean;
+    produtividadePorGuiche: boolean;
+  };
+  periodoAnalise: 'dia' | 'semana' | 'mes' | 'personalizado';
+  atualizacaoAutomatica: boolean;
+  intervaloAtualizacaoSegundos: number;
+}
+
+export interface ConfiguracaoSeguranca {
+  senhaAdmin: string | null;
+  exigirConfirmacaoExclusao: boolean;
+  exigirConfirmacaoReinicio: boolean;
+  logAuditoria: boolean;
+  backupAutomatico: boolean;
+  intervaloBackupMinutos: number;
+}
+
+export interface ConfiguracoesGerais {
+  tiposSenha: ConfiguracaoTipoSenha[];
+  motivosRetorno: ConfiguracaoMotivoRetorno[];
+  comportamentoFila: ConfiguracaoComportamentoFila;
+  interface: ConfiguracaoInterface;
+  notificacoes: ConfiguracaoNotificacoes;
+  estatisticas: ConfiguracaoEstatisticas;
+  seguranca: ConfiguracaoSeguranca;
+  versao: string;
+  ultimaAtualizacao: number;
+}
+
+// Valores padrão para configurações
+export const CONFIG_PADRAO: ConfiguracoesGerais = {
+  tiposSenha: [
+    {
+      id: 'prioridade',
+      nome: 'Prioritária',
+      nomeCompleto: 'Atendimento Prioritário',
+      prefixo: 'P',
+      cor: '#ff6b6b',
+      corFundo: '#fff5f5',
+      icone: 'wheelchair',
+      ativo: true,
+      ordem: 1,
+      subtipos: ['Idoso', 'Gestante', 'Deficiente', 'Lactante', 'Criança de Colo']
+    },
+    {
+      id: 'contratual',
+      nome: 'Contratual',
+      nomeCompleto: 'Cliente Contratual',
+      prefixo: 'C',
+      cor: '#845ef7',
+      corFundo: '#f3e8ff',
+      icone: 'file-contract',
+      ativo: true,
+      ordem: 2,
+      subtipos: ['Empresa', 'Governo', 'Parceiro']
+    },
+    {
+      id: 'normal',
+      nome: 'Normal',
+      nomeCompleto: 'Atendimento Normal',
+      prefixo: 'N',
+      cor: '#4dabf7',
+      corFundo: '#f0f8ff',
+      icone: 'user',
+      ativo: true,
+      ordem: 3,
+      subtipos: ['Geral', 'Consulta', 'Reclamação']
+    }
+  ],
+  motivosRetorno: [
+    {
+      id: 'retorno_impressao',
+      nome: 'Erro de Impressão',
+      descricao: 'Senha emitida com erro na impressão',
+      icone: 'print',
+      cor: '#ffc107',
+      prazoMinutos: 5,
+      posicionamentoFila: 'inicio',
+      ativo: true
+    },
+    {
+      id: 'erro_operacional',
+      nome: 'Erro Operacional',
+      descricao: 'Erro durante o atendimento que requer reabrir',
+      icone: 'exclamation-triangle',
+      cor: '#dc3545',
+      prazoMinutos: 10,
+      posicionamentoFila: 'inicio',
+      ativo: true
+    },
+    {
+      id: 'ausente_retornou',
+      nome: 'Ausente Retornou',
+      descricao: 'Cliente não compareceu mas retornou',
+      icone: 'user-clock',
+      cor: '#17a2b8',
+      prazoMinutos: 30,
+      posicionamentoFila: 'fim',
+      ativo: true
+    },
+    {
+      id: 'reabertura_atendimento',
+      nome: 'Reabertura de Atendimento',
+      descricao: 'Atendimento precisa ser reaberto',
+      icone: 'redo',
+      cor: '#6c757d',
+      prazoMinutos: null,
+      posicionamentoFila: 'original',
+      ativo: true
+    }
+  ],
+  comportamentoFila: {
+    algoritmo: 'proporcao',
+    permitirPularSenhas: true,
+    autoFinalizarMinutos: null,
+    chamarProximaAutomatica: false,
+    tempoEsperaMaximoMinutos: null,
+    alertarTempoEsperaExcedido: false
+  },
+  interface: {
+    tema: 'claro',
+    tamanhoFonteSenhas: 'grande',
+    formatoNumeroSenha: 'com-hifen',
+    mostrarDescricaoSenha: true,
+    mostrarTempoEspera: true,
+    mostrarTempoAtendimento: true,
+    ordenacaoFilaPadrao: 'emissao',
+    exibirIconesPrioridade: true
+  },
+  notificacoes: {
+    somAtivo: true,
+    volumeSom: 80,
+    beepsEmissao: 1,
+    beepsChamada: 3,
+    alertaFilaCheia: false,
+    limiteFilaCheia: 100,
+    alertaGuicheInativo: false,
+    tempoInativoMinutos: 10
+  },
+  estatisticas: {
+    metricas: {
+      totalEmitidas: true,
+      totalAtendidas: true,
+      tempoMedioEspera: true,
+      tempoMedioAtendimento: true,
+      taxaNaoComparecimento: true,
+      produtividadePorGuiche: true
+    },
+    periodoAnalise: 'dia',
+    atualizacaoAutomatica: true,
+    intervaloAtualizacaoSegundos: 5
+  },
+  seguranca: {
+    senhaAdmin: null,
+    exigirConfirmacaoExclusao: true,
+    exigirConfirmacaoReinicio: true,
+    logAuditoria: false,
+    backupAutomatico: false,
+    intervaloBackupMinutos: 60
+  },
+  versao: '3.0.0',
+  ultimaAtualizacao: Date.now()
 }

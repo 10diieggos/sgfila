@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFeat: Add settings button to Counter Panel header\n\n- Add small gear icon button in Counter Panel card header\n- Button opens configuration modal directly on ''guiches'' tab\n- Implement gray outline style matching queue list buttons\n- Add initial-tab prop to ConfigurationPanel component\n- Button positioned on right side while title stays on left\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
