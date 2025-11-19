@@ -854,6 +854,7 @@ const atualizarSubtipos = (index: number, event: Event) => {
 }
 
 const salvarTipos = () => {
+  console.log('💾 [ConfigPanel] Salvando tipos de senha:', tiposConfig.value)
   emit('atualizar-tipos', tiposConfig.value)
 }
 
@@ -973,39 +974,51 @@ const confirmarReinicio = () => {
 }
 
 // Watch para sincronizar configurações do servidor
+// IMPORTANTE: Não usar deep:true para evitar loops de atualização
 watch(() => props.configuracoes, (novasConfiguracoes) => {
-  if (!novasConfiguracoes) return
+  console.log('📥 [ConfigPanel] Recebeu configurações do servidor')
+
+  if (!novasConfiguracoes) {
+    console.warn('⚠️ [ConfigPanel] Configurações são null/undefined')
+    return
+  }
 
   // Atualizar tipos de senha
   if (novasConfiguracoes.tiposSenha && novasConfiguracoes.tiposSenha.length > 0) {
-    tiposConfig.value = novasConfiguracoes.tiposSenha
+    console.log('✅ [ConfigPanel] Carregando', novasConfiguracoes.tiposSenha.length, 'tipos de senha')
+    tiposConfig.value = [...novasConfiguracoes.tiposSenha]
   }
 
   // Atualizar motivos de retorno
   if (novasConfiguracoes.motivosRetorno && novasConfiguracoes.motivosRetorno.length > 0) {
-    motivosConfig.value = novasConfiguracoes.motivosRetorno
+    console.log('✅ [ConfigPanel] Carregando', novasConfiguracoes.motivosRetorno.length, 'motivos de retorno')
+    motivosConfig.value = [...novasConfiguracoes.motivosRetorno]
   }
 
   // Atualizar comportamento da fila
   if (novasConfiguracoes.comportamentoFila) {
+    console.log('✅ [ConfigPanel] Carregando comportamento da fila:', novasConfiguracoes.comportamentoFila.algoritmo)
     comportamentoConfig.value = { ...novasConfiguracoes.comportamentoFila }
   }
 
   // Atualizar interface
   if (novasConfiguracoes.interface) {
+    console.log('✅ [ConfigPanel] Carregando interface:', novasConfiguracoes.interface.tema)
     interfaceConfig.value = { ...novasConfiguracoes.interface }
   }
 
   // Atualizar notificações
   if (novasConfiguracoes.notificacoes) {
+    console.log('✅ [ConfigPanel] Carregando notificações: som =', novasConfiguracoes.notificacoes.somAtivo)
     notificacoesConfig.value = { ...novasConfiguracoes.notificacoes }
   }
 
   // Atualizar segurança
   if (novasConfiguracoes.seguranca) {
+    console.log('✅ [ConfigPanel] Carregando segurança')
     segurancaConfig.value = { ...novasConfiguracoes.seguranca }
   }
-}, { immediate: true, deep: true })
+}, { immediate: true })
 </script>
 
 <style scoped>
