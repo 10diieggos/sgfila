@@ -205,15 +205,13 @@
       <Transition name="modal">
         <div v-if="showStatsModal" class="modal-overlay modal-paineis modal-stats" @click.self="showStatsModal = false">
           <div class="modal-content modal-content-paineis" @click.stop>
-            <StatisticsPanel
+            <AdvancedStatisticsPanel
               :estatisticas="estatisticas"
-              :guiches="estado.guichesConfigurados"
             />
           </div>
         </div>
       </Transition>
     </Teleport>
-
     <!-- Modal Ticket -->
     <TicketModal
       :show="showTicketModal"
@@ -288,7 +286,7 @@ import type { Senha, Guiche } from '@shared/types'
 import QueueList from './components/QueueList.vue'
 import CounterPanel from './components/CounterPanel.vue'
 import CurrentAttendanceList from './components/CurrentAttendanceList.vue'
-import StatisticsPanel from './components/StatisticsPanel.vue'
+import AdvancedStatisticsPanel from './components/AdvancedStatisticsPanel.vue'
 import HistoryPanel from './components/HistoryPanel.vue'
 import ConfigurationPanel from './components/ConfigurationPanel.vue'
 import NewTicketModal from './components/NewTicketModal.vue'
