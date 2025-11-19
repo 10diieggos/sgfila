@@ -48,8 +48,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
+echo Compilando shared types...
+cd /d "%SCRIPT_DIR%..\v3\shared"
+"%NODE_PATH%" "%SCRIPT_DIR%..\v3\server\node_modules\typescript\lib\tsc.js" types.ts --module ESNext --target ES2022 --moduleResolution node --esModuleInterop >nul 2>&1
+
+echo Compilando backend TypeScript...
+cd /d "%SCRIPT_DIR%..\v3\server"
+"%NODE_PATH%" "%SCRIPT_DIR%..\v3\server\node_modules\typescript\lib\tsc.js" -p tsconfig.json
+if errorlevel 1 (
+    echo ERRO: Falha ao compilar TypeScript
+    pause
+    exit /b 1
+)
+
 echo Iniciando backend...
-start "SGFILA Backend" /min "%NODE_PATH%" --loader tsx src/server.ts
+start "SGFILA Backend" /min "%NODE_PATH%" dist/server.js
 
 timeout /t 5 /nobreak >nul
 
