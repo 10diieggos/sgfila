@@ -240,6 +240,10 @@ export interface ServerToClientEvents {
   beep: (dados: { times: number; tipo: 'emissao' | 'chamada'; numero?: string }) => void;
   sistemaReiniciado: () => void;
   erroOperacao: (dados: { mensagem: string; tipo: string }) => void;
+
+  // Eventos de estatísticas históricas
+  estatisticasAgregadas: (dados: { estatisticas: EstatisticasAvancadas; periodoDescricao: string }) => void;
+  diasDisponiveis: (dados: { dias: string[] }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -266,6 +270,14 @@ export interface ClientToServerEvents {
   atualizarNotificacoes: (notificacoes: ConfiguracaoNotificacoes) => void;
   atualizarSeguranca: (seguranca: ConfiguracaoSeguranca) => void;
   resetarConfiguracoes: () => void;
+
+  // Eventos de consulta de estatísticas históricas
+  solicitarEstatisticasPeriodo: (dados: {
+    tipo: 'dia' | 'semana' | 'mes' | 'personalizado';
+    dataInicio?: string;
+    dataFim?: string;
+  }) => void;
+  solicitarDiasDisponiveis: () => void;
 }
 
 // ============================================

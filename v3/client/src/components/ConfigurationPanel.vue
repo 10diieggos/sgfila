@@ -856,23 +856,30 @@ const atualizarSubtipos = (index: number, event: Event) => {
 // Flag para saber se estamos carregando do servidor (evita loop)
 let carregandoDoServidor = false
 
+// Timeouts para debounce
+let timeoutTipos: ReturnType<typeof setTimeout> | null = null
+let timeoutMotivos: ReturnType<typeof setTimeout> | null = null
+let timeoutComportamento: ReturnType<typeof setTimeout> | null = null
+let timeoutInterface: ReturnType<typeof setTimeout> | null = null
+let timeoutNotificacoes: ReturnType<typeof setTimeout> | null = null
+let timeoutSeguranca: ReturnType<typeof setTimeout> | null = null
+
 const salvarTipos = () => {
-  if (carregandoDoServidor) {
-    console.log('⏭️ [ConfigPanel] Ignorando salvar (carregando do servidor)')
-    return
-  }
-  console.log('💾 [ConfigPanel] Salvando tipos de senha:', tiposConfig.value)
+  if (carregandoDoServidor) return
+  console.log('💾 [ConfigPanel] Salvando tipos de senha')
   emit('atualizar-tipos', tiposConfig.value)
 }
 
-// Watch para detectar mudanças nos tipos
+// Watch com debounce para detectar mudanças nos tipos
 watch(tiposConfig, () => {
-  if (carregandoDoServidor) {
-    console.log('⏭️ [ConfigPanel] tiposConfig mudou (servidor), ignorando')
-    return
-  }
-  console.log('🔄 [ConfigPanel] tiposConfig mudou (usuário), salvando')
-  salvarTipos()
+  if (carregandoDoServidor) return
+
+  // Debounce: aguarda 300ms sem mudanças antes de salvar
+  if (timeoutTipos) clearTimeout(timeoutTipos)
+  timeoutTipos = setTimeout(() => {
+    console.log('🔄 [ConfigPanel] tiposConfig mudou, salvando')
+    salvarTipos()
+  }, 300)
 }, { deep: true })
 
 // Configurações de Motivos de Retorno
@@ -921,13 +928,17 @@ const motivosConfig = ref<ConfiguracaoMotivoRetorno[]>([
 
 const salvarMotivos = () => {
   if (carregandoDoServidor) return
+  console.log('💾 [ConfigPanel] Salvando motivos de retorno')
   emit('atualizar-motivos', motivosConfig.value)
 }
 
 watch(motivosConfig, () => {
   if (carregandoDoServidor) return
-  console.log('🔄 [ConfigPanel] motivosConfig mudou, salvando')
-  salvarMotivos()
+  if (timeoutMotivos) clearTimeout(timeoutMotivos)
+  timeoutMotivos = setTimeout(() => {
+    console.log('🔄 [ConfigPanel] motivosConfig mudou, salvando')
+    salvarMotivos()
+  }, 300)
 }, { deep: true })
 
 // Configurações de Comportamento da Fila
@@ -942,13 +953,17 @@ const comportamentoConfig = ref<ConfiguracaoComportamentoFila>({
 
 const salvarComportamento = () => {
   if (carregandoDoServidor) return
+  console.log('💾 [ConfigPanel] Salvando comportamento da fila')
   emit('atualizar-comportamento', comportamentoConfig.value)
 }
 
 watch(comportamentoConfig, () => {
   if (carregandoDoServidor) return
-  console.log('🔄 [ConfigPanel] comportamentoConfig mudou, salvando')
-  salvarComportamento()
+  if (timeoutComportamento) clearTimeout(timeoutComportamento)
+  timeoutComportamento = setTimeout(() => {
+    console.log('🔄 [ConfigPanel] comportamentoConfig mudou, salvando')
+    salvarComportamento()
+  }, 300)
 }, { deep: true })
 
 // Configurações de Interface
@@ -965,13 +980,17 @@ const interfaceConfig = ref<ConfiguracaoInterface>({
 
 const salvarInterface = () => {
   if (carregandoDoServidor) return
+  console.log('💾 [ConfigPanel] Salvando configuração de interface')
   emit('atualizar-interface', interfaceConfig.value)
 }
 
 watch(interfaceConfig, () => {
   if (carregandoDoServidor) return
-  console.log('🔄 [ConfigPanel] interfaceConfig mudou, salvando')
-  salvarInterface()
+  if (timeoutInterface) clearTimeout(timeoutInterface)
+  timeoutInterface = setTimeout(() => {
+    console.log('🔄 [ConfigPanel] interfaceConfig mudou, salvando')
+    salvarInterface()
+  }, 300)
 }, { deep: true })
 
 // Configurações de Notificações
@@ -988,13 +1007,17 @@ const notificacoesConfig = ref<ConfiguracaoNotificacoes>({
 
 const salvarNotificacoes = () => {
   if (carregandoDoServidor) return
+  console.log('💾 [ConfigPanel] Salvando notificações')
   emit('atualizar-notificacoes', notificacoesConfig.value)
 }
 
 watch(notificacoesConfig, () => {
   if (carregandoDoServidor) return
-  console.log('🔄 [ConfigPanel] notificacoesConfig mudou, salvando')
-  salvarNotificacoes()
+  if (timeoutNotificacoes) clearTimeout(timeoutNotificacoes)
+  timeoutNotificacoes = setTimeout(() => {
+    console.log('🔄 [ConfigPanel] notificacoesConfig mudou, salvando')
+    salvarNotificacoes()
+  }, 300)
 }, { deep: true })
 
 // Configurações de Segurança
@@ -1009,13 +1032,17 @@ const segurancaConfig = ref<ConfiguracaoSeguranca>({
 
 const salvarSeguranca = () => {
   if (carregandoDoServidor) return
+  console.log('💾 [ConfigPanel] Salvando segurança')
   emit('atualizar-seguranca', segurancaConfig.value)
 }
 
 watch(segurancaConfig, () => {
   if (carregandoDoServidor) return
-  console.log('🔄 [ConfigPanel] segurancaConfig mudou, salvando')
-  salvarSeguranca()
+  if (timeoutSeguranca) clearTimeout(timeoutSeguranca)
+  timeoutSeguranca = setTimeout(() => {
+    console.log('🔄 [ConfigPanel] segurancaConfig mudou, salvando')
+    salvarSeguranca()
+  }, 300)
 }, { deep: true })
 
 const confirmarReinicio = () => {
@@ -1088,13 +1115,14 @@ watch(() => props.configuracoes, (novasConfiguracoes) => {
 
 .sub-tab-nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 5px;
   border-bottom: 2px solid #e9ecef;
   margin-bottom: 25px;
+  overflow-x: auto;
 }
 
 .sub-tab-link {
-  flex: 1;
   padding: 12px 20px;
   border: none;
   background: none;
@@ -1104,6 +1132,8 @@ watch(() => props.configuracoes, (novasConfiguracoes) => {
   border-bottom: 3px solid transparent;
   transition: all 0.3s;
   font-size: 0.95em;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .sub-tab-link:hover {

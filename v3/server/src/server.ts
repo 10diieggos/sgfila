@@ -81,8 +81,8 @@ async function salvarSnapshotSeNecessario() {
 // Intervalo para verificar e salvar snapshots (verifica a cada 5 minutos)
 setInterval(salvarSnapshotSeNecessario, 300000); // 5 minutos
 
-// Configura handlers Socket.IO (com estatísticas avançadas habilitadas)
-const socketHandlers = new SocketHandlers(io, true);
+// Configura handlers Socket.IO (com estatísticas avançadas habilitadas e persistência)
+const socketHandlers = new SocketHandlers(io, true, statisticsPersistence);
 
 io.on('connection', (socket) => {
   socketHandlers.setupHandlers(socket);

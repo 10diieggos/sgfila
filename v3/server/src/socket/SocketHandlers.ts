@@ -9,6 +9,8 @@ import { StateManager } from '../services/StateManager.js';
 import { QueueService } from '../services/QueueService.js';
 import { StatisticsService } from '../services/StatisticsService.js';
 import { AdvancedStatisticsService } from '../services/AdvancedStatisticsService.js';
+import { StatisticsAggregator } from '../services/StatisticsAggregator.js';
+import { StatisticsPersistence } from '../services/StatisticsPersistence.js';
 
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type TypedServer = SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
@@ -18,12 +20,24 @@ export class SocketHandlers {
   private queueService: QueueService;
   private io: TypedServer;
   private useAdvancedStats: boolean;
+  private statisticsPersistence: StatisticsPersistence | null = null;
+  private statisticsAggregator: StatisticsAggregator | null = null;
 
-  constructor(io: TypedServer, useAdvancedStats: boolean = false) {
+  constructor(
+    io: TypedServer,
+    useAdvancedStats: boolean = false,
+    statisticsPersistence?: StatisticsPersistence
+  ) {
     this.io = io;
     this.stateManager = StateManager.getInstance();
     this.queueService = new QueueService();
     this.useAdvancedStats = useAdvancedStats;
+
+    // Configura persistência de estatísticas se fornecida
+    if (statisticsPersistence) {
+      this.statisticsPersistence = statisticsPersistence;
+      this.statisticsAggregator = new StatisticsAggregator(statisticsPersistence);
+    }
   }
 
   /**
@@ -323,6 +337,81 @@ export class SocketHandlers {
         this.emitirEstadoAtualizado();
       } catch (error) {
         console.error('Erro ao reiniciar sistema:', error);
+      }
+    });
+
+    // ========================================
+    // ESTATÍSTICAS HISTÓRICAS
+    // ========================================
+
+    socket.on('solicitarEstatisticasPeriodo', async (dados) => {
+      try {
+        if (!this.statisticsAggregator) {
+          socket.emit('erroOperacao', {
+            mensagem: 'Serviço de estatísticas históricas não disponível',
+            tipo: 'estatisticasHistoricas'
+          });
+          return;
+        }
+
+        // Cria filtro baseado no tipo
+        const filtro = this.statisticsAggregator.criarFiltroPeriodo(
+          dados.tipo,
+          dados.dataInicio,
+          dados.dataFim
+        );
+
+        // Busca e agrega estatísticas
+        const estatisticas = await this.statisticsAggregator.agregarEstatisticasPeriodo(
+          filtro.dataInicio,
+          filtro.dataFim
+        );
+
+        if (!estatisticas) {
+          socket.emit('erroOperacao', {
+            mensagem: 'Nenhum dado disponível para o período selecionado',
+            tipo: 'estatisticasHistoricas'
+          });
+          return;
+        }
+
+        // Envia estatísticas agregadas
+        socket.emit('estatisticasAgregadas', {
+          estatisticas,
+          periodoDescricao: filtro.descricao
+        });
+
+        console.log(`Estatísticas agregadas enviadas: ${filtro.descricao}`);
+      } catch (error) {
+        console.error('Erro ao solicitar estatísticas de período:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao processar estatísticas do período',
+          tipo: 'estatisticasHistoricas'
+        });
+      }
+    });
+
+    socket.on('solicitarDiasDisponiveis', async () => {
+      try {
+        if (!this.statisticsPersistence) {
+          socket.emit('erroOperacao', {
+            mensagem: 'Serviço de persistência não disponível',
+            tipo: 'estatisticasHistoricas'
+          });
+          return;
+        }
+
+        const dias = await this.statisticsPersistence.listarDiasDisponiveis();
+
+        socket.emit('diasDisponiveis', { dias });
+
+        console.log(`Lista de dias disponíveis enviada: ${dias.length} dias`);
+      } catch (error) {
+        console.error('Erro ao listar dias disponíveis:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao listar dias disponíveis',
+          tipo: 'estatisticasHistoricas'
+        });
       }
     });
 
