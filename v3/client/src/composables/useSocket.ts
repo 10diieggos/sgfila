@@ -22,6 +22,8 @@ import type {
   ConfiguracaoCorrecoes
 } from '@shared/types'
 import { useBeep } from './useBeep'
+import { predictNextOrFallback } from '../ml/inference'
+import { recordPrediction } from '../telemetry/predictions'
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 
@@ -103,11 +105,21 @@ export function useSocket() {
     socket.value?.emit('emitirSenha', { tipo, subtipo, servicoDoCliente })
   }
 
-  const chamarSenha = (guicheId: string) => {
+  const chamarSenha = async (guicheId: string) => {
+    if (estado.value) {
+      const t0 = Date.now()
+      const pred = await predictNextOrFallback(estado.value)
+      recordPrediction({ guicheId, numeroPrevisto: pred.numeroPrevisto, score: pred.score, source: pred.source, timestamp: t0 })
+    }
     socket.value?.emit('chamarSenha', { guicheId })
   }
 
-  const chamarSenhaEspecifica = (guicheId: string, numeroSenha: string) => {
+  const chamarSenhaEspecifica = async (guicheId: string, numeroSenha: string) => {
+    if (estado.value) {
+      const t0 = Date.now()
+      const pred = await predictNextOrFallback(estado.value)
+      recordPrediction({ guicheId, numeroPrevisto: pred.numeroPrevisto, score: pred.score, source: pred.source, timestamp: t0 })
+    }
     socket.value?.emit('chamarSenhaEspecifica', { guicheId, numeroSenha })
   }
 

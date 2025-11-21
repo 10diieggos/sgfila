@@ -1,0 +1,7 @@
+{
+  "minScore": 0,
+  "latencyMsMax": 200,
+  "accuracyTarget": 0.7,
+  "driftTolerance": 0.2,
+  "recallPrioridadeMin": 0.8
+}

@@ -3,79 +3,128 @@
     <!-- Cabeçalho com informações do dia -->
     <div class="stats-header">
       <div class="header-info">
-        <h2><i class="fas fa-chart-line"></i> Estatísticas Avançadas</h2>
+        <h2><i class="fas fa-chart-line" /> Estatísticas Avançadas</h2>
         <div class="date-info">
           <span class="label">Data:</span>
           <span class="value">{{ formatDate(estatisticas.dataReferencia) }}</span>
-          <span v-if="estatisticas.modoTeste" class="badge-test">MODO TESTE</span>
-          <span v-if="estatisticas.periodoAtivo" class="badge-active">EM TEMPO REAL</span>
+          <span
+            v-if="estatisticas.modoTeste"
+            class="badge-test"
+          >MODO TESTE</span>
+          <span
+            v-if="estatisticas.periodoAtivo"
+            class="badge-active"
+          >EM TEMPO REAL</span>
         </div>
       </div>
     </div>
 
     <!-- Resumo Geral -->
     <section class="stats-section">
-      <h3><i class="fas fa-chart-pie"></i> Resumo do Dia</h3>
+      <h3><i class="fas fa-chart-pie" /> Resumo do Dia</h3>
       <div class="stats-grid">
         <div class="stat-card primary">
-          <div class="stat-icon"><i class="fas fa-ticket-alt"></i></div>
+          <div class="stat-icon">
+            <i class="fas fa-ticket-alt" />
+          </div>
           <div class="stat-content">
-            <div class="stat-label">Senhas Emitidas</div>
-            <div class="stat-value">{{ estatisticas.totalEmitidas }}</div>
+            <div class="stat-label">
+              Senhas Emitidas
+            </div>
+            <div class="stat-value">
+              {{ estatisticas.totalEmitidas }}
+            </div>
           </div>
         </div>
 
         <div class="stat-card success">
-          <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-icon">
+            <i class="fas fa-check-circle" />
+          </div>
           <div class="stat-content">
-            <div class="stat-label">Atendidas</div>
-            <div class="stat-value">{{ estatisticas.totalAtendidas }}</div>
-            <div class="stat-detail">{{ estatisticas.qualidade.taxaAtendimento.toFixed(1) }}% do total</div>
+            <div class="stat-label">
+              Atendidas
+            </div>
+            <div class="stat-value">
+              {{ estatisticas.totalAtendidas }}
+            </div>
+            <div class="stat-detail">
+              {{ estatisticas.qualidade.taxaAtendimento.toFixed(1) }}% do total
+            </div>
           </div>
         </div>
 
         <div class="stat-card warning">
-          <div class="stat-icon"><i class="fas fa-user-slash"></i></div>
+          <div class="stat-icon">
+            <i class="fas fa-user-slash" />
+          </div>
           <div class="stat-content">
-            <div class="stat-label">Não Compareceu</div>
-            <div class="stat-value">{{ estatisticas.totalNaoCompareceu }}</div>
-            <div class="stat-detail">{{ estatisticas.qualidade.taxaNaoComparecimento.toFixed(1) }}%</div>
+            <div class="stat-label">
+              Não Compareceu
+            </div>
+            <div class="stat-value">
+              {{ estatisticas.totalNaoCompareceu }}
+            </div>
+            <div class="stat-detail">
+              {{ estatisticas.qualidade.taxaNaoComparecimento.toFixed(1) }}%
+            </div>
           </div>
         </div>
 
         <div class="stat-card info">
-          <div class="stat-icon"><i class="fas fa-clock"></i></div>
+          <div class="stat-icon">
+            <i class="fas fa-clock" />
+          </div>
           <div class="stat-content">
-            <div class="stat-label">Tempo Médio Espera</div>
-            <div class="stat-value-small">{{ estatisticas.tempoMedioEsperaGeral }}</div>
+            <div class="stat-label">
+              Tempo Médio Espera
+            </div>
+            <div class="stat-value-small">
+              {{ estatisticas.tempoMedioEsperaGeral }}
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Projeção -->
-    <section v-if="estatisticas.projecao" class="stats-section">
-      <h3><i class="fas fa-crystal-ball"></i> Projeção de Atendimento</h3>
+    <section
+      v-if="estatisticas.projecao"
+      class="stats-section"
+    >
+      <h3><i class="fas fa-crystal-ball" /> Projeção de Atendimento</h3>
       <div class="projection-card">
         <div class="projection-item">
-          <i class="fas fa-users"></i>
+          <i class="fas fa-users" />
           <div>
-            <div class="projection-label">Senhas Restantes</div>
-            <div class="projection-value">{{ estatisticas.projecao.senhasRestantes }}</div>
+            <div class="projection-label">
+              Senhas Restantes
+            </div>
+            <div class="projection-value">
+              {{ estatisticas.projecao.senhasRestantes }}
+            </div>
           </div>
         </div>
         <div class="projection-item">
-          <i class="fas fa-hourglass-half"></i>
+          <i class="fas fa-hourglass-half" />
           <div>
-            <div class="projection-label">Tempo Estimado</div>
-            <div class="projection-value">{{ formatTime(estatisticas.projecao.tempoEstimadoFinalizacaoMs) }}</div>
+            <div class="projection-label">
+              Tempo Estimado
+            </div>
+            <div class="projection-value">
+              {{ formatTime(estatisticas.projecao.tempoEstimadoFinalizacaoMs) }}
+            </div>
           </div>
         </div>
         <div class="projection-item">
-          <i class="fas fa-clock"></i>
+          <i class="fas fa-clock" />
           <div>
-            <div class="projection-label">Previsão de Conclusão</div>
-            <div class="projection-value">{{ estatisticas.projecao.horarioEstimadoFinalizacao }}</div>
+            <div class="projection-label">
+              Previsão de Conclusão
+            </div>
+            <div class="projection-value">
+              {{ estatisticas.projecao.horarioEstimadoFinalizacao }}
+            </div>
           </div>
         </div>
       </div>
@@ -83,61 +132,125 @@
 
     <!-- Métricas de Qualidade -->
     <section class="stats-section">
-      <h3><i class="fas fa-star"></i> Indicadores de Qualidade</h3>
+      <h3><i class="fas fa-star" /> Indicadores de Qualidade</h3>
       <div class="quality-metrics">
         <div class="quality-metric">
-          <div class="metric-label">Taxa de Atendimento</div>
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: estatisticas.qualidade.taxaAtendimento + '%' }"></div>
+          <div class="metric-label">
+            Taxa de Atendimento
           </div>
-          <div class="metric-value">{{ estatisticas.qualidade.taxaAtendimento.toFixed(1) }}%</div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              :style="{ width: estatisticas.qualidade.taxaAtendimento + '%' }"
+            />
+          </div>
+          <div class="metric-value">
+            {{ estatisticas.qualidade.taxaAtendimento.toFixed(1) }}%
+          </div>
         </div>
 
         <div class="quality-metric">
-          <div class="metric-label">Eficiência Geral (atend./hora)</div>
-          <div class="metric-value-large">{{ estatisticas.qualidade.eficienciaGeral.toFixed(1) }}</div>
+          <div class="metric-label">
+            Eficiência Geral (atend./hora)
+          </div>
+          <div class="metric-value-large">
+            {{ estatisticas.qualidade.eficienciaGeral.toFixed(1) }}
+          </div>
         </div>
 
         <div class="quality-metric">
-          <div class="metric-label">Taxa de Devolução</div>
-          <div class="metric-value-large">{{ estatisticas.qualidade.taxaDevolucao.toFixed(1) }}%</div>
+          <div class="metric-label">
+            Taxa de Devolução
+          </div>
+          <div class="metric-value-large">
+            {{ estatisticas.qualidade.taxaDevolucao.toFixed(1) }}%
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Distribuição Horária -->
     <section class="stats-section">
-      <h3><i class="fas fa-chart-bar"></i> Distribuição por Horário</h3>
+      <h3><i class="fas fa-chart-bar" /> Distribuição por Horário</h3>
       <div class="hourly-chart">
-        <div v-for="hora in estatisticas.distribuicaoPorHora" :key="hora.hora" class="hour-bar">
+        <div
+          v-for="hora in estatisticas.distribuicaoPorHora"
+          :key="hora.hora"
+          class="hour-bar"
+        >
           <div class="bar-container">
             <div
               class="bar-fill"
               :class="{ 'is-peak': hora.pico }"
               :style="{ height: getBarHeight(hora.emitidas) + '%' }"
             >
-              <span v-if="hora.emitidas > 0" class="bar-value">{{ hora.emitidas }}</span>
+              <span
+                v-if="hora.emitidas > 0"
+                class="bar-value"
+              >{{ hora.emitidas }}</span>
             </div>
           </div>
-          <div class="hour-label">{{ hora.hora }}h</div>
+          <div class="hour-label">
+            {{ hora.hora }}h
+          </div>
         </div>
       </div>
 
-      <div v-if="estatisticas.horasPico.length > 0" class="peaks-info">
+      <div
+        v-if="estatisticas.horasPico.length > 0"
+        class="peaks-info"
+      >
         <strong>Horários de Pico:</strong>
-        <span v-for="(pico, idx) in estatisticas.horasPico" :key="idx" class="peak-badge">
+        <span
+          v-for="(pico, idx) in estatisticas.horasPico"
+          :key="idx"
+          class="peak-badge"
+        >
           {{ pico.descricao }} ({{ pico.quantidadeSenhas }} senhas)
         </span>
+      </div>
+
+      <div class="table-responsive" style="margin-top: 10px;">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>λ/h</th>
+              <th>μ/h</th>
+              <th>p50 espera</th>
+              <th>p90</th>
+              <th>p95</th>
+              <th>p99</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="h in estatisticas.distribuicaoPorHora" :key="h.hora">
+              <td>{{ h.hora }}h</td>
+              <td>{{ (h.lambdaPorHora || 0).toFixed(2) }}</td>
+              <td>{{ (h.muPorHora || 0).toFixed(2) }}</td>
+              <td>{{ formatTime(h.p50EsperaMs || 0) }}</td>
+              <td>{{ formatTime(h.p90EsperaMs || 0) }}</td>
+              <td>{{ formatTime(h.p95EsperaMs || 0) }}</td>
+              <td>{{ formatTime(h.p99EsperaMs || 0) }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
     <!-- Performance por Atendente -->
     <section class="stats-section">
-      <h3><i class="fas fa-user-tie"></i> Performance por Atendente</h3>
-      <div v-if="estatisticas.performancePorAtendente.length === 0" class="empty-state">
+      <h3><i class="fas fa-user-tie" /> Performance por Atendente</h3>
+      <div
+        v-if="estatisticas.performancePorAtendente.length === 0"
+        class="empty-state"
+      >
         <p>Nenhum atendimento realizado ainda.</p>
       </div>
-      <div v-else class="performance-grid">
+      <div
+        v-else
+        class="performance-grid"
+      >
         <div
           v-for="atendente in estatisticas.performancePorAtendente"
           :key="atendente.guicheId"
@@ -167,8 +280,11 @@
     </section>
 
     <!-- Devoluções -->
-    <section v-if="estatisticas.devolucoes.totalDevolucoes > 0" class="stats-section">
-      <h3><i class="fas fa-undo"></i> Análise de Devoluções</h3>
+    <section
+      v-if="estatisticas.devolucoes.totalDevolucoes > 0"
+      class="stats-section"
+    >
+      <h3><i class="fas fa-undo" /> Análise de Devoluções</h3>
       <div class="devolucoes-summary">
         <div class="dev-total">
           <span class="dev-label">Total de Devoluções:</span>
@@ -187,20 +303,25 @@
           class="motivo-item"
         >
           <div class="motivo-header">
-            <span class="motivo-name">{{ formatMotivoNome(motivo) }}</span>
+            <span class="motivo-name">{{ formatMotivoNome(String(motivo)) }}</span>
             <span class="motivo-count">{{ dados.quantidade }}</span>
           </div>
           <div class="progress-bar-small">
-            <div class="progress-fill" :style="{ width: dados.percentual + '%' }"></div>
+            <div
+              class="progress-fill"
+              :style="{ width: dados.percentual + '%' }"
+            />
           </div>
-          <div class="motivo-percent">{{ dados.percentual.toFixed(1) }}%</div>
+          <div class="motivo-percent">
+            {{ dados.percentual.toFixed(1) }}%
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Detalhes por Tipo -->
     <section class="stats-section">
-      <h3><i class="fas fa-tasks"></i> Desempenho por Tipo de Senha</h3>
+      <h3><i class="fas fa-tasks" /> Desempenho por Tipo de Senha</h3>
       <div class="table-responsive">
         <table class="stats-table">
           <thead>
@@ -214,7 +335,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(tipo, key) in estatisticas.detalhesPorTipo" :key="key">
+            <tr
+              v-for="(tipo, key) in estatisticas.detalhesPorTipo"
+              :key="key"
+            >
               <td><span :class="['badge-tipo', key]">{{ getTipoLabel(key) }}</span></td>
               <td>{{ tipo.emitidas }}</td>
               <td>{{ tipo.atendidas }}</td>
