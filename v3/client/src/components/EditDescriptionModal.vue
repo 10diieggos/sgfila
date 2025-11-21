@@ -1,21 +1,31 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show" class="modal-overlay modal-edit" @click.self="handleClickOverlay" @keydown="handleKeyDown">
-        <div class="modal-content-edit-senha" @click.stop>
+      <div
+        v-if="show"
+        class="modal-overlay modal-edit"
+        @click.self="handleClickOverlay"
+        @keydown="handleKeyDown"
+      >
+        <div
+          class="modal-content-edit-senha"
+          @click.stop
+        >
           <span class="modal-label">Editar Descrição</span>
-          <div :class="['senha-numero', tipoSenha]">{{ numeroSenha }}</div>
+          <div :class="['senha-numero', tipoSenha]">
+            {{ numeroSenha }}
+          </div>
 
           <div class="form-group-modal-senha">
             <label for="edit-senha-descricao">Descrição (Pressione Enter para salvar):</label>
             <textarea
               id="edit-senha-descricao"
               ref="textareaRef"
-              v-model="descricao"
+              v-model="descricaoLocal"
               rows="3"
               placeholder="Ex: Alteração de CPF..."
               @keydown.enter.prevent="handleSalvar"
-            ></textarea>
+            />
           </div>
         </div>
       </div>
@@ -39,13 +49,13 @@ const emit = defineEmits<{
   'save': [descricao: string]
 }>()
 
-const descricao = ref('')
+const descricaoLocal = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
 
 // Watch para quando modal abre
 watch(() => props.show, async (newVal) => {
   if (newVal) {
-    descricao.value = props.descricao
+    descricaoLocal.value = props.descricao
     await nextTick()
     textareaRef.value?.focus()
   }
@@ -74,7 +84,7 @@ const fecharModal = () => {
 }
 
 const handleSalvar = () => {
-  emit('save', descricao.value.trim())
+  emit('save', descricaoLocal.value.trim())
   emit('close')
 }
 

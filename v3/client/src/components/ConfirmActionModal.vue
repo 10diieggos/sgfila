@@ -1,16 +1,35 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show" class="modal-overlay modal-confirm" @click.self="handleCancel" @keydown="handleKeyDown">
-        <div class="modal-content-confirm" @click.stop>
+      <div
+        v-if="show"
+        class="modal-overlay modal-confirm"
+        @click.self="handleCancel"
+        @keydown="handleKeyDown"
+      >
+        <div
+          class="modal-content-confirm"
+          @click.stop
+        >
           <span class="modal-label">{{ title }}</span>
-          <div v-if="tipoSenha" :class="['senha-numero-confirm', tipoSenha]">{{ numeroSenha || extractSenhaNumber(message) }}</div>
+          <div
+            v-if="tipoSenha"
+            :class="['senha-numero-confirm', tipoSenha]"
+          >
+            {{ numeroSenha || extractSenhaNumber(message) }}
+          </div>
 
           <div class="modal-actions-confirm">
-            <button :class="['btn-confirm', getConfirmClass()]" @click="handleConfirm">
+            <button
+              :class="['btn-confirm', getConfirmClass()]"
+              @click="handleConfirm"
+            >
               {{ confirmText }}
             </button>
-            <button class="btn-cancel-confirm" @click="handleCancel">
+            <button
+              class="btn-cancel-confirm"
+              @click="handleCancel"
+            >
               {{ cancelText }}
             </button>
           </div>
@@ -35,7 +54,9 @@ const props = withDefaults(defineProps<{
 }>(), {
   title: 'Confirmar Ação',
   confirmText: 'Confirmar',
-  cancelText: 'Cancelar'
+  cancelText: 'Cancelar',
+  tipoSenha: undefined,
+  numeroSenha: ''
 })
 
 const emit = defineEmits<{
