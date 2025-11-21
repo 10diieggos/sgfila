@@ -4,7 +4,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes, ConfiguracaoSeguranca } from '../../../shared/types.js';
+import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes, ConfiguracaoSeguranca, ConfiguracaoCorrecoes } from '../../../shared/types.js';
 import { getConfigPadrao } from '../../../shared/types.js';
 
 const DADOS_FILE = './dados.json';
@@ -200,6 +200,16 @@ export class StateManager {
         intervaloAtualizacaoSegundos: configExistente.estatisticas?.intervaloAtualizacaoSegundos || padrao.estatisticas.intervaloAtualizacaoSegundos
       },
       seguranca: { ...padrao.seguranca, ...configExistente.seguranca },
+      correcoes: configExistente.correcoes ? {
+        tempoLimite: { ...padrao.correcoes.tempoLimite, ...configExistente.correcoes.tempoLimite },
+        ausencias: { ...padrao.correcoes.ausencias, ...configExistente.correcoes.ausencias },
+        frequenciaVerificacao: configExistente.correcoes.frequenciaVerificacao || padrao.correcoes.frequenciaVerificacao,
+        intervaloVerificacaoMinutos: configExistente.correcoes.intervaloVerificacaoMinutos ?? padrao.correcoes.intervaloVerificacaoMinutos,
+        limitarCorrecoesEmMassa: configExistente.correcoes.limitarCorrecoesEmMassa ?? padrao.correcoes.limitarCorrecoesEmMassa,
+        maxCorrecoesSimultaneas: configExistente.correcoes.maxCorrecoesSimultaneas || padrao.correcoes.maxCorrecoesSimultaneas,
+        destacarSenhasTempoLimite: configExistente.correcoes.destacarSenhasTempoLimite ?? padrao.correcoes.destacarSenhasTempoLimite,
+        mostrarHistoricoAusencias: configExistente.correcoes.mostrarHistoricoAusencias ?? padrao.correcoes.mostrarHistoricoAusencias
+      } : padrao.correcoes,
       versao: padrao.versao,
       ultimaAtualizacao: Date.now()
     };
@@ -267,6 +277,15 @@ export class StateManager {
    */
   public atualizarSeguranca(seguranca: ConfiguracaoSeguranca): void {
     this.estado.configuracoes.seguranca = seguranca;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+  }
+
+  /**
+   * Atualiza configurações de correções (v3.2)
+   */
+  public atualizarCorrecoes(correcoes: ConfiguracaoCorrecoes): void {
+    this.estado.configuracoes.correcoes = correcoes;
     this.estado.configuracoes.ultimaAtualizacao = Date.now();
     this.salvarEstado();
   }

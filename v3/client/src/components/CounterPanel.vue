@@ -33,10 +33,16 @@
             <span class="senha-numero">
               {{ senhaAtual(guiche.id)?.numero }}
             </span>
-            <span class="tempo-atendimento">
-              <i class="fas fa-clock"></i>
-              {{ formatTempoAtendimento(senhaAtual(guiche.id)!) }}
-            </span>
+            <div class="tempos-container">
+              <span class="tempo-espera">
+                <i class="fas fa-hourglass-half"></i>
+                {{ formatTempoEspera(guiche.id) }}
+              </span>
+              <span class="tempo-atendimento">
+                <i class="fas fa-clock"></i>
+                {{ formatTempoAtendimento(guiche.id) }}
+              </span>
+            </div>
           </template>
           <span v-else class="senha-numero vazio">
             {{ filaVazia ? 'Fila Esgotada' : '---' }}
@@ -101,8 +107,25 @@ const getSenhaClass = (guicheId: string): string => {
   return senha ? senha.tipo : ''
 }
 
-const formatTempoAtendimento = (senha: Senha): string => {
-  if (!senha.chamadaTimestamp) return '0:00:00'
+const formatTempoEspera = (guicheId: string): string => {
+  const senha = senhaAtual(guicheId)
+  if (!senha || !senha.timestamp) return '0:00:00'
+
+  // Calcula tempo total desde emissão
+  let tempoMs = currentTime.value - senha.timestamp
+
+  // Se estava em ausência, subtrai o tempo pausado
+  if (senha.pausarContagemTempo && senha.timestampInicioAusencia) {
+    const tempoPausado = currentTime.value - senha.timestampInicioAusencia
+    tempoMs -= tempoPausado
+  }
+
+  return formatarTempoHMS(tempoMs)
+}
+
+const formatTempoAtendimento = (guicheId: string): string => {
+  const senha = senhaAtual(guicheId)
+  if (!senha || !senha.chamadaTimestamp) return '0:00:00'
   const tempoMs = currentTime.value - senha.chamadaTimestamp
   return formatarTempoHMS(tempoMs)
 }
@@ -211,6 +234,15 @@ const handleGuicheClick = (guiche: Guiche) => {
   border: 2px dashed #004a8d;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .senha-atual-guiche.disabled {
@@ -262,15 +294,29 @@ const handleGuicheClick = (guiche: Guiche) => {
   font-size: 1.2rem;
 }
 
-.tempo-atendimento {
-  display: block;
-  font-size: 0.9rem;
-  margin-top: 8px;
-  color: inherit;
-  font-weight: normal;
+.tempos-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin-top: 12px;
+  width: 100%;
 }
 
+.tempo-espera,
+.tempo-atendimento {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.85rem;
+  color: inherit;
+  font-weight: normal;
+  gap: 4px;
+}
+
+.tempo-espera i,
 .tempo-atendimento i {
-  margin-right: 4px;
+  font-size: 1.1em;
+  opacity: 0.7;
 }
 </style>

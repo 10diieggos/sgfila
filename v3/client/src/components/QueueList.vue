@@ -78,6 +78,7 @@ interface Props {
   proporcaoContratual?: number
   contadorPrioridadeDesdeUltimaNormal?: number
   contadorContratualDesdeUltimaNormal?: number
+  algoritmo?: 'proporcao' | 'round_robin' | 'fifo'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -85,7 +86,8 @@ const props = withDefaults(defineProps<Props>(), {
   proporcaoPrioridade: 2,
   proporcaoContratual: 1,
   contadorPrioridadeDesdeUltimaNormal: 0,
-  contadorContratualDesdeUltimaNormal: 0
+  contadorContratualDesdeUltimaNormal: 0,
+  algoritmo: 'proporcao'
 })
 
 // Emits
@@ -146,48 +148,99 @@ const senhasFiltradas = computed(() => {
     })
   } else if (filtroAtivo.value === 'automatica') {
     // Simula a lógica de chamamento automático do servidor
-    const filaSimulada: Senha[] = []
-    let simFilaEspera = [...result].sort((a, b) => a.timestamp - b.timestamp)
-    let simContadorP = props.contadorPrioridadeDesdeUltimaNormal || 0
-    let simContadorC = props.contadorContratualDesdeUltimaNormal || 0
-    const proporcaoP = props.proporcaoPrioridade || 2
-    const proporcaoC = props.proporcaoContratual || 1
+    const algoritmo = props.algoritmo || 'proporcao'
 
-    while (simFilaEspera.length > 0) {
-      const prioritariaMaisAntiga = simFilaEspera.find(s => s.tipo === 'prioridade')
-      const contratualMaisAntiga = simFilaEspera.find(s => s.tipo === 'contratual')
-      const normalMaisAntiga = simFilaEspera.find(s => s.tipo === 'normal')
+    if (algoritmo === 'fifo') {
+      // FIFO: apenas ordena por timestamp
+      result.sort((a, b) => a.timestamp - b.timestamp)
+    } else if (algoritmo === 'round_robin') {
+      // Round Robin: alterna entre tipos
+      const filaSimulada: Senha[] = []
+      let simFilaEspera = [...result].sort((a, b) => a.timestamp - b.timestamp)
+      let simContadorP = props.contadorPrioridadeDesdeUltimaNormal || 0
+      let simContadorC = props.contadorContratualDesdeUltimaNormal || 0
+      const totalContador = simContadorP + simContadorC
+      let ciclo = totalContador % 3
 
-      let proximaSimulada: Senha | null = null
+      while (simFilaEspera.length > 0) {
+        const prioritarias = simFilaEspera.filter(s => s.tipo === 'prioridade')
+        const contratuais = simFilaEspera.filter(s => s.tipo === 'contratual')
+        const normais = simFilaEspera.filter(s => s.tipo === 'normal')
 
-      if (prioritariaMaisAntiga && simContadorP < proporcaoP) {
-        proximaSimulada = prioritariaMaisAntiga
-        simContadorP++
-      }
-      else if (contratualMaisAntiga && simContadorC < proporcaoC) {
-        proximaSimulada = contratualMaisAntiga
-        simContadorC++
-      }
-      else if (normalMaisAntiga) {
-        proximaSimulada = normalMaisAntiga
-        simContadorP = 0
-        simContadorC = 0
-      }
-      else if (prioritariaMaisAntiga) {
-        proximaSimulada = prioritariaMaisAntiga
-      }
-      else if (contratualMaisAntiga) {
-        proximaSimulada = contratualMaisAntiga
-      }
+        let proximaSimulada: Senha | null = null
 
-      if (proximaSimulada) {
-        filaSimulada.push(proximaSimulada)
-        simFilaEspera = simFilaEspera.filter(s => s.numero !== proximaSimulada!.numero)
-      } else {
-        break
+        if (ciclo === 0 && prioritarias.length > 0) {
+          proximaSimulada = prioritarias[0]
+          simContadorP++
+        } else if (ciclo === 1 && contratuais.length > 0) {
+          proximaSimulada = contratuais[0]
+          simContadorC++
+        } else if (normais.length > 0) {
+          proximaSimulada = normais[0]
+          simContadorP = 0
+          simContadorC = 0
+        } else if (prioritarias.length > 0) {
+          proximaSimulada = prioritarias[0]
+        } else if (contratuais.length > 0) {
+          proximaSimulada = contratuais[0]
+        }
+
+        if (proximaSimulada) {
+          filaSimulada.push(proximaSimulada)
+          simFilaEspera = simFilaEspera.filter(s => s.numero !== proximaSimulada!.numero)
+          ciclo = (ciclo + 1) % 3
+        } else {
+          break
+        }
       }
+      result = filaSimulada
+    } else {
+      // Proporção (padrão)
+      const filaSimulada: Senha[] = []
+      let simFilaEspera = [...result].sort((a, b) => a.timestamp - b.timestamp)
+      let simContadorP = props.contadorPrioridadeDesdeUltimaNormal || 0
+      let simContadorC = props.contadorContratualDesdeUltimaNormal || 0
+      const proporcaoP = props.proporcaoPrioridade || 2
+      const proporcaoC = props.proporcaoContratual || 1
+
+      while (simFilaEspera.length > 0) {
+        const prioritariaMaisAntiga = simFilaEspera.find(s => s.tipo === 'prioridade')
+        const contratualMaisAntiga = simFilaEspera.find(s => s.tipo === 'contratual')
+        const normalMaisAntiga = simFilaEspera.find(s => s.tipo === 'normal')
+
+        let proximaSimulada: Senha | null = null
+
+        if (prioritariaMaisAntiga && simContadorP < proporcaoP) {
+          proximaSimulada = prioritariaMaisAntiga
+          simContadorP++
+        }
+        else if (contratualMaisAntiga && simContadorC < proporcaoC) {
+          proximaSimulada = contratualMaisAntiga
+          simContadorC++
+        }
+        else if (normalMaisAntiga) {
+          proximaSimulada = normalMaisAntiga
+          simContadorP = 0
+          simContadorC = 0
+        }
+        else if (prioritariaMaisAntiga) {
+          proximaSimulada = prioritariaMaisAntiga
+          simContadorP++
+        }
+        else if (contratualMaisAntiga) {
+          proximaSimulada = contratualMaisAntiga
+          simContadorC++
+        }
+
+        if (proximaSimulada) {
+          filaSimulada.push(proximaSimulada)
+          simFilaEspera = simFilaEspera.filter(s => s.numero !== proximaSimulada!.numero)
+        } else {
+          break
+        }
+      }
+      result = filaSimulada
     }
-    result = filaSimulada
   }
 
   return result

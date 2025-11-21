@@ -134,7 +134,34 @@ export function getConfigPadrao() {
             backupAutomatico: false,
             intervaloBackupMinutos: 60
         },
-        versao: '3.0.0',
+        correcoes: {
+            tempoLimite: {
+                ativo: true,
+                temposPorTipo: {
+                    contratual: 10,
+                    prioridade: 20,
+                    normal: 25
+                },
+                maxReposicionamentos: 0,
+                notificarDisplay: false,
+                registrarLog: true,
+                mensagemReposicionamento: 'Priorizada por tempo de espera excedido: {tempo}min'
+            },
+            ausencias: {
+                ativo: true,
+                tentativasPermitidas: 1,
+                notificarDisplay: false,
+                alertaSonoro: false,
+                mensagemAusencia: 'Senha {numero} ausente - {tentativas} de {max_tentativas}'
+            },
+            frequenciaVerificacao: 'tempo_real',
+            intervaloVerificacaoMinutos: 1,
+            limitarCorrecoesEmMassa: false,
+            maxCorrecoesSimultaneas: 5,
+            destacarSenhasTempoLimite: true,
+            mostrarHistoricoAusencias: true
+        },
+        versao: '3.2.0',
         ultimaAtualizacao: Date.now()
     };
 }

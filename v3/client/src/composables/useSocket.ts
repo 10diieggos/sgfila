@@ -17,7 +17,8 @@ import type {
   ConfiguracaoComportamentoFila,
   ConfiguracaoInterface,
   ConfiguracaoNotificacoes,
-  ConfiguracaoSeguranca
+  ConfiguracaoSeguranca,
+  ConfiguracaoCorrecoes
 } from '@shared/types'
 import { useBeep } from './useBeep'
 
@@ -173,6 +174,10 @@ export function useSocket() {
     socket.value?.emit('atualizarSeguranca', seguranca)
   }
 
+  const atualizarCorrecoes = (correcoes: ConfiguracaoCorrecoes) => {
+    socket.value?.emit('atualizarCorrecoes', correcoes)
+  }
+
   // Lifecycle hooks
   onMounted(() => {
     connect()
@@ -210,6 +215,7 @@ export function useSocket() {
     atualizarComportamentoFila,
     atualizarConfigInterface,
     atualizarNotificacoes,
-    atualizarSeguranca
+    atualizarSeguranca,
+    atualizarCorrecoes
   }
 }

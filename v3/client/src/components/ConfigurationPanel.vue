@@ -12,43 +12,13 @@
         :class="['sub-tab-link', { active: activeSubTab === 'proporcao' }]"
         @click="changeSubTab('proporcao')"
       >
-        <i class="fas fa-balance-scale-right"></i> Proporção
+        <i class="fas fa-balance-scale-right"></i> Proporção & Comportamento
       </button>
       <button
-        :class="['sub-tab-link', { active: activeSubTab === 'tipos' }]"
-        @click="changeSubTab('tipos')"
+        :class="['sub-tab-link', { active: activeSubTab === 'correcoes' }]"
+        @click="changeSubTab('correcoes')"
       >
-        <i class="fas fa-ticket-alt"></i> Tipos
-      </button>
-      <button
-        :class="['sub-tab-link', { active: activeSubTab === 'retornos' }]"
-        @click="changeSubTab('retornos')"
-      >
-        <i class="fas fa-undo"></i> Retornos
-      </button>
-      <button
-        :class="['sub-tab-link', { active: activeSubTab === 'comportamento' }]"
-        @click="changeSubTab('comportamento')"
-      >
-        <i class="fas fa-cogs"></i> Comportamento
-      </button>
-      <button
-        :class="['sub-tab-link', { active: activeSubTab === 'interface' }]"
-        @click="changeSubTab('interface')"
-      >
-        <i class="fas fa-palette"></i> Interface
-      </button>
-      <button
-        :class="['sub-tab-link', { active: activeSubTab === 'notificacoes' }]"
-        @click="changeSubTab('notificacoes')"
-      >
-        <i class="fas fa-bell"></i> Notificações
-      </button>
-      <button
-        :class="['sub-tab-link', { active: activeSubTab === 'seguranca' }]"
-        @click="changeSubTab('seguranca')"
-      >
-        <i class="fas fa-shield-alt"></i> Segurança
+        <i class="fas fa-tools"></i> Correções
       </button>
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'reiniciar' }]"
@@ -197,6 +167,86 @@
             Senhas prioritárias têm precedência sobre contratuais.
           </p>
         </div>
+      </div>
+
+      <hr class="divider" style="margin: 30px 0;" />
+
+      <!-- Comportamento da Fila (integrado) -->
+      <h2><i class="fas fa-cogs"></i> Comportamento da Fila</h2>
+      <p class="hint">
+        Configure como o sistema gerencia a fila de atendimento.
+      </p>
+
+      <div class="config-section">
+        <h3>Algoritmo de Chamada</h3>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" value="proporcao" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <span>
+              <strong>Proporção</strong> - Respeita proporção entre tipos
+            </span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="round_robin" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <span>
+              <strong>Round Robin</strong> - Alterna entre tipos igualmente
+            </span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" value="fifo" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <span>
+              <strong>FIFO</strong> - Primeiro a entrar, primeiro a sair
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Opções de Chamada</h3>
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="comportamentoConfig.permitirPularSenhas" @change="salvarComportamento" />
+          <span>Permitir pular senhas (chamar senha específica)</span>
+        </label>
+
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="comportamentoConfig.chamarProximaAutomatica" @change="salvarComportamento" />
+          <span>Chamar próxima senha automaticamente após finalizar</span>
+        </label>
+      </div>
+
+      <div class="config-section">
+        <h3>Timeouts e Alertas</h3>
+        <div class="config-item">
+          <label>Auto-finalizar atendimento após (minutos):</label>
+          <input
+            type="number"
+            v-model.number="comportamentoConfig.autoFinalizarMinutos"
+            min="0"
+            max="120"
+            @blur="salvarComportamento"
+            class="config-input"
+            placeholder="Desativado"
+          />
+          <p class="input-hint">0 ou vazio = desativado</p>
+        </div>
+
+        <div class="config-item">
+          <label>Tempo máximo de espera (minutos):</label>
+          <input
+            type="number"
+            v-model.number="comportamentoConfig.tempoEsperaMaximoMinutos"
+            min="0"
+            max="300"
+            @blur="salvarComportamento"
+            class="config-input"
+            placeholder="Sem limite"
+          />
+        </div>
+
+        <label class="checkbox-item-config">
+          <input type="checkbox" v-model="comportamentoConfig.alertarTempoEsperaExcedido" @change="salvarComportamento" />
+          <span>Alertar quando tempo máximo de espera for excedido</span>
+        </label>
       </div>
     </div>
 
@@ -647,6 +697,233 @@
       </div>
     </div>
 
+    <!-- Conteúdo Correções -->
+    <div v-if="activeSubTab === 'correcoes'" class="sub-tab-content">
+      <h2><i class="fas fa-tools"></i> Sistema de Correção de Distorções (v3.2)</h2>
+      <p class="hint">
+        Configure o sistema automático de correção de distorções na fila, incluindo tempos limite e controle de ausências.
+      </p>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <div>
+          <strong>Sobre o Sistema de Correções:</strong>
+          <p>
+            Este sistema corrige automaticamente distorções causadas por algoritmos de proporção,
+            priorizando senhas que excedem o tempo limite e controlando ausências de forma inteligente.
+          </p>
+        </div>
+      </div>
+
+      <!-- Tempo Limite -->
+      <div class="config-section">
+        <h3>⏱️ Correção por Tempo Limite</h3>
+        <p class="section-hint">
+          Prioriza automaticamente senhas que excedem o tempo máximo de espera definido.
+        </p>
+
+        <label class="checkbox-item-config large">
+          <input type="checkbox" v-model="correcoesConfig.tempoLimite.ativo" @change="salvarCorrecoes" />
+          <span><strong>Ativar correção por tempo limite</strong></span>
+        </label>
+
+        <div v-if="correcoesConfig.tempoLimite.ativo" class="config-subsection">
+          <h4>Tempos Limite por Tipo (minutos)</h4>
+          <div class="config-grid-3">
+            <div class="config-item">
+              <label><i class="fas fa-file-contract"></i> Contratual:</label>
+              <input
+                type="number"
+                v-model.number="correcoesConfig.tempoLimite.temposPorTipo.contratual"
+                min="1"
+                max="120"
+                @blur="salvarCorrecoes"
+                class="config-input"
+              />
+              <span class="input-hint">minutos</span>
+            </div>
+            <div class="config-item">
+              <label><i class="fas fa-wheelchair"></i> Prioridade:</label>
+              <input
+                type="number"
+                v-model.number="correcoesConfig.tempoLimite.temposPorTipo.prioridade"
+                min="1"
+                max="120"
+                @blur="salvarCorrecoes"
+                class="config-input"
+              />
+              <span class="input-hint">minutos</span>
+            </div>
+            <div class="config-item">
+              <label><i class="fas fa-user"></i> Normal:</label>
+              <input
+                type="number"
+                v-model.number="correcoesConfig.tempoLimite.temposPorTipo.normal"
+                min="1"
+                max="120"
+                @blur="salvarCorrecoes"
+                class="config-input"
+              />
+              <span class="input-hint">minutos</span>
+            </div>
+          </div>
+
+          <div class="config-item" style="margin-top: 20px;">
+            <label>Máximo de Reposicionamentos:</label>
+            <input
+              type="number"
+              v-model.number="correcoesConfig.tempoLimite.maxReposicionamentos"
+              min="0"
+              max="10"
+              @blur="salvarCorrecoes"
+              class="config-input"
+              style="max-width: 150px;"
+            />
+            <p class="input-hint">0 = ilimitado</p>
+          </div>
+
+          <div class="checkbox-list" style="margin-top: 20px;">
+            <label class="checkbox-item-config">
+              <input type="checkbox" v-model="correcoesConfig.tempoLimite.notificarDisplay" @change="salvarCorrecoes" />
+              <span>Notificar no display quando senha for reposicionada</span>
+            </label>
+            <label class="checkbox-item-config">
+              <input type="checkbox" v-model="correcoesConfig.tempoLimite.registrarLog" @change="salvarCorrecoes" />
+              <span>Registrar reposicionamentos no log</span>
+            </label>
+          </div>
+
+          <div class="config-item" style="margin-top: 20px;">
+            <label>Mensagem de Reposicionamento:</label>
+            <input
+              type="text"
+              v-model="correcoesConfig.tempoLimite.mensagemReposicionamento"
+              @blur="salvarCorrecoes"
+              class="config-input"
+              placeholder="Senha reposicionada - tempo limite excedido"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Ausências -->
+      <div class="config-section">
+        <h3>🚪 Controle de Ausências</h3>
+        <p class="section-hint">
+          Gerencia senhas chamadas cujo cliente não compareceu ao guichê.
+        </p>
+
+        <label class="checkbox-item-config large">
+          <input type="checkbox" v-model="correcoesConfig.ausencias.ativo" @change="salvarCorrecoes" />
+          <span><strong>Ativar controle de ausências</strong></span>
+        </label>
+
+        <div v-if="correcoesConfig.ausencias.ativo" class="config-subsection">
+          <div class="config-item">
+            <label>Tentativas Permitidas (chamadas):</label>
+            <input
+              type="number"
+              v-model.number="correcoesConfig.ausencias.tentativasPermitidas"
+              min="1"
+              max="5"
+              @blur="salvarCorrecoes"
+              class="config-input"
+              style="max-width: 150px;"
+            />
+            <p class="input-hint">Após este número, a senha vai para histórico como "Não Compareceu"</p>
+          </div>
+
+          <div class="checkbox-list" style="margin-top: 20px;">
+            <label class="checkbox-item-config">
+              <input type="checkbox" v-model="correcoesConfig.ausencias.notificarDisplay" @change="salvarCorrecoes" />
+              <span>Notificar no display quando cliente não comparecer</span>
+            </label>
+            <label class="checkbox-item-config">
+              <input type="checkbox" v-model="correcoesConfig.ausencias.alertaSonoro" @change="salvarCorrecoes" />
+              <span>Emitir alerta sonoro em caso de ausência</span>
+            </label>
+          </div>
+
+          <div class="config-item" style="margin-top: 20px;">
+            <label>Mensagem de Ausência:</label>
+            <input
+              type="text"
+              v-model="correcoesConfig.ausencias.mensagemAusencia"
+              @blur="salvarCorrecoes"
+              class="config-input"
+              placeholder="Cliente ausente - senha devolvida à fila"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Configurações Gerais de Correção -->
+      <div class="config-section">
+        <h3>⚙️ Configurações Gerais</h3>
+
+        <div class="config-item" style="margin-bottom: 20px;">
+          <label>Frequência de Verificação:</label>
+          <select v-model="correcoesConfig.frequenciaVerificacao" @change="salvarCorrecoes" class="config-select">
+            <option value="tempo_real">Tempo Real (Verificação Contínua)</option>
+            <option value="por_minuto">Por Minuto (Intervalo Fixo)</option>
+            <option value="por_chamada">Por Chamada (Ao Chamar Senha)</option>
+          </select>
+          <p class="input-hint">
+            <strong>Tempo Real:</strong> Verifica continuamente em intervalo configurado<br>
+            <strong>Por Minuto:</strong> Verifica a cada X minutos<br>
+            <strong>Por Chamada:</strong> Verifica apenas quando uma senha é chamada
+          </p>
+        </div>
+
+        <div class="config-item" v-if="correcoesConfig.frequenciaVerificacao !== 'por_chamada'">
+          <label>Intervalo de Verificação:</label>
+          <input
+            type="number"
+            v-model.number="correcoesConfig.intervaloVerificacaoMinutos"
+            min="1"
+            max="60"
+            @blur="salvarCorrecoes"
+            class="config-input"
+            style="max-width: 150px;"
+          />
+          <span class="input-hint">minutos</span>
+        </div>
+
+        <div class="checkbox-list" style="margin-top: 20px;">
+          <label class="checkbox-item-config">
+            <input type="checkbox" v-model="correcoesConfig.limitarCorrecoesEmMassa" @change="salvarCorrecoes" />
+            <span>Limitar correções em massa (previne sobrecarga)</span>
+          </label>
+
+          <div v-if="correcoesConfig.limitarCorrecoesEmMassa" class="config-subsection" style="margin-top: 10px;">
+            <div class="config-item">
+              <label>Máximo de Correções Simultâneas:</label>
+              <input
+                type="number"
+                v-model.number="correcoesConfig.maxCorrecoesSimultaneas"
+                min="1"
+                max="100"
+                @blur="salvarCorrecoes"
+                class="config-input"
+                style="max-width: 150px;"
+              />
+              <span class="input-hint">senhas por verificação</span>
+            </div>
+          </div>
+
+          <label class="checkbox-item-config">
+            <input type="checkbox" v-model="correcoesConfig.destacarSenhasTempoLimite" @change="salvarCorrecoes" />
+            <span>Destacar senhas em tempo limite visualmente</span>
+          </label>
+
+          <label class="checkbox-item-config">
+            <input type="checkbox" v-model="correcoesConfig.mostrarHistoricoAusencias" @change="salvarCorrecoes" />
+            <span>Mostrar histórico de ausências na interface</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <!-- Conteúdo Reiniciar -->
     <div v-if="activeSubTab === 'reiniciar'" class="sub-tab-content">
       <h2><i class="fas fa-redo"></i> Reiniciar Sistema</h2>
@@ -683,10 +960,11 @@ import type {
   ConfiguracaoMotivoRetorno,
   ConfiguracaoComportamentoFila,
   ConfiguracaoSeguranca,
+  ConfiguracaoCorrecoes,
   ConfiguracoesGerais
 } from '../../../shared/types'
 
-type SubTab = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes' | 'seguranca' | 'reiniciar'
+type SubTab = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes' | 'seguranca' | 'correcoes' | 'reiniciar'
 
 const props = withDefaults(defineProps<{
   guichesGlobais: Guiche[]
@@ -709,6 +987,7 @@ const emit = defineEmits<{
   'atualizar-interface': [config: ConfiguracaoInterface]
   'atualizar-notificacoes': [config: ConfiguracaoNotificacoes]
   'atualizar-seguranca': [config: ConfiguracaoSeguranca]
+  'atualizar-correcoes': [config: ConfiguracaoCorrecoes]
   'reiniciar-sistema': []
 }>()
 
@@ -1045,6 +1324,52 @@ watch(segurancaConfig, () => {
   }, 300)
 }, { deep: true })
 
+// Configurações de Correções (v3.2)
+const correcoesConfig = ref<ConfiguracaoCorrecoes>({
+  tempoLimite: {
+    ativo: true,
+    temposPorTipo: {
+      contratual: 10,
+      prioridade: 20,
+      normal: 25
+    },
+    maxReposicionamentos: 0,
+    notificarDisplay: false,
+    registrarLog: true,
+    mensagemReposicionamento: 'Priorizada por tempo de espera excedido: {tempo}min'
+  },
+  ausencias: {
+    ativo: true,
+    tentativasPermitidas: 1,
+    notificarDisplay: false,
+    alertaSonoro: false,
+    mensagemAusencia: 'Senha {numero} ausente - {tentativas} de {max_tentativas}'
+  },
+  frequenciaVerificacao: 'tempo_real',
+  intervaloVerificacaoMinutos: 1,
+  limitarCorrecoesEmMassa: false,
+  maxCorrecoesSimultaneas: 5,
+  destacarSenhasTempoLimite: true,
+  mostrarHistoricoAusencias: true
+})
+
+let timeoutCorrecoes: ReturnType<typeof setTimeout> | null = null
+
+const salvarCorrecoes = () => {
+  if (carregandoDoServidor) return
+  console.log('💾 [ConfigPanel] Salvando configurações de correções')
+  emit('atualizar-correcoes', correcoesConfig.value)
+}
+
+watch(correcoesConfig, () => {
+  if (carregandoDoServidor) return
+  if (timeoutCorrecoes) clearTimeout(timeoutCorrecoes)
+  timeoutCorrecoes = setTimeout(() => {
+    console.log('🔄 [ConfigPanel] correcoesConfig mudou, salvando')
+    salvarCorrecoes()
+  }, 300)
+}, { deep: true })
+
 const confirmarReinicio = () => {
   const confirmacao = confirm('⚠️ ATENÇÃO: Esta ação irá apagar TODOS os dados do sistema (senhas, histórico, contadores).\n\nTem certeza que deseja continuar?')
   if (confirmacao) {
@@ -1098,6 +1423,12 @@ watch(() => props.configuracoes, (novasConfiguracoes) => {
   if (novasConfiguracoes.seguranca) {
     console.log('✅ [ConfigPanel] Carregando segurança')
     segurancaConfig.value = { ...novasConfiguracoes.seguranca }
+  }
+
+  // Atualizar correções (v3.2)
+  if (novasConfiguracoes.correcoes) {
+    console.log('✅ [ConfigPanel] Carregando correções')
+    correcoesConfig.value = { ...novasConfiguracoes.correcoes }
   }
 
   // Desativar flag após nextTick para garantir que watches já processaram
@@ -1772,6 +2103,19 @@ input:checked + .toggle-slider:before {
   gap: 15px;
 }
 
+.config-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+}
+
+.section-hint {
+  color: #868e96;
+  font-size: 0.9em;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
 .config-select {
   padding: 10px 12px;
   border: 2px solid #e9ecef;
@@ -1800,7 +2144,8 @@ input:checked + .toggle-slider:before {
 
 @media (max-width: 768px) {
   .tipo-config-grid,
-  .config-grid-2 {
+  .config-grid-2,
+  .config-grid-3 {
     grid-template-columns: 1fr;
   }
 

@@ -122,7 +122,7 @@ import { useRealtimeTimer, calcularTempoEsperaRealtime, calcularTempoAtendimento
 const props = defineProps<{
   show: boolean
   numeroSenha: string
-  estatisticas: Estatisticas
+  estatisticas: Estatisticas | null
   estado?: EstadoSistema
 }>()
 
@@ -238,15 +238,15 @@ const serviceEstimate = computed(() => {
   }
 
   const pos = queuePosition.value.position
-  if (pos < 0) {
+  if (pos < 0 || !props.estatisticas) {
     return { estimateMs: 0, estimateFormatted: '---', eta: '---' }
   }
 
   const tmaDefault = props.estatisticas.tempoMedioAtendimentoGeralMs || 300000
   const tmaPorTipo = {
-    prioridade: props.estatisticas.detalhesPorTipo.prioridade.tempoMedioAtendimentoMs || tmaDefault,
-    contratual: props.estatisticas.detalhesPorTipo.contratual.tempoMedioAtendimentoMs || tmaDefault,
-    normal: props.estatisticas.detalhesPorTipo.normal.tempoMedioAtendimentoMs || tmaDefault
+    prioridade: props.estatisticas.detalhesPorTipo?.prioridade?.tempoMedioAtendimentoMs || tmaDefault,
+    contratual: props.estatisticas.detalhesPorTipo?.contratual?.tempoMedioAtendimentoMs || tmaDefault,
+    normal: props.estatisticas.detalhesPorTipo?.normal?.tempoMedioAtendimentoMs || tmaDefault
   }
 
   let estimativaMs = 0

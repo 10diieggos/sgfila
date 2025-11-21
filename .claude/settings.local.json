@@ -1,27 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git checkout:*)",
-      "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nFeat: Add settings button to Counter Panel header\n\n- Add small gear icon button in Counter Panel card header\n- Button opens configuration modal directly on ''guiches'' tab\n- Implement gray outline style matching queue list buttons\n- Add initial-tab prop to ConfigurationPanel component\n- Button positioned on right side while title stays on left\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git commit:*)",
-      "Bash(npm run build:*)",
-      "Bash(cat:*)",
-      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" --version)",
-      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" --loader tsx --experimental-specifier-resolution=node -e \"import { getConfigPadrao } from ''../shared/types.js''; console.log(''OK:'', typeof getConfigPadrao);\")",
-      "Bash(timeout 10:*)",
-      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" --import=tsx test-import.mjs)",
-      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" test-import.mjs)",
-      "Bash(\"../server/node_modules/.bin/tsc\" types.ts --module ESNext --target ES2022 --moduleResolution node --esModuleInterop)",
-      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" \"../server/node_modules/typescript/lib/tsc.js\" types.ts --module ESNext --target ES2022 --moduleResolution node --esModuleInterop)",
-      "Bash(timeout 5 \"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\":*)",
-      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" \"./node_modules/typescript/lib/tsc.js\")",
-      "Bash(timeout:*)",
-      "Bash(./START.bat)",
-      "Bash(git rm:*)",
-      "Bash(C:/Users/Diego/Downloads/nodep/node.exe node_modules/typescript/lib/tsc.js:*)",
-      "Bash(C:/Users/Diego/Downloads/nodep/node.exe dist/server.js)",
-      "Bash(C:/Users/Diego/Downloads/nodep/node.exe:*)"
+      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" dist/server/src/server.js)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(del \"C:\\Users\\Diego\\Downloads\\nodep\\sgfila\\v3\\server\\src\\services\\QueueServiceAdditions.ts\")",
+      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" iniciar.mjs)",
+      "Bash(\"C:\\Users\\Diego\\Downloads\\nodep\\node.exe\" \"C:\\Users\\Diego\\Downloads\\nodep\\node_modules\\typescript\\bin\\tsc\" --noEmit)",
+      "Bash(dir node_modules.bintsc* /b)",
+      "Bash(/c/Users/Diego/Downloads/nodep/node.exe /c/Users/Diego/Downloads/nodep/node_modules/.bin/tsc:*)",
+      "Bash(/c/Users/Diego/Downloads/nodep/node.exe iniciar.mjs:*)",
+      "Bash(/c/Users/Diego/Downloads/nodep/node.exe:*)"
     ],
     "deny": [],
     "ask": []

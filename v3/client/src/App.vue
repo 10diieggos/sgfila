@@ -117,6 +117,7 @@
             :proporcao-contratual="estado.proporcaoContratual"
             :contador-prioridade-desde-ultima-normal="estado.contadorPrioridadeDesdeUltimaNormal"
             :contador-contratual-desde-ultima-normal="estado.contadorContratualDesdeUltimaNormal"
+            :algoritmo="estado.configuracoes?.comportamentoFila?.algoritmo"
             @ver-detalhes="handleVerDetalhes"
             @chamar="handleChamarSenhaEspecifica"
             @editar="handleEditarDescricao"
@@ -278,6 +279,7 @@
               @atualizar-interface="atualizarConfigInterface"
               @atualizar-notificacoes="atualizarNotificacoes"
               @atualizar-seguranca="atualizarSeguranca"
+              @atualizar-correcoes="atualizarCorrecoes"
               @reiniciar-sistema="handleReiniciarSistema"
             />
           </div>
@@ -329,7 +331,8 @@ const {
   atualizarComportamentoFila,
   atualizarConfigInterface,
   atualizarNotificacoes,
-  atualizarSeguranca
+  atualizarSeguranca,
+  atualizarCorrecoes
 } = useSocket()
 
 // Configurar handler de erros do servidor

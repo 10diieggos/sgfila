@@ -40,6 +40,17 @@ export interface Senha {
   // Campos para controle de devoluções
   posicaoOriginal?: number;
   historicoDevolucoes?: RegistroDevolucao[];
+
+  // Campos para correção de tempo limite (v3.2)
+  tempoLimiteAtingido?: boolean;
+  timestampTempoLimite?: number;
+  reposicionamentos: number;
+
+  // Campos para controle de ausências (v3.2)
+  tentativasAusencia: number;
+  timestampUltimaChamada?: number;
+  pausarContagemTempo?: boolean;
+  timestampInicioAusencia?: number; // para pausar tempo
 }
 
 // ============================================
@@ -244,6 +255,10 @@ export interface ServerToClientEvents {
   // Eventos de estatísticas históricas
   estatisticasAgregadas: (dados: { estatisticas: EstatisticasAvancadas; periodoDescricao: string }) => void;
   diasDisponiveis: (dados: { dias: string[] }) => void;
+
+  // Eventos de correções (v3.2)
+  notificacaoAusencia: (dados: { numeroSenha: string; tentativa: number }) => void;
+  notificacaoNaoComparecimento: (dados: { numeroSenha: string }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -269,7 +284,11 @@ export interface ClientToServerEvents {
   atualizarConfigInterface: (interfaceConfig: ConfiguracaoInterface) => void;
   atualizarNotificacoes: (notificacoes: ConfiguracaoNotificacoes) => void;
   atualizarSeguranca: (seguranca: ConfiguracaoSeguranca) => void;
+  atualizarCorrecoes: (correcoes: ConfiguracaoCorrecoes) => void;
   resetarConfiguracoes: () => void;
+
+  // Eventos de correções (v3.2)
+  processarAusencia: (dados: { numeroSenha: string }) => void;
 
   // Eventos de consulta de estatísticas históricas
   solicitarEstatisticasPeriodo: (dados: {
@@ -292,7 +311,7 @@ export interface ConfiguracaoGuiche {
 
 export type TabType = 'stats' | 'history' | 'config';
 export type SubTabStats = 'geral' | 'ticket';
-export type SubTabConfig = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes';
+export type SubTabConfig = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes' | 'correcoes';
 
 export interface ModalData {
   show: boolean;
@@ -381,6 +400,42 @@ export interface ConfiguracaoSeguranca {
   intervaloBackupMinutos: number;
 }
 
+// ============================================
+// CORREÇÃO DE DISTORÇÕES (v3.2)
+// ============================================
+
+export interface ConfiguracaoTempoLimite {
+  ativo: boolean;
+  temposPorTipo: {
+    contratual: number; // minutos
+    prioridade: number; // minutos
+    normal: number; // minutos
+  };
+  maxReposicionamentos: number; // 0 = ilimitado
+  notificarDisplay: boolean;
+  registrarLog: boolean;
+  mensagemReposicionamento: string; // {numero}, {tempo}
+}
+
+export interface ConfiguracaoAusencias {
+  ativo: boolean;
+  tentativasPermitidas: number; // chamadas permitidas além da inicial
+  notificarDisplay: boolean;
+  alertaSonoro: boolean;
+  mensagemAusencia: string; // {numero}, {tentativas}, {max_tentativas}
+}
+
+export interface ConfiguracaoCorrecoes {
+  tempoLimite: ConfiguracaoTempoLimite;
+  ausencias: ConfiguracaoAusencias;
+  frequenciaVerificacao: 'tempo_real' | 'por_minuto' | 'por_chamada';
+  intervaloVerificacaoMinutos: number; // usado se frequenciaVerificacao = 'por_minuto'
+  limitarCorrecoesEmMassa: boolean;
+  maxCorrecoesSimultaneas: number;
+  destacarSenhasTempoLimite: boolean;
+  mostrarHistoricoAusencias: boolean;
+}
+
 export interface ConfiguracoesGerais {
   tiposSenha: ConfiguracaoTipoSenha[];
   motivosRetorno: ConfiguracaoMotivoRetorno[];
@@ -389,6 +444,7 @@ export interface ConfiguracoesGerais {
   notificacoes: ConfiguracaoNotificacoes;
   estatisticas: ConfiguracaoEstatisticas;
   seguranca: ConfiguracaoSeguranca;
+  correcoes: ConfiguracaoCorrecoes;
   versao: string;
   ultimaAtualizacao: number;
 }
@@ -525,7 +581,34 @@ export function getConfigPadrao(): ConfiguracoesGerais {
       backupAutomatico: false,
       intervaloBackupMinutos: 60
     },
-    versao: '3.0.0',
+    correcoes: {
+      tempoLimite: {
+        ativo: true,
+        temposPorTipo: {
+          contratual: 10,
+          prioridade: 20,
+          normal: 25
+        },
+        maxReposicionamentos: 0,
+        notificarDisplay: false,
+        registrarLog: true,
+        mensagemReposicionamento: 'Priorizada por tempo de espera excedido: {tempo}min'
+      },
+      ausencias: {
+        ativo: true,
+        tentativasPermitidas: 1,
+        notificarDisplay: false,
+        alertaSonoro: false,
+        mensagemAusencia: 'Senha {numero} ausente - {tentativas} de {max_tentativas}'
+      },
+      frequenciaVerificacao: 'tempo_real',
+      intervaloVerificacaoMinutos: 1,
+      limitarCorrecoesEmMassa: false,
+      maxCorrecoesSimultaneas: 5,
+      destacarSenhasTempoLimite: true,
+      mostrarHistoricoAusencias: true
+    },
+    versao: '3.2.0',
     ultimaAtualizacao: Date.now()
   };
 }

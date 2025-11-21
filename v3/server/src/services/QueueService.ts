@@ -66,7 +66,10 @@ export class QueueService {
       status: 'espera',
       descricao: '',
       tempoEspera: 0,
-      tempoAtendimento: 0
+      tempoAtendimento: 0,
+      // Campos de correção v3.2
+      reposicionamentos: 0,
+      tentativasAusencia: 0
     };
 
     estado.senhas.push(novaSenha);
@@ -78,6 +81,7 @@ export class QueueService {
 
   /**
    * Chama próxima senha da fila para um guichê
+   * v3.2 - Integrado com sistema de correção de distorções
    */
   public chamarSenha(guicheId: string): Senha | null {
     const estado = this.stateManager.getEstado();
@@ -88,8 +92,14 @@ export class QueueService {
       return null;
     }
 
+    // NOVA LÓGICA v3.2: Verifica tempos limite antes de chamar
+    const config = estado.configuracoes.correcoes;
+    if (config.frequenciaVerificacao === 'por_chamada' || config.frequenciaVerificacao === 'tempo_real') {
+      this.verificarTemposLimite();
+    }
+
     // Busca senhas em espera
-    const senhasEspera = estado.senhas
+    let senhasEspera = estado.senhas
       .filter(s => s.status === 'espera')
       .sort((a, b) => a.timestamp - b.timestamp);
 
@@ -98,7 +108,66 @@ export class QueueService {
       return null;
     }
 
-    // Aplica lógica de proporção
+    // NOVA LÓGICA v3.2: Reordena fila colocando senhas em tempo limite primeiro
+    senhasEspera = this.reordenarFilaPorTempoLimite(senhasEspera);
+
+    // Aplica algoritmo de chamada configurado
+    const algoritmo = estado.configuracoes?.comportamentoFila?.algoritmo || 'proporcao';
+    let senhaChamada: Senha | null = null;
+
+    if (algoritmo === 'fifo') {
+      // FIFO: Primeira senha em espera (já ordenado e reordenado por tempo limite)
+      senhaChamada = senhasEspera[0];
+      console.log(`Algoritmo FIFO: chamando ${senhaChamada.numero}`);
+    } else if (algoritmo === 'round_robin') {
+      // Round Robin: Alterna entre tipos igualmente
+      senhaChamada = this.chamarRoundRobin(estado, senhasEspera);
+    } else {
+      // Proporção (padrão): Respeita proporção configurada
+      senhaChamada = this.chamarProporcao(estado, senhasEspera);
+    }
+
+    if (!senhaChamada) {
+      return null;
+    }
+
+    // NOVA LÓGICA v3.2: Retoma contagem de tempo se estava pausada por ausência
+    this.retomarContagemTempo(senhaChamada);
+
+    // Atualiza senha para chamada
+    const agora = Date.now();
+    senhaChamada.status = 'chamada';
+    senhaChamada.guicheAtendendo = guicheId;
+
+    // Busca nome do guichê
+    const guiche = estado.guichesConfigurados.find(g => g.id === guicheId);
+    senhaChamada.guicheNome = guiche?.nome || guicheId;
+
+    senhaChamada.chamadaTimestamp = agora;
+    senhaChamada.tempoEspera = agora - senhaChamada.timestamp;
+
+    // Adiciona aos atendimentos atuais
+    estado.atendimentosAtuais[guicheId] = senhaChamada;
+
+    this.stateManager.setEstado(estado);
+
+    console.log(`Senha ${senhaChamada.numero} chamada para ${guicheId}`);
+    return senhaChamada;
+  }
+
+  /**
+   * Algoritmo de proporção (padrão)
+   * v3.2 - Senhas em tempo limite têm prioridade sem afetar contagem
+   */
+  private chamarProporcao(estado: EstadoSistema, senhasEspera: Senha[]): Senha | null {
+    // NOVA LÓGICA v3.2: Verifica primeiro se há senha em tempo limite
+    const comTempoLimite = senhasEspera.find(s => s.tempoLimiteAtingido);
+    if (comTempoLimite) {
+      console.log(`[Correção] Chamando senha em tempo limite: ${comTempoLimite.numero} (não afeta proporção)`);
+      return comTempoLimite;
+    }
+
+    // Continua com lógica normal
     const prioritarias = senhasEspera.filter(s => s.tipo === 'prioridade');
     const contratuais = senhasEspera.filter(s => s.tipo === 'contratual');
     const normais = senhasEspera.filter(s => s.tipo === 'normal');
@@ -128,29 +197,55 @@ export class QueueService {
       estado.contadorContratualDesdeUltimaNormal++;
     }
 
-    if (!senhaChamada) {
-      return null;
+    return senhaChamada;
+  }
+
+  /**
+   * Algoritmo Round Robin - Alterna entre tipos igualmente
+   * v3.2 - Senhas em tempo limite têm prioridade
+   */
+  private chamarRoundRobin(estado: EstadoSistema, senhasEspera: Senha[]): Senha | null {
+    // NOVA LÓGICA v3.2: Verifica primeiro se há senha em tempo limite
+    const comTempoLimite = senhasEspera.find(s => s.tempoLimiteAtingido);
+    if (comTempoLimite) {
+      console.log(`[Correção] Round Robin: Chamando senha em tempo limite: ${comTempoLimite.numero}`);
+      return comTempoLimite;
     }
 
-    // Atualiza senha para chamada
-    const agora = Date.now();
-    senhaChamada.status = 'chamada';
-    senhaChamada.guicheAtendendo = guicheId;
+    // Continua com lógica normal
+    const prioritarias = senhasEspera.filter(s => s.tipo === 'prioridade');
+    const contratuais = senhasEspera.filter(s => s.tipo === 'contratual');
+    const normais = senhasEspera.filter(s => s.tipo === 'normal');
 
-    // Busca nome do guichê
-    const guiche = estado.guichesConfigurados.find(g => g.id === guicheId);
-    senhaChamada.guicheNome = guiche?.nome || guicheId;
+    // Usa contadores para alternar entre tipos
+    const contadorP = estado.contadorPrioridadeDesdeUltimaNormal;
+    const contadorC = estado.contadorContratualDesdeUltimaNormal;
+    const totalContador = contadorP + contadorC;
 
-    senhaChamada.chamadaTimestamp = agora;
-    senhaChamada.tempoEspera = agora - senhaChamada.timestamp;
+    // Ciclo: Prioridade -> Contratual -> Normal -> Prioridade...
+    const ciclo = totalContador % 3;
 
-    // Adiciona aos atendimentos atuais
-    estado.atendimentosAtuais[guicheId] = senhaChamada;
+    if (ciclo === 0 && prioritarias.length > 0) {
+      estado.contadorPrioridadeDesdeUltimaNormal++;
+      console.log('Round Robin: chamando Prioridade');
+      return prioritarias[0];
+    } else if (ciclo === 1 && contratuais.length > 0) {
+      estado.contadorContratualDesdeUltimaNormal++;
+      console.log('Round Robin: chamando Contratual');
+      return contratuais[0];
+    } else if (normais.length > 0) {
+      estado.contadorPrioridadeDesdeUltimaNormal = 0;
+      estado.contadorContratualDesdeUltimaNormal = 0;
+      console.log('Round Robin: chamando Normal');
+      return normais[0];
+    }
 
-    this.stateManager.setEstado(estado);
+    // Fallback: chama qualquer senha disponível
+    if (prioritarias.length > 0) return prioritarias[0];
+    if (contratuais.length > 0) return contratuais[0];
+    if (normais.length > 0) return normais[0];
 
-    console.log(`Senha ${senhaChamada.numero} chamada para ${guicheId}`);
-    return senhaChamada;
+    return null;
   }
 
   /**
@@ -158,6 +253,13 @@ export class QueueService {
    */
   public chamarSenhaEspecifica(guicheId: string, numeroSenha: string): Senha | null {
     const estado = this.stateManager.getEstado();
+
+    // Verifica se pular senhas está permitido
+    const permitirPular = estado.configuracoes?.comportamentoFila?.permitirPularSenhas ?? true;
+    if (!permitirPular) {
+      console.log('Pular senhas não está permitido nas configurações');
+      return null;
+    }
 
     // Se guichê já está atendendo, finaliza automaticamente
     if (estado.atendimentosAtuais[guicheId]) {
@@ -205,14 +307,15 @@ export class QueueService {
 
   /**
    * Finaliza atendimento de um guichê
+   * @returns objeto com a senha finalizada e flag indicando se deve auto-chamar
    */
-  public finalizarAtendimento(guicheId: string): Senha | null {
+  public finalizarAtendimento(guicheId: string): { senha: Senha | null; autoChamar: boolean } {
     const estado = this.stateManager.getEstado();
 
     const senha = estado.atendimentosAtuais[guicheId];
     if (!senha) {
       console.log(`Nenhuma senha em atendimento no ${guicheId}`);
-      return null;
+      return { senha: null, autoChamar: false };
     }
 
     // Atualiza senha para atendida
@@ -227,7 +330,11 @@ export class QueueService {
     this.stateManager.setEstado(estado);
 
     console.log(`Atendimento finalizado no ${guicheId}: ${senha.numero}`);
-    return senha;
+
+    // Verifica se deve auto-chamar próxima senha
+    const chamarAutomatica = estado.configuracoes?.comportamentoFila?.chamarProximaAutomatica ?? false;
+
+    return { senha, autoChamar: chamarAutomatica };
   }
 
   /**
@@ -432,5 +539,175 @@ export class QueueService {
 
     console.log(`Descrição atualizada para ${numeroSenha}`);
     return senha;
+  }
+
+  /**
+   * Verifica senhas que atingiram tempo limite e as reordena na fila
+   * v3.2 - Sistema de Correção de Distorções
+   */
+  public verificarTemposLimite(): number {
+    const estado = this.stateManager.getEstado();
+    const config = estado.configuracoes.correcoes;
+
+    if (!config.tempoLimite.ativo) {
+      return 0;
+    }
+
+    const agora = Date.now();
+    let corrigidasCount = 0;
+    const senhasEspera = estado.senhas.filter(s => s.status === 'espera');
+
+    for (const senha of senhasEspera) {
+      // Já atingiu tempo limite antes?
+      if (senha.tempoLimiteAtingido) {
+        continue;
+      }
+
+      // Verifica se deve limitar reposicionamentos
+      if (config.tempoLimite.maxReposicionamentos > 0 &&
+          senha.reposicionamentos >= config.tempoLimite.maxReposicionamentos) {
+        continue;
+      }
+
+      // Calcula tempo de espera (considerando pausas por ausência)
+      let tempoEsperaMs = agora - senha.timestamp;
+
+      if (senha.pausarContagemTempo && senha.timestampInicioAusencia) {
+        // Desconta o tempo em que estava ausente
+        tempoEsperaMs -= (agora - senha.timestampInicioAusencia);
+      }
+
+      const tempoEsperaMin = tempoEsperaMs / 60000;
+
+      // Obtém tempo limite para o tipo de senha
+      const tempoLimite = config.tempoLimite.temposPorTipo[senha.tipo];
+
+      if (tempoEsperaMin > tempoLimite) {
+        // Marca como atingido
+        senha.tempoLimiteAtingido = true;
+        senha.timestampTempoLimite = agora;
+        senha.reposicionamentos++;
+
+        corrigidasCount++;
+
+        if (config.tempoLimite.registrarLog) {
+          console.log(`[Correção] Tempo limite: ${senha.numero} (${Math.floor(tempoEsperaMin)}min > ${tempoLimite}min)`);
+        }
+
+        // Verifica limite de correções em massa
+        if (config.limitarCorrecoesEmMassa && corrigidasCount >= config.maxCorrecoesSimultaneas) {
+          console.log(`[Correção] Limite de correções em massa atingido: ${config.maxCorrecoesSimultaneas}`);
+          break;
+        }
+      }
+    }
+
+    if (corrigidasCount > 0) {
+      this.stateManager.setEstado(estado);
+      console.log(`[Correção] ${corrigidasCount} senha(s) reposicionada(s) por tempo limite`);
+    }
+
+    return corrigidasCount;
+  }
+
+  /**
+   * Reordena a fila colocando senhas em tempo limite primeiro
+   * Mantém ordem relativa (quem tem mais tempo vai primeiro)
+   */
+  private reordenarFilaPorTempoLimite(senhasEspera: Senha[]): Senha[] {
+    const comTempoLimite = senhasEspera.filter(s => s.tempoLimiteAtingido);
+    const semTempoLimite = senhasEspera.filter(s => !s.tempoLimiteAtingido);
+
+    // Ordena senhas em tempo limite por tempo de espera (maior primeiro)
+    comTempoLimite.sort((a, b) => {
+      const tempoA = Date.now() - a.timestamp;
+      const tempoB = Date.now() - b.timestamp;
+      return tempoB - tempoA;
+    });
+
+    // Retorna fila reordenada: tempo limite primeiro, depois normais
+    return [...comTempoLimite, ...semTempoLimite];
+  }
+
+  /**
+   * Processa ausência de senha quando não comparece
+   * v3.2 - Sistema de Correção de Distorções
+   */
+  public processarAusencia(numeroSenha: string): { acao: 'recolocada' | 'historico' | 'ignorada'; senha: Senha | null } {
+    const estado = this.stateManager.getEstado();
+    const config = estado.configuracoes.correcoes;
+
+    if (!config.ausencias.ativo) {
+      return { acao: 'ignorada', senha: null };
+    }
+
+    const senha = estado.senhas.find(s => s.numero === numeroSenha);
+    if (!senha) {
+      return { acao: 'ignorada', senha: null };
+    }
+
+    const agora = Date.now();
+    senha.tentativasAusencia++;
+    senha.timestampUltimaChamada = agora;
+
+    // Verifica se atingiu o limite de tentativas (tentativasPermitidas + chamada inicial = total de chamadas)
+    if (senha.tentativasAusencia > config.ausencias.tentativasPermitidas) {
+      // Move para histórico como não compareceu
+      senha.status = 'nao_compareceu';
+      senha.finalizadoTimestamp = agora;
+
+      // Remove dos atendimentos atuais se estiver lá
+      const guiche = senha.guicheAtendendo;
+      if (guiche && estado.atendimentosAtuais[guiche]) {
+        delete estado.atendimentosAtuais[guiche];
+      }
+
+      this.stateManager.setEstado(estado);
+      console.log(`[Ausência] ${numeroSenha} movida para histórico após ${senha.tentativasAusencia} ausências`);
+
+      return { acao: 'historico', senha };
+    }
+
+    // Ainda tem tentativas - recoloca na fila
+    senha.status = 'espera';
+
+    // Pausa contagem de tempo durante ausência (configuração)
+    senha.pausarContagemTempo = true;
+    senha.timestampInicioAusencia = agora;
+
+    // Remove dos atendimentos atuais
+    const guiche = senha.guicheAtendendo;
+    if (guiche && estado.atendimentosAtuais[guiche]) {
+      delete estado.atendimentosAtuais[guiche];
+    }
+
+    // Limpa dados de chamada
+    senha.guicheAtendendo = undefined;
+    senha.guicheNome = undefined;
+    senha.chamadaTimestamp = undefined;
+
+    this.stateManager.setEstado(estado);
+    console.log(`[Ausência] ${numeroSenha} recolocada na fila (${senha.tentativasAusencia}/${config.ausencias.tentativasPermitidas + 1})`);
+
+    return { acao: 'recolocada', senha };
+  }
+
+  /**
+   * Retoma contagem de tempo quando senha ausente é chamada novamente
+   */
+  private retomarContagemTempo(senha: Senha): void {
+    if (senha.pausarContagemTempo && senha.timestampInicioAusencia) {
+      const agora = Date.now();
+      const tempoAusente = agora - senha.timestampInicioAusencia;
+
+      // Ajusta timestamp para não contar o tempo ausente
+      senha.timestamp += tempoAusente;
+
+      // Reseta flags de pausa
+      senha.pausarContagemTempo = false;
+      senha.timestampInicioAusencia = undefined;
+
+      console.log(`[Ausência] ${senha.numero} retomou contagem de tempo (ajustado +${Math.floor(tempoAusente / 60000)}min)`);
+    }
   }
 }

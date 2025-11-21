@@ -11,6 +11,7 @@ import { StatisticsService } from '../services/StatisticsService.js';
 import { AdvancedStatisticsService } from '../services/AdvancedStatisticsService.js';
 import { StatisticsAggregator } from '../services/StatisticsAggregator.js';
 import { StatisticsPersistence } from '../services/StatisticsPersistence.js';
+import { QueueMonitor } from '../services/QueueMonitor.js';
 
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type TypedServer = SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
@@ -18,6 +19,7 @@ type TypedServer = SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
 export class SocketHandlers {
   private stateManager: StateManager;
   private queueService: QueueService;
+  private queueMonitor: QueueMonitor;
   private io: TypedServer;
   private useAdvancedStats: boolean;
   private statisticsPersistence: StatisticsPersistence | null = null;
@@ -31,6 +33,7 @@ export class SocketHandlers {
     this.io = io;
     this.stateManager = StateManager.getInstance();
     this.queueService = new QueueService();
+    this.queueMonitor = QueueMonitor.getInstance();
     this.useAdvancedStats = useAdvancedStats;
 
     // Configura persistência de estatísticas se fornecida
@@ -38,6 +41,9 @@ export class SocketHandlers {
       this.statisticsPersistence = statisticsPersistence;
       this.statisticsAggregator = new StatisticsAggregator(statisticsPersistence);
     }
+
+    // Inicia monitoramento de correções (v3.2)
+    this.queueMonitor.iniciar();
   }
 
   /**
@@ -136,8 +142,17 @@ export class SocketHandlers {
 
     socket.on('finalizarAtendimento', ({ guicheId }) => {
       try {
-        this.queueService.finalizarAtendimento(guicheId);
+        const resultado = this.queueService.finalizarAtendimento(guicheId);
         this.emitirEstadoAtualizado();
+
+        // Se auto-chamada está ativa, chama a próxima senha após emitir o estado
+        if (resultado.autoChamar) {
+          console.log(`Auto-chamada ativada: chamando próxima senha para ${guicheId}`);
+          setTimeout(() => {
+            this.queueService.chamarSenha(guicheId);
+            this.emitirEstadoAtualizado();
+          }, 200);
+        }
       } catch (error) {
         console.error('Erro ao finalizar atendimento:', error);
       }
@@ -165,6 +180,33 @@ export class SocketHandlers {
         this.emitirEstadoAtualizado();
       } catch (error) {
         console.error('Erro ao devolver senha com motivo:', error);
+      }
+    });
+
+    socket.on('processarAusencia', ({ numeroSenha }) => {
+      try {
+        const resultado = this.queueService.processarAusencia(numeroSenha);
+
+        if (resultado.acao === 'recolocada') {
+          console.log(`Senha ${numeroSenha} recolocada na fila (tentativa ${resultado.senha?.tentativasAusencia})`);
+
+          // Emite notificação de ausência
+          this.io.emit('notificacaoAusencia', {
+            numeroSenha,
+            tentativa: resultado.senha?.tentativasAusencia || 0
+          });
+        } else if (resultado.acao === 'historico') {
+          console.log(`Senha ${numeroSenha} movida para histórico (não compareceu)`);
+
+          // Emite notificação de não comparecimento
+          this.io.emit('notificacaoNaoComparecimento', {
+            numeroSenha
+          });
+        }
+
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao processar ausência:', error);
       }
     });
 
@@ -322,6 +364,23 @@ export class SocketHandlers {
         socket.emit('erroOperacao', {
           mensagem: 'Erro ao atualizar segurança',
           tipo: 'atualizarSeguranca'
+        });
+      }
+    });
+
+    socket.on('atualizarCorrecoes', (correcoes) => {
+      try {
+        this.stateManager.atualizarCorrecoes(correcoes);
+
+        // Reinicia monitor se configuração mudou
+        this.queueMonitor.reiniciar();
+
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao atualizar correções:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar configurações de correções',
+          tipo: 'atualizarCorrecoes'
         });
       }
     });
