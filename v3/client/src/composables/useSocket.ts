@@ -14,6 +14,7 @@ import type {
   Guiche,
   ConfiguracaoTipoSenha,
   ConfiguracaoMotivoRetorno,
+  MotivoRetorno,
   ConfiguracaoComportamentoFila,
   ConfiguracaoInterface,
   ConfiguracaoNotificacoes,
@@ -98,7 +99,7 @@ export function useSocket() {
   // EMISSÃO DE EVENTOS
   // ========================================
 
-  const emitirSenha = (tipo: TipoSenha, subtipo: string = '', servicoDoCliente?: string) => {
+  const emitirSenha = (tipo: TipoSenha, subtipo: string = '', servicoDoCliente: string) => {
     socket.value?.emit('emitirSenha', { tipo, subtipo, servicoDoCliente })
   }
 
@@ -126,7 +127,7 @@ export function useSocket() {
     socket.value?.emit('devolverSenha', { numeroSenha })
   }
 
-  const devolverSenhaComMotivo = (numeroSenha: string, motivo: string) => {
+  const devolverSenhaComMotivo = (numeroSenha: string, motivo: MotivoRetorno) => {
     socket.value?.emit('devolverSenhaComMotivo', { numeroSenha, motivo })
   }
 

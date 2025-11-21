@@ -263,7 +263,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  emitirSenha: (dados: { tipo: TipoSenha; subtipo: string; servicoDoCliente?: string }) => void;
+  emitirSenha: (dados: { tipo: TipoSenha; subtipo: string; servicoDoCliente: string }) => void;
   chamarSenha: (dados: { guicheId: string }) => void;
   chamarSenhaEspecifica: (dados: { guicheId: string; numeroSenha: string }) => void;
   finalizarAtendimento: (dados: { guicheId: string }) => void;
