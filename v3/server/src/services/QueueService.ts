@@ -34,7 +34,7 @@ export class QueueService {
   /**
    * Emite uma nova senha
    */
-  public emitirSenha(tipo: TipoSenha, subtipo: string = ''): Senha {
+  public emitirSenha(tipo: TipoSenha, subtipo: string = '', servicoDoCliente?: string): Senha {
     const estado = this.stateManager.getEstado();
 
     // Incrementa contador apropriado
@@ -65,6 +65,7 @@ export class QueueService {
       timestamp: Date.now(),
       status: 'espera',
       descricao: '',
+      servicoDoCliente,
       tempoEspera: 0,
       tempoAtendimento: 0,
       // Campos de correção v3.2

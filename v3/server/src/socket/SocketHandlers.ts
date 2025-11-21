@@ -77,9 +77,13 @@ export class SocketHandlers {
     // EMISSÃO DE SENHAS
     // ========================================
 
-    socket.on('emitirSenha', ({ tipo, subtipo }) => {
+    socket.on('emitirSenha', ({ tipo, subtipo, servicoDoCliente }) => {
       try {
-        const senha = this.queueService.emitirSenha(tipo, subtipo);
+        if (!servicoDoCliente || !servicoDoCliente.trim()) {
+          socket.emit('erroOperacao', { mensagem: 'Informe o serviço do cliente antes de emitir a senha', tipo: 'emitirSenha' });
+          return;
+        }
+        const senha = this.queueService.emitirSenha(tipo, subtipo, servicoDoCliente);
 
         // Emite beep para todos
         this.io.emit('beep', {

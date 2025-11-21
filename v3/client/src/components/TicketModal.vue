@@ -275,7 +275,11 @@ const serviceEstimate = computed(() => {
 // Real-time time updates
 const tempoEsperaRealtime = useRealtimeTimer(() => {
   if (!ticketSelecionado.value) return 0
-  return calcularTempoEsperaRealtime(ticketSelecionado.value)
+  const s = ticketSelecionado.value
+  if (s.chamadaTimestamp) {
+    return (s.tempoEspera ?? (s.chamadaTimestamp - s.timestamp))
+  }
+  return calcularTempoEsperaRealtime(s)
 })
 
 const tempoAtendimentoRealtime = useRealtimeTimer(() => {

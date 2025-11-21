@@ -49,12 +49,11 @@ export function calcularTempoDecorrido(timestamp: number): number {
  * @param senha - Objeto senha com timestamp e chamadaTimestamp
  * @returns Milissegundos de tempo de espera
  */
-export function calcularTempoEsperaRealtime(senha: { timestamp: number; chamadaTimestamp?: number }): number {
+export function calcularTempoEsperaRealtime(senha: { timestamp: number; chamadaTimestamp?: number; tempoEspera?: number }): number {
   const agora = Date.now()
 
   if (senha.chamadaTimestamp) {
-    // Se já foi chamada, tempo de espera é fixo
-    return senha.chamadaTimestamp - senha.timestamp
+    return (senha.tempoEspera ?? (senha.chamadaTimestamp - senha.timestamp))
   }
 
   // Ainda esperando, tempo continua aumentando

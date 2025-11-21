@@ -111,7 +111,11 @@ const formatTempoEspera = (guicheId: string): string => {
   const senha = senhaAtual(guicheId)
   if (!senha || !senha.timestamp) return '0:00:00'
 
-  // Calcula tempo total desde emissão
+  if (senha.chamadaTimestamp) {
+    const fixo = (senha.tempoEspera ?? (senha.chamadaTimestamp - senha.timestamp))
+    return formatarTempoHMS(fixo)
+  }
+
   let tempoMs = currentTime.value - senha.timestamp
 
   // Se estava em ausência, subtrai o tempo pausado
