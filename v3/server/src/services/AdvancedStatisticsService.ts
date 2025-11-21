@@ -26,6 +26,12 @@ import {
 } from '../utils/timezone.js';
 
 export class AdvancedStatisticsService {
+  private static percentile(values: number[], p: number): number {
+    if (values.length === 0) return 0
+    const arr = values.slice().sort((a, b) => a - b)
+    const idx = Math.min(arr.length - 1, Math.max(0, Math.floor((p / 100) * (arr.length - 1))))
+    return arr[idx]
+  }
   /**
    * Formata milissegundos para string legível
    */
@@ -93,11 +99,21 @@ export class AdvancedStatisticsService {
 
         if (temposEspera.length > 0) {
           stats.tempoMedioEsperaMs = temposEspera.reduce((a, b) => a + b, 0) / temposEspera.length;
+          stats.p50EsperaMs = this.percentile(temposEspera, 50)
+          stats.p90EsperaMs = this.percentile(temposEspera, 90)
+          stats.p95EsperaMs = this.percentile(temposEspera, 95)
+          stats.p99EsperaMs = this.percentile(temposEspera, 99)
         }
         if (temposAtendimento.length > 0) {
           stats.tempoMedioAtendimentoMs = temposAtendimento.reduce((a, b) => a + b, 0) / temposAtendimento.length;
         }
+
+        if (stats.tempoMedioAtendimentoMs > 0) {
+          stats.muPorHora = 60000 / stats.tempoMedioAtendimentoMs
+        }
       }
+
+      stats.lambdaPorHora = stats.emitidas / 60
     });
 
     // Identifica horários de pico (acima de 80% do máximo)

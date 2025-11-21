@@ -510,6 +510,7 @@ export class QueueService {
     // Marca como não compareceu
     senha.status = 'nao_compareceu';
     senha.finalizadoTimestamp = Date.now();
+    senha.tempoAteNaoComparecer = senha.finalizadoTimestamp - (senha.chamadaTimestamp || senha.timestamp);
 
     // Remove dos atendimentos atuais se estiver lá
     const guiche = senha.guicheAtendendo;

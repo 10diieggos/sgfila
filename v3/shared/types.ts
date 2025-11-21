@@ -37,6 +37,7 @@ export interface Senha {
   // Métricas de tempo
   tempoEspera: number;
   tempoAtendimento: number;
+  tempoAteNaoComparecer?: number;
 
   // Campos para controle de devoluções
   posicaoOriginal?: number;
@@ -150,6 +151,12 @@ export interface EstatisticasPorHora {
   tempoMedioEsperaMs: number;
   tempoMedioAtendimentoMs: number;
   pico: boolean; // marca horários de pico
+  lambdaPorHora?: number;
+  muPorHora?: number;
+  p50EsperaMs?: number;
+  p90EsperaMs?: number;
+  p95EsperaMs?: number;
+  p99EsperaMs?: number;
 }
 
 export interface EstatisticasPorAtendente {
