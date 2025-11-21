@@ -1,59 +1,95 @@
 <template>
-  <div id="app" class="container">
+  <div
+    id="app"
+    class="container"
+  >
     <!-- Header -->
     <header>
-      <h1><i class="fas fa-mail-bulk"></i> SGFILA v3.0</h1>
+      <h1><i class="fas fa-mail-bulk" /> SGFILA v3.0</h1>
       <div class="connection-status">
-        <span :class="['status-indicator', { connected }]"></span>
+        <span :class="['status-indicator', { connected }]" />
         {{ connected ? 'Conectado' : 'Desconectado' }}
       </div>
     </header>
 
     <!-- Alerta Legal - Prioridades -->
-    <div v-if="estado" class="alert-priorities">
-      <i class="fas fa-info-circle"></i>
+    <div
+      v-if="estado"
+      class="alert-priorities"
+    >
+      <i class="fas fa-info-circle" />
       <strong>Prioridades legais:</strong>
       <div class="priority-icons">
-        <span class="priority-icon" title="Idosos (60 anos ou mais)">
-          <i class="fas fa-user-clock"></i>
+        <span
+          class="priority-icon"
+          title="Idosos (60 anos ou mais)"
+        >
+          <i class="fas fa-user-clock" />
         </span>
-        <span class="priority-icon" title="Gestantes">
-          <i class="fas fa-person-pregnant"></i>
+        <span
+          class="priority-icon"
+          title="Gestantes"
+        >
+          <i class="fas fa-person-pregnant" />
         </span>
-        <span class="priority-icon" title="Lactantes (mães amamentando)">
-          <i class="fas fa-baby"></i>
+        <span
+          class="priority-icon"
+          title="Lactantes (mães amamentando)"
+        >
+          <i class="fas fa-baby" />
         </span>
-        <span class="priority-icon" title="Pessoas com crianças de colo">
-          <i class="fas fa-child"></i>
+        <span
+          class="priority-icon"
+          title="Pessoas com crianças de colo"
+        >
+          <i class="fas fa-child" />
         </span>
-        <span class="priority-icon" title="Pessoas com deficiência física">
-          <i class="fas fa-wheelchair"></i>
+        <span
+          class="priority-icon"
+          title="Pessoas com deficiência física"
+        >
+          <i class="fas fa-wheelchair" />
         </span>
-        <span class="priority-icon" title="Pessoas com deficiência visual">
-          <i class="fas fa-blind"></i>
+        <span
+          class="priority-icon"
+          title="Pessoas com deficiência visual"
+        >
+          <i class="fas fa-blind" />
         </span>
-        <span class="priority-icon" title="Pessoas com deficiência auditiva">
-          <i class="fas fa-deaf"></i>
+        <span
+          class="priority-icon"
+          title="Pessoas com deficiência auditiva"
+        >
+          <i class="fas fa-deaf" />
         </span>
-        <span class="priority-icon" title="Pessoas com Transtorno do Espectro Autista (TEA)">
-          <i class="fas fa-puzzle-piece"></i>
+        <span
+          class="priority-icon"
+          title="Pessoas com Transtorno do Espectro Autista (TEA)"
+        >
+          <i class="fas fa-puzzle-piece" />
         </span>
       </div>
     </div>
 
     <!-- Loading -->
-    <div v-if="!estado" class="loading">
-      <i class="fas fa-spinner fa-spin"></i> Carregando sistema...
+    <div
+      v-if="!estado"
+      class="loading"
+    >
+      <i class="fas fa-spinner fa-spin" /> Carregando sistema...
     </div>
 
     <!-- Main Dashboard -->
-    <div v-else class="dashboard">
+    <div
+      v-else
+      class="dashboard"
+    >
       <!-- Coluna Esquerda -->
       <div class="left-column">
         <!-- Painéis de Guichê -->
         <div class="card">
           <CounterPanel
-            :guiches="estado.guichesConfigurados"
+            :guiches="estado?.guichesConfigurados || []"
             :atendimentos-atuais="estado.atendimentosAtuais"
             :guiches-exibicao="guichesExibicao"
             :fila-vazia="senhasEspera.length === 0"
@@ -66,23 +102,45 @@
 
         <!-- Emissão de Senhas -->
         <div class="card">
-          <h3><i class="fas fa-ticket-alt"></i> Emissão de Senhas</h3>
+          <h3><i class="fas fa-ticket-alt" /> Emissão de Senhas</h3>
           <div class="controls">
-            <input v-model="servicoSelecionado" type="text" class="input-servico" placeholder="Serviço do cliente" />
+            <input
+              v-model="servicoSelecionado"
+              type="text"
+              class="input-servico"
+              placeholder="Serviço do cliente"
+            >
             <div class="servicos-sugeridos">
-              <label v-for="op in servicosSugeridos" :key="op" class="servico-check">
-                <input type="checkbox" :checked="servicoSelecionado === op" @change="servicoSelecionado = op" />
+              <label
+                v-for="op in servicosSugeridos"
+                :key="op"
+                class="servico-check"
+              >
+                <input
+                  type="checkbox"
+                  :checked="servicoSelecionado === op"
+                  @change="servicoSelecionado = op"
+                >
                 {{ op }}
               </label>
             </div>
-            <button @click="handleEmitirSenha('prioridade')" class="btn btn-priority btn-emit">
-              <i class="fas fa-wheelchair"></i> Prioritária
+            <button
+              class="btn btn-priority btn-emit"
+              @click="handleEmitirSenha('prioridade')"
+            >
+              <i class="fas fa-wheelchair" /> Prioritária
             </button>
-            <button @click="handleEmitirSenha('normal')" class="btn btn-normal btn-emit">
-              <i class="fas fa-user"></i> Normal
+            <button
+              class="btn btn-normal btn-emit"
+              @click="handleEmitirSenha('normal')"
+            >
+              <i class="fas fa-user" /> Normal
             </button>
-            <button @click="handleEmitirSenha('contratual')" class="btn btn-contract btn-emit">
-              <i class="fas fa-file-contract"></i> Contratual
+            <button
+              class="btn btn-contract btn-emit"
+              @click="handleEmitirSenha('contratual')"
+            >
+              <i class="fas fa-file-contract" /> Contratual
             </button>
           </div>
         </div>
@@ -103,16 +161,25 @@
       <div class="right-column">
         <!-- Botões para abrir modais -->
         <div class="card">
-          <h3><i class="fas fa-layer-group"></i> Painéis</h3>
+          <h3><i class="fas fa-layer-group" /> Painéis</h3>
           <div class="modal-buttons">
-            <button @click="showStatsModal = true" class="btn-modal btn-stats">
-              <i class="fas fa-chart-bar"></i> Estatísticas
+            <button
+              class="btn-modal btn-stats"
+              @click="showStatsModal = true"
+            >
+              <i class="fas fa-chart-bar" /> Estatísticas
             </button>
-            <button @click="showHistoryModal = true" class="btn-modal btn-history">
-              <i class="fas fa-history"></i> Histórico
+            <button
+              class="btn-modal btn-history"
+              @click="showHistoryModal = true"
+            >
+              <i class="fas fa-history" /> Histórico
             </button>
-            <button @click="showConfigModal = true" class="btn-modal btn-config">
-              <i class="fas fa-cogs"></i> Configurações
+            <button
+              class="btn-modal btn-config"
+              @click="showConfigModal = true"
+            >
+              <i class="fas fa-cogs" /> Configurações
             </button>
           </div>
         </div>
@@ -125,6 +192,7 @@
             :contador-prioridade-desde-ultima-normal="estado.contadorPrioridadeDesdeUltimaNormal"
             :contador-contratual-desde-ultima-normal="estado.contadorContratualDesdeUltimaNormal"
             :algoritmo="estado.configuracoes?.comportamentoFila?.algoritmo"
+            :estado="estado || undefined"
             @ver-detalhes="handleVerDetalhes"
             @chamar="handleChamarSenhaEspecifica"
             @editar="handleEditarDescricao"
@@ -157,7 +225,7 @@
       :title="confirmModalData.title"
       :message="confirmModalData.message"
       :confirm-text="confirmModalData.confirmText"
-      :tipo-senha="confirmModalData.tipoSenha"
+      :tipo-senha="confirmModalData.tipoSenha || undefined"
       :numero-senha="confirmModalData.numeroSenha"
       @confirm="handleConfirmAction"
       @cancel="showConfirmModal = false"
@@ -165,20 +233,28 @@
 
     <!-- Modal Alerta -->
     <Teleport to="body">
-      <Transition name="modal" @after-enter="focusAlertModal">
+      <Transition
+        name="modal"
+        @after-enter="focusAlertModal"
+      >
         <div
           v-if="showAlertModal"
           ref="alertModalRef"
           class="modal-overlay-alert"
+          tabindex="0"
           @click="showAlertModal = false"
           @keydown="showAlertModal = false"
-          tabindex="0"
         >
-          <div class="modal-content-alert" @click.stop>
+          <div
+            class="modal-content-alert"
+            @click.stop
+          >
             <div class="alert-icon">
-              <i class="fas fa-exclamation-circle"></i>
+              <i class="fas fa-exclamation-circle" />
             </div>
-            <p class="alert-text">{{ alertMessage }}</p>
+            <p class="alert-text">
+              {{ alertMessage }}
+            </p>
           </div>
         </div>
       </Transition>
@@ -187,8 +263,15 @@
     <!-- Modal Seleção de Guichê -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showGuicheModal" class="modal-overlay-guiche" @click.self="showGuicheModal = false">
-          <div class="modal-content-guiche" @click.stop>
+        <div
+          v-if="showGuicheModal"
+          class="modal-overlay-guiche"
+          @click.self="showGuicheModal = false"
+        >
+          <div
+            class="modal-content-guiche"
+            @click.stop
+          >
             <div class="guiche-grid">
               <div
                 v-for="guiche in guichesLivres"
@@ -197,10 +280,14 @@
                 @click="handleSelecionarGuiche(guiche.id)"
               >
                 <div class="guiche-icon">
-                  <i class="fas fa-desktop"></i>
+                  <i class="fas fa-desktop" />
                 </div>
-                <div class="guiche-nome">{{ guiche.nome }}</div>
-                <div class="guiche-status">Disponível</div>
+                <div class="guiche-nome">
+                  {{ guiche.nome }}
+                </div>
+                <div class="guiche-status">
+                  Disponível
+                </div>
               </div>
             </div>
           </div>
@@ -211,13 +298,24 @@
     <!-- Modal Estatísticas -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showStatsModal" class="modal-overlay modal-paineis modal-stats" @click.self="showStatsModal = false">
-          <div class="modal-content modal-content-paineis modal-stats-content" @click.stop>
-            <button class="modal-close-btn" @click="showStatsModal = false" title="Fechar">
-              <i class="fas fa-times"></i>
+        <div
+          v-if="showStatsModal"
+          class="modal-overlay modal-paineis modal-stats"
+          @click.self="showStatsModal = false"
+        >
+          <div
+            class="modal-content modal-content-paineis modal-stats-content"
+            @click.stop
+          >
+            <button
+              class="modal-close-btn"
+              title="Fechar"
+              @click="showStatsModal = false"
+            >
+              <i class="fas fa-times" />
             </button>
             <StatisticsPanelWithFilters
-              :guiches="estado.guichesConfigurados"
+              :guiches="estado?.guichesConfigurados || []"
             />
           </div>
         </div>
@@ -228,7 +326,7 @@
       :show="showTicketModal"
       :numero-senha="numeroSenhaSelecionada"
       :estatisticas="estatisticas"
-      :estado="estado"
+      :estado="estado || undefined"
       @close="handleCloseTicketModal"
       @chamar="handleChamarFromTicketModal"
       @editar="handleEditarFromTicketModal"
@@ -249,10 +347,17 @@
     <!-- Modal Histórico -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showHistoryModal" class="modal-overlay modal-paineis" @click.self="showHistoryModal = false">
-          <div class="modal-content modal-content-paineis" @click.stop>
+        <div
+          v-if="showHistoryModal"
+          class="modal-overlay modal-paineis"
+          @click.self="showHistoryModal = false"
+        >
+          <div
+            class="modal-content modal-content-paineis"
+            @click.stop
+          >
             <HistoryPanel
-              :senhas="estado.senhas"
+              :senhas="estado?.senhas || []"
               @ver-detalhes="handleVerDetalhes"
               @chamar="handleChamarFromHistoryModal"
               @editar="handleEditarDescricao"
@@ -268,13 +373,20 @@
     <!-- Modal Configurações -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showConfigModal" class="modal-overlay modal-paineis" @click.self="showConfigModal = false">
-          <div class="modal-content modal-content-paineis" @click.stop>
+        <div
+          v-if="showConfigModal"
+          class="modal-overlay modal-paineis"
+          @click.self="showConfigModal = false"
+        >
+          <div
+            class="modal-content modal-content-paineis"
+            @click.stop
+          >
             <ConfigurationPanel
-              :guiches-globais="estado.guichesConfigurados"
-              :proporcao-prioridade="estado.proporcaoPrioridade"
-              :proporcao-contratual="estado.proporcaoContratual"
-              :configuracoes="estado.configuracoes"
+              :guiches-globais="estado?.guichesConfigurados || []"
+              :proporcao-prioridade="estado?.proporcaoPrioridade || 2"
+              :proporcao-contratual="estado?.proporcaoContratual || 1"
+              :configuracoes="estado?.configuracoes"
               :initial-tab="configInitialTab"
               @atualizar-guiches-globais="atualizarGuichesGlobais"
               @atualizar-proporcao-prioridade="atualizarProporcao"
@@ -299,7 +411,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useSocket } from './composables/useSocket'
-import type { Senha, Guiche } from '@shared/types'
+import type { Senha, Guiche, MotivoRetorno } from '@shared/types'
 
 // Componentes
 import QueueList from './components/QueueList.vue'
@@ -326,7 +438,6 @@ const {
   finalizarAtendimento,
   excluirSenha,
   excluirAtendimento,
-  devolverSenha,
   devolverSenhaComMotivo,
   atualizarDescricao,
   atualizarProporcao,
@@ -373,13 +484,13 @@ const senhaParaChamar = ref<string | null>(null)
 const guichesLivres = ref<Guiche[]>([])
 const alertModalRef = ref<HTMLElement>()
   const confirmModalData = ref({
-  title: '',
-  message: '',
-  confirmText: 'Confirmar',
-  tipoSenha: '' as 'prioridade' | 'normal' | 'contratual' | '',
-  numeroSenha: '',
-  action: '' as 'excluir' | 'ausente' | '',
-  data: {} as any
+    title: '',
+    message: '',
+    confirmText: 'Confirmar',
+    tipoSenha: undefined as ('prioridade' | 'normal' | 'contratual' | undefined),
+    numeroSenha: '',
+    action: '' as 'excluir' | 'ausente' | '',
+    data: {} as any
   })
   const servicoSelecionado = ref('')
   const servicosSugeridos = computed(() => {
@@ -464,7 +575,7 @@ const handleCloseReturnModal = () => {
 }
 
 const handleConfirmarDevolucao = (numeroSenha: string, motivo: string) => {
-  devolverSenhaComMotivo(numeroSenha, motivo)
+  devolverSenhaComMotivo(numeroSenha, motivo as MotivoRetorno)
   handleCloseReturnModal()
 }
 

@@ -1,6 +1,6 @@
 <template>
   <div class="queue-list">
-    <h3><i class="fas fa-clock"></i> Fila de Espera</h3>
+    <h3><i class="fas fa-clock" /> Fila de Espera</h3>
 
     <!-- Filtros -->
     <div class="filter-wrapper">
@@ -9,26 +9,29 @@
           v-for="filtro in filtros"
           :key="filtro.value"
           :class="['btn-filter', { active: filtroAtivo === filtro.value }]"
-          @click="filtroAtivo = filtro.value"
           :title="filtro.title"
+          @click="filtroAtivo = filtro.value"
         >
-          <i :class="filtro.icon"></i> {{ filtro.label }}
+          <i :class="filtro.icon" /> {{ filtro.label }}
         </button>
       </div>
 
       <div class="search-wrapper">
-        <i class="fas fa-search"></i>
+        <i class="fas fa-search" />
         <input
           v-model="termoBusca"
           type="text"
           placeholder="Buscar por serviço ou descrição..."
-        />
+        >
       </div>
     </div>
 
     <!-- Lista de senhas -->
     <div class="ticket-list">
-      <div v-if="senhasFiltradas.length === 0" class="empty-message">
+      <div
+        v-if="senhasFiltradas.length === 0"
+        class="empty-message"
+      >
         {{ mensagemVazia }}
       </div>
 
@@ -38,27 +41,52 @@
         :class="['ticket-item', senha.tipo]"
       >
         <div class="ticket-info">
-          <i :class="getIconClass(senha.tipo)"></i>
+          <i :class="getIconClass(senha.tipo)" />
           <strong>{{ senha.numero }}</strong>
-          <div v-if="senha.servicoDoCliente" class="ticket-service">{{ senha.servicoDoCliente }}</div>
-          <div v-if="senha.descricao" class="ticket-description" v-html="formatarDescricao(senha.descricao)"></div>
+          <div
+            v-if="senha.servicoDoCliente"
+            class="ticket-service"
+          >
+            {{ senha.servicoDoCliente }}
+          </div>
+          <div
+            v-if="senha.descricao"
+            class="ticket-description"
+            v-html="formatarDescricao(senha.descricao)"
+          />
         </div>
 
         <div class="ticket-controls">
           <span class="wait-time">{{ formatarTempoHMS(currentTime - senha.timestamp) }}</span>
 
           <div class="action-buttons">
-            <button @click="$emit('ver-detalhes', senha.numero)" class="btn-action btn-info" title="Ver Detalhes">
-              <i class="fas fa-info-circle"></i>
+            <button
+              class="btn-action btn-info"
+              title="Ver Detalhes"
+              @click="$emit('ver-detalhes', senha.numero)"
+            >
+              <i class="fas fa-info-circle" />
             </button>
-            <button @click="$emit('chamar', senha.numero)" class="btn-action btn-call" title="Chamar esta senha">
-              <i class="fas fa-bullhorn"></i>
+            <button
+              class="btn-action btn-call"
+              title="Chamar esta senha"
+              @click="$emit('chamar', senha.numero)"
+            >
+              <i class="fas fa-bullhorn" />
             </button>
-            <button @click="$emit('editar', senha.numero)" class="btn-action btn-edit" title="Editar Descrição">
-              <i class="fas fa-edit"></i>
+            <button
+              class="btn-action btn-edit"
+              title="Editar Descrição"
+              @click="$emit('editar', senha.numero)"
+            >
+              <i class="fas fa-edit" />
             </button>
-            <button @click="$emit('excluir', senha.numero)" class="btn-action btn-delete" title="Excluir">
-              <i class="fas fa-trash-alt"></i>
+            <button
+              class="btn-action btn-delete"
+              title="Excluir"
+              @click="$emit('excluir', senha.numero)"
+            >
+              <i class="fas fa-trash-alt" />
             </button>
           </div>
         </div>
@@ -68,9 +96,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import type { Senha, FiltroFila } from '@shared/types'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import type { Senha, FiltroFila, EstadoSistema } from '@shared/types'
 import { getIconClass, formatarDescricao, formatarTempoHMS } from '@/composables/useUtils'
+import { predictNextOrFallback } from '@/ml/inference'
 
 // Props
 interface Props {
@@ -80,6 +109,7 @@ interface Props {
   contadorPrioridadeDesdeUltimaNormal?: number
   contadorContratualDesdeUltimaNormal?: number
   algoritmo?: 'proporcao' | 'round_robin' | 'fifo'
+  estado?: EstadoSistema
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -102,6 +132,7 @@ defineEmits<{
 // State
 const filtroAtivo = ref<FiltroFila>('emissao')
 const termoBusca = ref('')
+const iaPreviewNumero = ref<string | null>(null)
 
 // Força atualização a cada segundo
 const currentTime = ref(Date.now())
@@ -116,6 +147,20 @@ onMounted(() => {
 onUnmounted(() => {
   if (intervalId !== null) {
     clearInterval(intervalId)
+  }
+})
+
+// Atualiza prévia IA quando filtro automático está ativo
+watch([filtroAtivo, () => props.senhas, () => props.estado], async () => {
+  if (filtroAtivo.value === 'automatica' && props.estado && props.senhas.length > 0) {
+    try {
+      const pred = await predictNextOrFallback(props.estado)
+      iaPreviewNumero.value = pred.numeroPrevisto || null
+    } catch {
+      iaPreviewNumero.value = null
+    }
+  } else {
+    iaPreviewNumero.value = null
   }
 })
 
@@ -241,6 +286,15 @@ const senhasFiltradas = computed(() => {
         }
       }
       result = filaSimulada
+    }
+
+    // Reordenar colocando a prévia IA no topo (não definitivo)
+    if (iaPreviewNumero.value) {
+      const idx = result.findIndex(s => s.numero === iaPreviewNumero.value)
+      if (idx > 0) {
+        const [item] = result.splice(idx, 1)
+        result.unshift(item)
+      }
     }
   }
 
