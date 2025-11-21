@@ -21,7 +21,7 @@
         <input
           v-model="termoBusca"
           type="text"
-          placeholder="Buscar na descrição..."
+          placeholder="Buscar por serviço ou descrição..."
         />
       </div>
     </div>
@@ -40,6 +40,7 @@
         <div class="ticket-info">
           <i :class="getIconClass(senha.tipo)"></i>
           <strong>{{ senha.numero }}</strong>
+          <div v-if="senha.servicoDoCliente" class="ticket-service">{{ senha.servicoDoCliente }}</div>
           <div v-if="senha.descricao" class="ticket-description" v-html="formatarDescricao(senha.descricao)"></div>
         </div>
 
@@ -132,7 +133,7 @@ const senhasFiltradas = computed(() => {
   // Aplica busca
   if (termoBusca.value) {
     const termo = termoBusca.value.toLowerCase()
-    result = result.filter(s => s.descricao?.toLowerCase().includes(termo))
+    result = result.filter(s => (s.descricao?.toLowerCase().includes(termo) || s.servicoDoCliente?.toLowerCase().includes(termo)))
   }
 
   // Aplica ordenação

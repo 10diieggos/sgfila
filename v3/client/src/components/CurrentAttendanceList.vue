@@ -16,6 +16,7 @@
         <div class="senha-info">
           <strong class="senha-numero-small">{{ item.senha.numero }}</strong>
           <span class="guiche-info">{{ item.guiche }}</span>
+          <span v-if="item.senha.servicoDoCliente" class="servico-info">{{ item.senha.servicoDoCliente }}</span>
           <span class="tempo-info">
             <i class="fas fa-clock"></i>
             {{ formatTempoAtendimento(item.senha) }}
@@ -192,6 +193,11 @@ const formatTempoAtendimento = (senha: Senha): string => {
 .tempo-info {
   color: #868e96;
   font-size: 0.85em;
+}
+
+.servico-info {
+  color: #495057;
+  font-size: 0.9em;
 }
 
 .senha-item-controles {

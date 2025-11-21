@@ -98,8 +98,8 @@ export function useSocket() {
   // EMISSÃO DE EVENTOS
   // ========================================
 
-  const emitirSenha = (tipo: TipoSenha, subtipo: string = '') => {
-    socket.value?.emit('emitirSenha', { tipo, subtipo })
+  const emitirSenha = (tipo: TipoSenha, subtipo: string = '', servicoDoCliente?: string) => {
+    socket.value?.emit('emitirSenha', { tipo, subtipo, servicoDoCliente })
   }
 
   const chamarSenha = (guicheId: string) => {

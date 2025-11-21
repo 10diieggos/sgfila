@@ -26,6 +26,7 @@
         <div class="ticket-info">
           <i :class="getIconClass(senha.tipo)"></i>
           <strong>{{ senha.numero }}</strong>
+          <div v-if="senha.servicoDoCliente" class="ticket-service">{{ senha.servicoDoCliente }}</div>
           <div v-if="senha.descricao" class="ticket-description" v-html="formatarDescricao(senha.descricao)"></div>
         </div>
 
@@ -98,7 +99,7 @@ const senhasFiltradas = computed(() => {
     const termo = termoBusca.value.toLowerCase()
     result = result.filter(s =>
       s.numero.toLowerCase().includes(termo) ||
-      s.descricao?.toLowerCase().includes(termo)
+      s.descricao?.toLowerCase().includes(termo) || s.servicoDoCliente?.toLowerCase().includes(termo)
     )
   }
 

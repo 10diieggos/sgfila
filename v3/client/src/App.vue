@@ -68,6 +68,13 @@
         <div class="card">
           <h3><i class="fas fa-ticket-alt"></i> Emissão de Senhas</h3>
           <div class="controls">
+            <input v-model="servicoSelecionado" type="text" class="input-servico" placeholder="Serviço do cliente" />
+            <div class="servicos-sugeridos">
+              <label v-for="op in servicosSugeridos" :key="op" class="servico-check">
+                <input type="checkbox" :checked="servicoSelecionado === op" @change="servicoSelecionado = op" />
+                {{ op }}
+              </label>
+            </div>
             <button @click="handleEmitirSenha('prioridade')" class="btn btn-priority btn-emit">
               <i class="fas fa-wheelchair"></i> Prioritária
             </button>
@@ -365,7 +372,7 @@ const guichesExibicao = ref<string[]>([])
 const senhaParaChamar = ref<string | null>(null)
 const guichesLivres = ref<Guiche[]>([])
 const alertModalRef = ref<HTMLElement>()
-const confirmModalData = ref({
+  const confirmModalData = ref({
   title: '',
   message: '',
   confirmText: 'Confirmar',
@@ -373,7 +380,20 @@ const confirmModalData = ref({
   numeroSenha: '',
   action: '' as 'excluir' | 'ausente' | '',
   data: {} as any
-})
+  })
+  const servicoSelecionado = ref('')
+  const servicosSugeridos = computed(() => {
+    const mapa: Record<string, number> = {}
+    const senhas = estado.value?.senhas || []
+    for (const s of senhas) {
+      const svc = s.servicoDoCliente?.trim()
+      if (svc) mapa[svc] = (mapa[svc] || 0) + 1
+    }
+    return Object.entries(mapa)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([k]) => k)
+  })
 
 // Computed
 const senhasEspera = computed(() => {
@@ -383,7 +403,12 @@ const senhasEspera = computed(() => {
 // Handlers - Emissão
 const handleEmitirSenha = (tipo: 'prioridade' | 'normal' | 'contratual') => {
   novaSenhaTipo.value = tipo
-  emitirSenha(tipo, '')
+  if (!servicoSelecionado.value || !servicoSelecionado.value.trim()) {
+    alertMessage.value = 'Informe o serviço do cliente antes de emitir a senha'
+    showAlertModal.value = true
+    return
+  }
+  emitirSenha(tipo, '', servicoSelecionado.value)
   // Aguardar resposta do servidor para mostrar modal
   setTimeout(() => {
     const ultimaSenha = estado.value?.senhas[estado.value.senhas.length - 1]
@@ -444,7 +469,12 @@ const handleConfirmarDevolucao = (numeroSenha: string, motivo: string) => {
 }
 
 const handleEmitirNovaSenhaFromReturn = (tipo: string) => {
-  emitirSenha(tipo as any, '')
+  if (!servicoSelecionado.value || !servicoSelecionado.value.trim()) {
+    alertMessage.value = 'Informe o serviço do cliente antes de emitir a senha'
+    showAlertModal.value = true
+    return
+  }
+  emitirSenha(tipo as any, '', servicoSelecionado.value)
   handleCloseReturnModal()
 }
 
@@ -813,6 +843,30 @@ header h1 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
+}
+
+.input-servico {
+  grid-column: span 3;
+  padding: 10px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1em;
+}
+
+.servicos-sugeridos {
+  grid-column: span 3;
+  display: flex;
+  gap: 10px;
+}
+
+.servico-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  background: #f8f9fa;
 }
 
 .btn {

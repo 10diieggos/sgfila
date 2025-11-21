@@ -15,7 +15,7 @@ import type {
   ProjecaoAtendimento,
   Senha,
   FiltroPeriodo
-} from '../../../shared/types.js';
+} from '../../../shared/types';
 import { StatisticsService } from './StatisticsService.js';
 import {
   getDataFormatadaBrasilia,
@@ -324,6 +324,7 @@ export class AdvancedStatisticsService {
       tempoOciosoMedioMs
     };
   }
+
 
   /**
    * Calcula projeção de atendimento

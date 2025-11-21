@@ -55,6 +55,10 @@
                 <div class="info-label">Tempo de Atendimento</div>
                 <div class="info-value">{{ tempoAtendimentoRealtime > 0 ? formatarTempoHMS(tempoAtendimentoRealtime) : '---' }}</div>
               </div>
+              <div v-if="ticketSelecionado.servicoDoCliente" class="info-item full-width">
+                <div class="info-label">Serviço</div>
+                <div class="info-value">{{ ticketSelecionado.servicoDoCliente }}</div>
+              </div>
               <div v-if="ticketSelecionado.guicheAtendendo" class="info-item">
                 <div class="info-label">Guichê</div>
                 <div class="info-value">{{ ticketSelecionado.guicheNome || ticketSelecionado.guicheAtendendo }}</div>
