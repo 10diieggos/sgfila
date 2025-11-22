@@ -1393,9 +1393,14 @@
           <div class="ia-status-card">
             <div class="ia-status-label">Modelo ONNX</div>
             <div class="ia-status-value">
-              <i class="fas fa-circle-notch fa-spin" /> Verificando...
+              <span v-if="estado?.configuracoes?.comportamentoFila?.algoritmo === 'jsed_fair_wrr'">
+                <i class="fas fa-check-circle" style="color: #16A34A;" /> Ativo
+              </span>
+              <span v-else>
+                <i class="fas fa-minus-circle" style="color: #868e96;" /> Standby
+              </span>
             </div>
-            <p class="ia-status-hint">Status do modelo de inferência no navegador</p>
+            <p class="ia-status-hint">IA ativa quando algoritmo = JSED/Fair/WRR</p>
           </div>
           <div class="ia-status-card">
             <div class="ia-status-label">Algoritmo Ativo</div>
@@ -1406,8 +1411,21 @@
           </div>
           <div class="ia-status-card">
             <div class="ia-status-label">Última Decisão</div>
-            <div class="ia-status-value">—</div>
-            <p class="ia-status-hint">Nenhuma decisão recente (ver StateManager)</p>
+            <div class="ia-status-value">
+              <span v-if="estado?.ultimaDecisaoIA">
+                {{ estado.ultimaDecisaoIA.numero }}
+                <span class="badge-ia" style="margin-left: 8px; font-size: 0.7em;">
+                  {{ estado.ultimaDecisaoIA.source }}
+                </span>
+              </span>
+              <span v-else>—</span>
+            </div>
+            <p class="ia-status-hint">
+              <span v-if="estado?.ultimaDecisaoIA && estado.ultimaDecisaoIA.confianca">
+                Confiança: {{ (estado.ultimaDecisaoIA.confianca * 100).toFixed(1) }}%
+              </span>
+              <span v-else>Nenhuma decisão registrada</span>
+            </p>
           </div>
         </div>
       </div>
@@ -1473,16 +1491,61 @@
         </div>
       </div>
 
-      <!-- Telemetria (placeholder) -->
+      <!-- Telemetria -->
       <div class="config-section">
         <h3>📈 Telemetria de Decisões</h3>
         <p class="section-hint">
-          Histórico das últimas decisões da IA (fonte, confiança, top-3). Implementação futura conectará com <code>estado.iaTelemetria</code>.
+          Histórico das últimas decisões da IA (fonte, confiança, top-3 JSED).
         </p>
-        <div class="ia-telemetria-placeholder">
+
+        <div v-if="estado?.iaTelemetria && estado.iaTelemetria.length > 0" class="ia-telemetria-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Senha</th>
+                <th>Fonte</th>
+                <th>Confiança</th>
+                <th>Top-3 JSED</th>
+                <th>WRR</th>
+                <th>Horário</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(decisao, idx) in estado.iaTelemetria.slice(-20).reverse()" :key="idx">
+                <td><strong>{{ decisao.numero }}</strong></td>
+                <td>
+                  <span :class="['badge-source', `source-${decisao.source}`]">
+                    {{ decisao.source }}
+                  </span>
+                </td>
+                <td>
+                  <span v-if="decisao.confianca !== undefined">
+                    {{ (decisao.confianca * 100).toFixed(1) }}%
+                  </span>
+                  <span v-else>—</span>
+                </td>
+                <td>
+                  <span v-if="decisao.top3 && decisao.top3.length > 0" class="top3-list">
+                    {{ decisao.top3.join(', ') }}
+                  </span>
+                  <span v-else>—</span>
+                </td>
+                <td>
+                  <i v-if="decisao.wrrAtivo" class="fas fa-check" style="color: #16A34A;" title="WRR ativo"></i>
+                  <span v-else>—</span>
+                </td>
+                <td class="timestamp-col">
+                  {{ new Date(decisao.timestamp).toLocaleTimeString('pt-BR') }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div v-else class="ia-telemetria-placeholder">
           <i class="fas fa-chart-line" style="font-size: 3em; color: #868e96; margin-bottom: 15px;"></i>
-          <p style="color: #868e96;">Telemetria será exibida aqui quando houver dados.</p>
-          <p style="color: #868e96; font-size: 0.9em;">Conectar com <code>estado.iaTelemetria</code> e <code>estado.ultimaDecisaoIA</code>.</p>
+          <p style="color: #868e96;">Nenhuma decisão registrada ainda.</p>
+          <p style="color: #868e96; font-size: 0.9em;">As decisões aparecerão aqui quando senhas forem chamadas com o algoritmo IA.</p>
         </div>
       </div>
     </div>
@@ -1542,6 +1605,8 @@ const props = withDefaults(defineProps<{
   proporcaoContratual: number
   configuracoes?: ConfiguracoesGerais
   initialTab?: SubTab
+  estado?: any  // EstadoSistema completo para dashboard IA
+  estatisticas?: any  // Estatisticas para dashboard IA
 }>(), {
   initialTab: 'guiches'
 })
@@ -2048,6 +2113,12 @@ watch(() => props.configuracoes, (novasConfiguracoes) => {
   if (novasConfiguracoes.correcoes) {
     console.log('✅ [ConfigPanel] Carregando correções')
     correcoesConfig.value = { ...novasConfiguracoes.correcoes }
+  }
+
+  // Atualizar roteamento (IA/JSED)
+  if (novasConfiguracoes.roteamento) {
+    console.log('✅ [ConfigPanel] Carregando configurações de roteamento IA')
+    roteamentoConfig.value = { ...novasConfiguracoes.roteamento }
   }
 
   // Desativar flag após nextTick para garantir que watches já processaram
@@ -2817,6 +2888,95 @@ input:checked + .toggle-slider:before {
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.9em;
+}
+
+.ia-telemetria-table {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ia-telemetria-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ia-telemetria-table thead {
+  background: #f8f9fa;
+}
+
+.ia-telemetria-table th {
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.ia-telemetria-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #f1f3f5;
+  font-size: 0.9em;
+  color: #495057;
+}
+
+.ia-telemetria-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.ia-telemetria-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.badge-source {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-source.source-jsed_fair_wrr {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #1D4ED8;
+}
+
+.badge-source.source-mlHint-desempate {
+  background: #F5F3FF;
+  color: #6D28D9;
+  border: 1px solid #6D28D9;
+}
+
+.badge-source.source-wrr {
+  background: #FFFBEB;
+  color: #CA8A04;
+  border: 1px solid #CA8A04;
+}
+
+.badge-source.source-proporcao,
+.badge-source.source-round_robin,
+.badge-source.source-fifo {
+  background: #F3F4F6;
+  color: #6B7280;
+  border: 1px solid #6B7280;
+}
+
+.top3-list {
+  font-size: 0.85em;
+  color: #6B7280;
+  font-family: 'Courier New', monospace;
+}
+
+.timestamp-col {
+  color: #adb5bd;
+  font-size: 0.85em;
+  white-space: nowrap;
 }
 
 /* Responsive adjustments */

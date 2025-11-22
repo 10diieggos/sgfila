@@ -391,6 +391,8 @@
               :proporcao-contratual="estado?.proporcaoContratual || 1"
               :configuracoes="estado?.configuracoes"
               :initial-tab="configInitialTab"
+              :estado="estado"
+              :estatisticas="estatisticas"
               @atualizar-guiches-globais="atualizarGuichesGlobais"
               @atualizar-proporcao-prioridade="atualizarProporcao"
               @atualizar-proporcao-contratual="atualizarProporcaoContratual"
@@ -402,6 +404,7 @@
               @atualizar-notificacoes="atualizarNotificacoes"
               @atualizar-seguranca="atualizarSeguranca"
               @atualizar-correcoes="atualizarCorrecoes"
+              @atualizar-roteamento="atualizarRoteamento"
               @reiniciar-sistema="handleReiniciarSistema"
             />
           </div>
@@ -454,6 +457,7 @@ const {
   atualizarNotificacoes,
   atualizarSeguranca,
   atualizarCorrecoes,
+  atualizarRoteamento,
   previewJSED,
   solicitarPreviewJSED
 } = useSocket()

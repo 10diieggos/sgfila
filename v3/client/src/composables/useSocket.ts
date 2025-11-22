@@ -238,6 +238,10 @@ export function useSocket() {
     socket.value?.emit('atualizarCorrecoes', correcoes)
   }
 
+  const atualizarRoteamento = (roteamento: any) => {
+    socket.value?.emit('atualizarRoteamento', roteamento)
+  }
+
   // Lifecycle hooks
   onMounted(() => {
     connect()
@@ -279,6 +283,7 @@ export function useSocket() {
     solicitarPreviewJSED,
     atualizarNotificacoes,
     atualizarSeguranca,
-    atualizarCorrecoes
+    atualizarCorrecoes,
+    atualizarRoteamento
   }
 }

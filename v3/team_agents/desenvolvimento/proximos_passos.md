@@ -14,8 +14,8 @@
 
 ### Peso 1 (Funções Desejadas pelo Dono do SGFila)
 - [Concluído] [ID: T-015] Implementar dashboard de IA no ConfigurationPanel.vue (nova aba "IA" com status, thresholds e telemetria).
-- [ID: T-015b] Conectar interface com dados reais do StateManager (carregar thresholds do cliente, exibir última decisão).
-- [ID: T-015c] Adicionar visualização de métricas e histórico de decisões (integrar `estado.iaTelemetria` na seção de telemetria).
+- [Concluído] [ID: T-086] Conectar interface com dados reais do StateManager (carregar thresholds do cliente, exibir última decisão).
+- [Concluído] [ID: T-087] Adicionar visualização de métricas e histórico de decisões (integrar `estado.iaTelemetria` na seção de telemetria).
 
 ### Peso 1 (CRÍTICO - IA Operacional)
 - [Concluído] [ID: T-016] Criar `IAManager.ts` com algoritmo de decisão JSED/Fairness/WRR (ver `v3/server/src/services/IAManager.ts`).
@@ -276,11 +276,29 @@
    - Merge de `mlHintThresholds` em `mesclarConfiguracoes()` (linha 419)
    - Compatibilidade com dados legados via merge com defaults
 
+**Concluído em 2025-11-22 (Sessão 3):**
+1. ✅ **Conexão do dashboard IA com dados reais (T-086):**
+   - Props `estado` e `estatisticas` adicionadas ao `ConfigurationPanel`
+   - Status ONNX mostra "Ativo" quando `algoritmo === 'jsed_fair_wrr'`
+   - Última decisão exibe número da senha, fonte e confiança de `estado.ultimaDecisaoIA`
+   - Carregamento de thresholds do servidor via watcher de configurações
+2. ✅ **Visualização de telemetria de decisões (T-087):**
+   - Tabela com últimas 20 decisões (`estado.iaTelemetria`)
+   - Colunas: Senha, Fonte, Confiança, Top-3 JSED, WRR, Horário
+   - Badges coloridos por fonte (JSED/mlHint/WRR/fallback)
+   - Placeholder quando não há dados
+   - Estilos responsivos com hover e contraste AA
+3. ✅ **Integração completa cliente-servidor:**
+   - Função `atualizarRoteamento()` em `useSocket.ts`
+   - Propagação via `App.vue` para `ConfigurationPanel`
+   - Sincronização bidirecional de thresholds
+   - Passagem de `estado` e `estatisticas` como props
+
 **Próximos Passos Prioritários:**
-1. Conectar dashboard com dados reais (T-086)
-2. Implementar visualização de telemetria (T-087)
-3. Criar testes para IAManager (T-091)
-4. Documentar algoritmo JSED (T-097)
+1. Criar testes unitários para IAManager (T-091)
+2. Documentar algoritmo JSED detalhadamente (T-097)
+3. Implementar estimadores λ, μ e percentis (T-104, T-105, T-106)
+4. Sistema de limites dinâmicos (T-108, T-109)
 5. Empacotar para entrega offline (T-037 a T-042)
 
 ---
