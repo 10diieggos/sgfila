@@ -288,7 +288,7 @@ export interface ServerToClientEvents {
 
 export interface ClientToServerEvents {
   emitirSenha: (dados: { tipo: TipoSenha; subtipo: string; servicoDoCliente: string }) => void;
-  chamarSenha: (dados: { guicheId: string; mlHint?: { numeroPrevisto: string; score: number; source?: 'onnx' | 'fallback' } }) => void;
+  chamarSenha: (dados: { guicheId: string; mlHint?: { numeroPrevisto: string; score: number; source?: 'onnx' | 'fallback'; latencyMs?: number } }) => void;
   chamarSenhaEspecifica: (dados: { guicheId: string; numeroSenha: string }) => void;
   finalizarAtendimento: (dados: { guicheId: string }) => void;
   excluirSenha: (dados: { numeroSenha: string }) => void;
@@ -310,6 +310,7 @@ export interface ClientToServerEvents {
   atualizarNotificacoes: (notificacoes: ConfiguracaoNotificacoes) => void;
   atualizarSeguranca: (seguranca: ConfiguracaoSeguranca) => void;
   atualizarCorrecoes: (correcoes: ConfiguracaoCorrecoes) => void;
+  atualizarRoteamento: (roteamento: Partial<ConfiguracaoRoteamento>) => void;
   atualizarDesignTokens: (tokens: ConfiguracaoDesignTokens) => void;
   resetarConfiguracoes: () => void;
 

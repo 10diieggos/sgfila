@@ -19,7 +19,7 @@ export class IAManager {
   public chamarProximaSenha(
     estado: EstadoSistema,
     senhasEspera: Senha[],
-    mlHint?: { numeroPrevisto: string; score: number; source?: 'onnx' | 'fallback' }
+    mlHint?: { numeroPrevisto: string; score: number; source?: 'onnx' | 'fallback'; latencyMs?: number }
   ): Senha | null {
     const agora = Date.now();
     const configRoteamento = estado.configuracoes.roteamento;
@@ -77,7 +77,7 @@ export class IAManager {
     if (mlHint && mlHint.numeroPrevisto && top3JSED.includes(mlHint.numeroPrevisto)) {
       // Gate de validação: checar score, latência e habilitação
       const scoreValido = !thresholds.enabled || (mlHint.score >= thresholds.minScore);
-      const latenciaValida = !thresholds.enabled || !mlHint.latencyMs || (mlHint.latencyMs <= thresholds.maxLatencyMs);
+      const latenciaValida = !thresholds.enabled || (mlHint.latencyMs == null) || (mlHint.latencyMs <= thresholds.maxLatencyMs);
 
       if (scoreValido && latenciaValida) {
         const mlSenha = elegiveis.find(s => s.numero === mlHint.numeroPrevisto);
@@ -90,8 +90,8 @@ export class IAManager {
         }
       } else {
         // ML Hint rejeitado por não passar nos thresholds
-        const motivo = !scoreValido ? `score baixo (${mlHint.score} < ${thresholds.minScore})` : `latência alta (${mlHint.latencyMs}ms > ${thresholds.maxLatencyMs}ms)`;
-        this.registrarDecisao('jsed_fallback_threshold', mlHint.numeroPrevisto, mlHint.score, `ML Hint rejeitado: ${motivo}`, top3JSED);
+        const motivo = !scoreValido ? `score baixo (${mlHint.score} < ${thresholds.minScore})` : `latência alta (${mlHint.latencyMs ?? 'N/A'}ms > ${thresholds.maxLatencyMs}ms)`;
+        this.registrarDecisao('jsed_fair_wrr', melhor?.senha.numero || mlHint.numeroPrevisto, melhor?.score ? 1 / (melhor?.score) : mlHint.score, `ML Hint rejeitado: ${motivo}`, top3JSED);
       }
     }
 

@@ -24,10 +24,12 @@
 - [ID: T-019] Coletar métricas para aprendizado contínuo (`tempoEspera`, `prioridade`, `tipoServico`, `resultadoDecisao`).
 - [ID: T-020] Opção do atendente desligar o sequenciamento da IA e adotar um dos algoritmos na seção "Comportamento da fila" na aba "Configurações". A IA continua funcional para treinamento, avaliação e sequenciamento virtual; apenas não se refletirá no próximo sequenciamento real.
  - [Concluído] [ID: T-021] Implementar "lista preview" ordenada por JSED no servidor e consumo pela UI no filtro "Automática".
+ - [Concluído] [ID: T-090] Garantir prioridade absoluta de tempo limite dentro da IA e na preview JSED (considerar apenas o subconjunto `tempoLimiteAtingido` quando existir) — servidor em `v3/server/src/services/IAManager.ts:31–38` e `v3/server/src/services/IAManager.ts:235–258`; preview em `v3/server/src/services/QueueService.ts:746–752`.
 
 #### Thresholds e Top‑3 (Aceitação de `mlHint`)
-- [Concluído] [ID: T-043] Publicar thresholds offline em `client/public/ml/thresholds.json` com: `minScore ≥ 0.65`, `latencyMsMax ≤ 200`, `cooldownCalls = 20`, `accuracyTarget ≥ 0.75`, `recallPrioridadeMin ≥ 0.85`, `fallbackRateMax ≤ 0.30`.
-- [Concluído] [ID: T-044] Validar aceitação de `mlHint` apenas se `numeroPrevisto ∈ top‑3 JSED` e `score ≥ minScore` (servidor: `IAManager.ts` linhas 63–78).
+ - [Concluído] [ID: T-043] Publicar thresholds offline em `client/public/ml/thresholds.json` com: `minScore ≥ 0.65`, `latencyMsMax ≤ 200`, `cooldownCalls = 20`, `accuracyTarget ≥ 0.75`, `recallPrioridadeMin ≥ 0.85`, `fallbackRateMax ≤ 0.30`.
+ - [Pendente] [ID: T-044] Validar aceitação de `mlHint` apenas se `numeroPrevisto ∈ top‑3 JSED`, `score ≥ minScore` e `latency_ms ≤ 200` diretamente no servidor (gates em `IAManager.ts` próximo de `v3/server/src/services/IAManager.ts:71–81`).
+ - [ID: T-044b] Medir `latency_ms` da predição no cliente e enviar ao servidor; persistir em telemetria e aplicar gating por latência.
 - [ID: T-048] Persistir últimas decisões de IA (fonte, confiança, top‑3, accepted_hint) e exibir no painel.
 
 #### Como alinhar com JSED
@@ -88,6 +90,7 @@
 - [ID: T-077] Métricas de qualidade do estimador: acompanhar `bias`, `var`, `RMSE`, cobertura de IC e `nAmostras` por janela; expor no painel de IA/Estatísticas.
 - [ID: T-078] Alertas de amostra insuficiente: quando `nAmostras < 30` em uma hora, marcar percentis como baixa confiabilidade e usar fallback determinístico (medianas do dia anterior).
 - [ID: T-079] Integração UI: mostrar P50/P95/P99 e previsão de espera por `tipoServico` no `ConfigurationPanel.vue` e no painel do guichê, com rótulos acessíveis e fonte/local de cálculo.
+ - [ID: T-085] Modo dinâmico de tempo limite por tipo/hora: calcular `limite_t(h)` a partir de `λ/μ` e `P95` por tipo; integrar o limite dinâmico em `QueueService.verificarTemposLimite` mantendo pausa por ausência e caps por contrato.
 
 ### Peso 3 (Qualidade/Build)
  - [Concluído] [ID: T-003] Rodar e fechar `npm run type-check && npm run build` no servidor e no cliente após patches.
@@ -234,7 +237,7 @@
 - [ID: T-096] Criar relatório de produtividade por atendente/guichê.
 
 #### Peso 3 (Documentação Técnica)
-- [ID: T-097] Documentar algoritmo JSED detalhadamente (fórmulas, parâmetros, exemplos).
+- [Concluído] [ID: T-097] Documentar algoritmo JSED detalhadamente (fórmulas, parâmetros, exemplos).
 - [ID: T-098] Criar diagramas de sequência para fluxos principais (emissão, chamada, finalização).
 - [ID: T-099] Documentar API de configuração (todos os campos de ConfiguracoesGerais).
 
@@ -294,12 +297,24 @@
    - Sincronização bidirecional de thresholds
    - Passagem de `estado` e `estatisticas` como props
 
+**Concluído em 2025-11-22 (Sessão 4):**
+1. ✅ **Documentação completa do algoritmo JSED (T-097):**
+   - Arquivo técnico oficial: [`algoritmo_jsed_detalhado.md`](algoritmo_jsed_detalhado.md)
+   - Fundamentos matemáticos: fórmula SED e componentes de peso
+   - Detalhamento de W_base, W_aging, W_fast com exemplos práticos
+   - Fluxo de decisão completo (Tempo Limite → WRR → JSED → ML Hint)
+   - 3 exemplos práticos com cálculos passo a passo
+   - Vantagens, limitações e roadmap
+   - Guia de configuração e tuning de parâmetros
+   - Seção de telemetria e monitoramento
+   - Referências cruzadas com código-fonte
+
 **Próximos Passos Prioritários:**
 1. Criar testes unitários para IAManager (T-091)
-2. Documentar algoritmo JSED detalhadamente (T-097)
-3. Implementar estimadores λ, μ e percentis (T-104, T-105, T-106)
-4. Sistema de limites dinâmicos (T-108, T-109)
-5. Empacotar para entrega offline (T-037 a T-042)
+2. Implementar estimadores λ, μ e percentis (T-104, T-105, T-106)
+3. Sistema de limites dinâmicos (T-108, T-109)
+4. Empacotar para entrega offline (T-037 a T-042)
+5. Criar diagramas de sequência (T-098)
 
 ---
 
