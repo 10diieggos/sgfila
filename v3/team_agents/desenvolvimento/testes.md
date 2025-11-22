@@ -51,6 +51,12 @@
 - Resultado: console registra tempo de troca de sub-aba (ms)
 - Métricas: objetivo < 100 ms (dev)
 
+- Caso: Indicadores de IA (fallback e dica ML)
+- IDs Relacionados: `[ID: T-006]`
+- Passos: abrir Fila de Espera; verificar badges "IA" e "Dica ML"; provocar chamada com e sem modelo; observar atualização do badge e leitura de `accepted_hint` em telemetria local
+- Resultado: badge "IA" exibe Fallback quando runtime indisponível; badge "Dica ML" alterna entre Aceita/Rejeitada conforme última telemetria
+- Métricas: leitura e atualização em até 1500 ms; sem bloqueio de UI
+
 ## Instruções de Manutenção por Agente
 - `QA‑SGFila`: registrar resultados, evidências e bloqueios por caso; manter estados.
 - `Test Automation Engineer`: anexar logs/saídas e resumos de falhas dos scripts; propor novas automações.

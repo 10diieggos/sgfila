@@ -87,6 +87,10 @@ export interface EstadoSistema {
   guichesConfigurados: Guiche[];
   dataReinicioSistema: string;
   configuracoes: ConfiguracoesGerais;
+  // Novos campos para WRR
+  chamadasPorTipoRecente: { [key in TipoSenha]?: number; };
+  totalChamadasRecente: number;
+  wrrAtivo?: boolean;
 }
 
 // ============================================
@@ -271,7 +275,7 @@ export interface ServerToClientEvents {
 
 export interface ClientToServerEvents {
   emitirSenha: (dados: { tipo: TipoSenha; subtipo: string; servicoDoCliente: string }) => void;
-  chamarSenha: (dados: { guicheId: string; mlHint?: { numeroPrevisto: string; score: number } }) => void;
+  chamarSenha: (dados: { guicheId: string; mlHint?: { numeroPrevisto: string; score: number; source?: 'onnx' | 'fallback' } }) => void;
   chamarSenhaEspecifica: (dados: { guicheId: string; numeroSenha: string }) => void;
   finalizarAtendimento: (dados: { guicheId: string }) => void;
   excluirSenha: (dados: { numeroSenha: string }) => void;
@@ -366,8 +370,8 @@ export interface ConfiguracaoComportamentoFila {
 
 export interface ConfiguracaoRoteamento {
   jsedWeights: { prioridade: number; contratual: number; normal: number };
-  wfq: { alphaAging: number; agingWindowMin: number; clampMax: number };
-  fast: { msLimit: number; windowSize: number; minCount: number; minFraction: number; boost: number; maxConsecutiveBoost: number; cooldownCalls: number };
+  wfq: { alphaAging: number; agingWindowMin: number; slowdownMax: number; clampMax: number };
+  fast: { msLimit: number; boost: number; windowSize: number; minCount: number; minFraction: number; maxConsecutiveBoost: number; cooldownCalls: number };
   wrr: { weights: { prioridade: number; contratual: number; normal: number }; enableThreshold: number; windowCalls: number; checkRounds: number; cooldownCalls: number };
 }
 
@@ -693,7 +697,7 @@ export function getConfigPadrao(): ConfiguracoesGerais {
     },
     roteamento: {
       jsedWeights: { prioridade: 1.3, contratual: 1.1, normal: 1.0 },
-      wfq: { alphaAging: 0.1, agingWindowMin: 30, clampMax: 2.0 },
+      wfq: { alphaAging: 0.1, agingWindowMin: 30, slowdownMax: 0.5, clampMax: 2.0 },
       fast: { msLimit: 180000, windowSize: 20, minCount: 10, minFraction: 0.5, boost: 1.1, maxConsecutiveBoost: 3, cooldownCalls: 10 },
       wrr: { weights: { prioridade: 3, contratual: 2, normal: 1 }, enableThreshold: 0.2, windowCalls: 20, checkRounds: 2, cooldownCalls: 10 }
     },

@@ -180,7 +180,7 @@ export function getConfigPadrao() {
         },
         roteamento: {
             jsedWeights: { prioridade: 1.3, contratual: 1.1, normal: 1.0 },
-            wfq: { alphaAging: 0.1, agingWindowMin: 30, clampMax: 2.0 },
+            wfq: { alphaAging: 0.1, agingWindowMin: 30, slowdownMax: 0.5, clampMax: 2.0 },
             fast: { msLimit: 180000, windowSize: 20, minCount: 10, minFraction: 0.5, boost: 1.1, maxConsecutiveBoost: 3, cooldownCalls: 10 },
             wrr: { weights: { prioridade: 3, contratual: 2, normal: 1 }, enableThreshold: 0.2, windowCalls: 20, checkRounds: 2, cooldownCalls: 10 }
         },

@@ -104,10 +104,7 @@ export class SocketHandlers {
 
     socket.on('chamarSenha', ({ guicheId, mlHint }) => {
       try {
-        const algoritmo = this.stateManager.getEstado().configuracoes?.comportamentoFila?.algoritmo || 'proporcao'
-        const senha = algoritmo === 'jsed_fair_wrr'
-          ? this.queueService.chamarPorJSEDFairWRR(guicheId, mlHint)
-          : this.queueService.chamarSenha(guicheId);
+        const senha = this.queueService.chamarSenha(guicheId, mlHint);
 
         if (senha) {
           // Emite beep para todos

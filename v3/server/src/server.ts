@@ -28,7 +28,14 @@ const app = express();
 const httpServer = createServer(app);
 
 // Configura Socket.IO com tipos
-const ORIGIN = process.env.CORS_ORIGIN || (MODO_TESTE ? "*" : `http://localhost:${PORT}`);
+// Permite desenvolvimento com Vite (5173) via proxy e execução direta do cliente em 3000
+const ORIGIN = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN
+  : [
+      `http://localhost:${PORT}`,
+      'http://localhost:5173',
+      'http://127.0.0.1:5173'
+    ];
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
     origin: ORIGIN,

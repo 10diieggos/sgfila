@@ -5,139 +5,34 @@
 
 import type { EstadoSistema, Senha, TipoSenha, MotivoRetorno, RegistroDevolucao } from '../../../shared/types.ts';
 import { StateManager } from './StateManager.js';
+import { IAManager } from './IAManager.js';
 
 export class QueueService {
   private stateManager: StateManager;
+  private iaManager: IAManager;
 
   constructor() {
     this.stateManager = StateManager.getInstance();
+    this.iaManager = new IAManager(this.stateManager);
   }
 
-  private clamp(x: number, lo: number, hi: number): number {
-    return Math.min(Math.max(x, lo), hi)
-  }
 
-  private getRoutingCfg(estado: EstadoSistema) {
-    const cfg = (estado.configuracoes as any).roteamento
-    if (cfg) return cfg
-    return {
-      jsedWeights: { prioridade: 1.3, contratual: 1.1, normal: 1.0 },
-      wfq: { alphaAging: 0.1, agingWindowMin: 30, clampMax: 2.0 },
-      fast: { msLimit: 180000, windowSize: 20, minCount: 10, minFraction: 0.5, boost: 1.1, maxConsecutiveBoost: 3, cooldownCalls: 10 },
-      wrr: { weights: { prioridade: 3, contratual: 2, normal: 1 }, enableThreshold: 0.2, windowCalls: 20, checkRounds: 2, cooldownCalls: 10 }
-    }
-  }
 
-  private pesoPorTipo(tipo: TipoSenha, jsedWeights: { prioridade: number; contratual: number; normal: number }): number {
-    if (tipo === 'prioridade') return jsedWeights.prioridade
-    if (tipo === 'contratual') return jsedWeights.contratual
-    return jsedWeights.normal
-  }
 
-  private estimativaServicoMs(s: Senha, estado: EstadoSistema): number {
-    const cfg = this.getRoutingCfg(estado)
-    const window = cfg.fast.windowSize
-    const sameService = estado.senhas
-      .filter(x => x.servicoDoCliente && s.servicoDoCliente && x.servicoDoCliente === s.servicoDoCliente)
-      .filter(x => x.status === 'atendida' && x.tempoAtendimento > 0)
-      .sort((a,b) => (b.finalizadoTimestamp||0) - (a.finalizadoTimestamp||0))
-      .slice(0, window)
-    if (sameService.length > 0) {
-      const arr = sameService.map(x => x.tempoAtendimento).filter(v => v > 0)
-      if (arr.length > 0) {
-        arr.sort((a,b) => a-b)
-        const mid = Math.floor(arr.length/2)
-        const median = arr.length % 2 ? arr[mid] : (arr[mid-1]+arr[mid])/2
-        return median
-      }
-    }
-    // fallback por tipo
-    const sameType = estado.senhas
-      .filter(x => x.tipo === s.tipo && x.status === 'atendida' && x.tempoAtendimento > 0)
-      .sort((a,b) => (b.finalizadoTimestamp||0) - (a.finalizadoTimestamp||0))
-      .slice(0, window)
-    if (sameType.length > 0) {
-      const avg = sameType.reduce((sum,x)=>sum+x.tempoAtendimento,0)/sameType.length
-      return avg
-    }
-    // fallback global
-    const atendidas = estado.senhas.filter(x=>x.status==='atendida' && x.tempoAtendimento>0)
-    if (atendidas.length > 0) {
-      return atendidas.reduce((sum,x)=>sum+x.tempoAtendimento,0)/atendidas.length
-    }
-    return 120000
-  }
 
-  private isFastServiceBoostEnabled(s: Senha, estado: EstadoSistema): boolean {
-    const cfg = this.getRoutingCfg(estado).fast
-    if (!s.servicoDoCliente) return false
-    const window = cfg.windowSize
-    const registros = estado.senhas
-      .filter(x => x.servicoDoCliente === s.servicoDoCliente && x.status === 'atendida' && x.tempoAtendimento > 0)
-      .sort((a,b) => (b.finalizadoTimestamp||0) - (a.finalizadoTimestamp||0))
-      .slice(0, window)
-    const count = registros.length
-    if (count < cfg.minCount) return false
-    const fastCount = registros.filter(x => x.tempoAtendimento <= cfg.msLimit).length
-    const fraction = fastCount / count
-    return fraction >= cfg.minFraction
-  }
 
-  private wrrShouldRun(estado: EstadoSistema): boolean {
-    // placeholder simples: desativado por padrão
-    return false
-  }
 
-  private escolherPorWRR(elegiveis: Senha[], weights: { prioridade: number; contratual: number; normal: number }): Senha | null {
-    const grupos = {
-      prioridade: elegiveis.filter(s=>s.tipo==='prioridade'),
-      contratual: elegiveis.filter(s=>s.tipo==='contratual'),
-      normal: elegiveis.filter(s=>s.tipo==='normal')
-    }
-    const ordem: TipoSenha[] = ['prioridade','contratual','normal']
-    for (const tipo of ordem) {
-      if ((grupos as any)[tipo].length > 0) return (grupos as any)[tipo][0]
-    }
-    return null
-  }
 
-  public chamarPorJSEDFairWRR(guicheId: string, mlHint?: { numeroPrevisto: string; score: number }): Senha | null {
-    const estado = this.stateManager.getEstado()
-    if (estado.atendimentosAtuais[guicheId]) {
-      return null
-    }
-    let fila = estado.senhas.filter(s=>s.status==='espera').sort((a,b)=>a.timestamp-b.timestamp)
-    if (fila.length === 0) return null
-    fila = this.reordenarFilaPorTempoLimite(fila)
-    const cfg = this.getRoutingCfg(estado)
-    if (this.wrrShouldRun(estado)) {
-      const wrrEscolhida = this.escolherPorWRR(fila, cfg.wrr.weights)
-      if (wrrEscolhida) return this.atualizarChamadaInterna(estado, wrrEscolhida, guicheId)
-    }
-    const agora = Date.now()
-    const scored = fila.map(s=>{
-      const tEsperaMs = agora - s.timestamp
-      const tServicoMs = this.estimativaServicoMs(s, estado)
-      const wBase = this.pesoPorTipo(s.tipo, cfg.jsedWeights)
-      const agingRaw = (tEsperaMs/60000) / cfg.wfq.agingWindowMin
-      const fAging = 1 + cfg.wfq.alphaAging * this.clamp(agingRaw, 0, cfg.wfq.clampMax)
-      const wFast = this.isFastServiceBoostEnabled(s, estado) ? cfg.fast.boost : 1
-      const wEff = wBase * fAging * wFast
-      const score = (tEsperaMs + tServicoMs) / wEff
-      return { s, score }
-    }).sort((a,b)=>a.score-b.score)
-    let escolhida = scored[0]?.s || null
-    if (mlHint && escolhida) {
-      const top3 = scored.slice(0,3).map(x=>x.s.numero)
-      if (top3.includes(mlHint.numeroPrevisto)) {
-        const byNumero = fila.find(x=>x.numero===mlHint.numeroPrevisto)
-        if (byNumero) escolhida = byNumero
-      }
-    }
-    return escolhida ? this.atualizarChamadaInterna(estado, escolhida, guicheId) : null
-  }
 
-  private atualizarChamadaInterna(estado: EstadoSistema, senhaChamada: Senha, guicheId: string): Senha | null {
+
+
+
+
+
+
+
+
+  private _atualizarEstadoSenhaChamada(estado: EstadoSistema, senhaChamada: Senha, guicheId: string): Senha | null {
     const agora = Date.now()
     this.retomarContagemTempo(senhaChamada)
     senhaChamada.status = 'chamada'
@@ -147,6 +42,13 @@ export class QueueService {
     senhaChamada.chamadaTimestamp = agora
     senhaChamada.tempoEspera = agora - senhaChamada.timestamp
     estado.atendimentosAtuais[guicheId] = senhaChamada
+
+    // Incrementa contadores de chamadas recentes para WRR
+    if (senhaChamada.tipo) {
+      estado.chamadasPorTipoRecente[senhaChamada.tipo] = (estado.chamadasPorTipoRecente[senhaChamada.tipo] || 0) + 1;
+      estado.totalChamadasRecente++;
+    }
+
     this.stateManager.setEstado(estado)
     return senhaChamada
   }
@@ -222,7 +124,7 @@ export class QueueService {
    * Chama próxima senha da fila para um guichê
    * v3.2 - Integrado com sistema de correção de distorções
    */
-  public chamarSenha(guicheId: string): Senha | null {
+  public chamarSenha(guicheId: string, mlHint?: { numeroPrevisto: string; score: number; source?: 'onnx' | 'fallback' }): Senha | null {
     const estado = this.stateManager.getEstado();
 
     // Verifica se guichê já está atendendo
@@ -248,7 +150,7 @@ export class QueueService {
     }
 
     // NOVA LÓGICA v3.2: Reordena fila colocando senhas em tempo limite primeiro
-    senhasEspera = this.reordenarFilaPorTempoLimite(senhasEspera);
+
 
     // Aplica algoritmo de chamada configurado
     const algoritmo = estado.configuracoes?.comportamentoFila?.algoritmo || 'proporcao';
@@ -270,28 +172,8 @@ export class QueueService {
       return null;
     }
 
-    // NOVA LÓGICA v3.2: Retoma contagem de tempo se estava pausada por ausência
-    this.retomarContagemTempo(senhaChamada);
-
-    // Atualiza senha para chamada
-    const agora = Date.now();
-    senhaChamada.status = 'chamada';
-    senhaChamada.guicheAtendendo = guicheId;
-
-    // Busca nome do guichê
-    const guiche = estado.guichesConfigurados.find(g => g.id === guicheId);
-    senhaChamada.guicheNome = guiche?.nome || guicheId;
-
-    senhaChamada.chamadaTimestamp = agora;
-    senhaChamada.tempoEspera = agora - senhaChamada.timestamp;
-
-    // Adiciona aos atendimentos atuais
-    estado.atendimentosAtuais[guicheId] = senhaChamada;
-
-    this.stateManager.setEstado(estado);
-
-    console.log(`Senha ${senhaChamada.numero} chamada para ${guicheId}`);
-    return senhaChamada;
+    // A senha já foi selecionada pelo algoritmo, agora atualiza o estado
+    return this._atualizarEstadoSenhaChamada(estado, senhaChamada, guicheId);
   }
 
   /**

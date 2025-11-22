@@ -18,14 +18,14 @@
 - Adicionar visualização de métricas e histórico de decisões
 
 ### Peso 1 (CRÍTICO - IA Operacional)
-- [ID: T-016] Criar `IAManager.ts` com algoritmo de decisão de sequência da fila (tempo de espera + prioridade + tipo de serviço).
+- [Concluído] [ID: T-016] Criar `IAManager.ts` com algoritmo de decisão JSED/Fairness/WRR (ver `v3/server/src/services/IAManager.ts`).
 - [ID: T-017] Integrar IA ao `QueueService` substituindo lógica fixa e registrar decisão com confiança.
 - [ID: T-018] Implementar fallback robusto no sequenciamento e sinalização na UI quando ativo.
 - [ID: T-019] Coletar métricas para aprendizado contínuo (`tempoEspera`, `prioridade`, `tipoServico`, `resultadoDecisao`).
 - [ID: T-020] Opção do atendente desligar o sequenciamento da IA e adotar um dos algoritmos na seção "Comportamento da fila" na aba "Configurações". A IA continua funcional para treinamento, avaliação e sequenciamento virtual; apenas não se refletirá no próximo sequenciamento real.
 
 #### Como alinhar com JSED
-- Servidor: integrar a chamada de `chamarPorJSEDFairWRR` quando `algoritmo === 'jsed_fair_wrr'` em `chamarSenha` (`v3/server/src/services/QueueService.ts:254–267`).
+- Servidor: quando `algoritmo === 'jsed_fair_wrr'` em `chamarSenha` (`v3/server/src/services/QueueService.ts:159–169`), usar `iaManager.chamarProximaSenha(estado, senhasEspera, mlHint)` e depois `_atualizarEstadoSenhaChamada(...)`.
 - Cliente (filtro "Automática"):
   - Opção A: adicionar um ramo que replica o scoring JSED no cliente usando estado atual.
   - Opção B (preferível): solicitar ao servidor uma lista "preview" ordenada por JSED e usá-la na UI para o filtro "Automática", garantindo consistência com a decisão real.
@@ -33,6 +33,7 @@
 #### Resumo
 - Hoje, "Automática" reflete a política simples do cliente (proporção/round robin/FIFO), não JSED.
 - Para que "Automática" seja calculada pela IA via JSED, é preciso integrar JSED no servidor e expor/consumir uma ordenação JSED na UI.
+- O `IAManager` já calcula top‑3 JSED e considera `mlHint` do cliente quando válido; após integrar no `QueueService`, a origem da decisão passa a ser consistente entre servidor e UI.
 
 #### Sinalizar decisão da IA
 - Podemos incluir no estado um marcador da fonte da decisão usada na chamada, por exemplo `ultimaDecisaoIA`: { numero, source: 'jsef|wrr|proporcao|fifo|mlHint', confianca } vindo do servidor, e exibir um ícone por senha chamada. Isso dá rastreabilidade clara da origem da decisão além do badge global de status.
@@ -42,11 +43,11 @@
  - [ID: T-010] Documentar no README os requisitos para IA (modelo ONNX e assets) e comportamento quando em fallback.
 
 ### Peso 2 (UX e Telemetria)
-- [ID: T-006] Indicar na UI quando a IA estiver em fallback (sem modelo) e quando uma dica ML foi aceita/rejeitada.
+- [Concluído] [ID: T-006] Indicar na UI quando a IA estiver em fallback (sem modelo) e quando uma dica ML foi aceita/rejeitada.
 - [ID: T-007] Mostrar histórico de ausências e contadores quando `mostrarHistoricoAusencias` ativo.
 - [ID: T-008] Exibir feedback dos eventos de correção (ausência/não comparecimento) com alerta sonoro/visual conforme configuração.
- - [ID: T-011] Adotar `designTokens.colors.primary` no título da Fila de Espera.
- - [ID: T-012] Instrumentar tempo de troca de sub-aba no Painel de Configurações e registrar métricas.
+- [Concluído] [ID: T-011] Adotar `designTokens.colors.primary` no título da Fila de Espera.
+- [Concluído] [ID: T-012] Instrumentar tempo de troca de sub-aba no Painel de Configurações e registrar métricas.
 
 ### Peso 3 (Qualidade/Build)
  - [ID: T-003] Rodar e fechar `npm run type-check && npm run build` no servidor e no cliente após patches.
