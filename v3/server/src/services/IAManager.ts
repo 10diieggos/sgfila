@@ -72,15 +72,26 @@ export class IAManager {
     let decisaoSource: 'jsed_fair_wrr' | 'mlHint-desempate' = 'jsed_fair_wrr';
     let decisaoConfianca = melhor?.score ? 1 / melhor.score : 0; // Inverso do SED como confiança
 
-    // 4) Considerar mlHint se válido e no top-3 JSED
+    // 4) Considerar mlHint se válido, no top-3 JSED e passou nos thresholds
+    const thresholds = configRoteamento.mlHintThresholds;
     if (mlHint && mlHint.numeroPrevisto && top3JSED.includes(mlHint.numeroPrevisto)) {
-      const mlSenha = elegiveis.find(s => s.numero === mlHint.numeroPrevisto);
-      if (mlSenha) {
-        senhaFinal = mlSenha;
-        decisaoSource = 'mlHint-desempate';
-        decisaoConfianca = mlHint.score;
-        this.registrarDecisao(decisaoSource, senhaFinal.numero, decisaoConfianca, `ML Hint aceito (source: ${mlHint.source})`, top3JSED);
-        return senhaFinal;
+      // Gate de validação: checar score, latência e habilitação
+      const scoreValido = !thresholds.enabled || (mlHint.score >= thresholds.minScore);
+      const latenciaValida = !thresholds.enabled || !mlHint.latencyMs || (mlHint.latencyMs <= thresholds.maxLatencyMs);
+
+      if (scoreValido && latenciaValida) {
+        const mlSenha = elegiveis.find(s => s.numero === mlHint.numeroPrevisto);
+        if (mlSenha) {
+          senhaFinal = mlSenha;
+          decisaoSource = 'mlHint-desempate';
+          decisaoConfianca = mlHint.score;
+          this.registrarDecisao(decisaoSource, senhaFinal.numero, decisaoConfianca, `ML Hint aceito (source: ${mlHint.source})`, top3JSED);
+          return senhaFinal;
+        }
+      } else {
+        // ML Hint rejeitado por não passar nos thresholds
+        const motivo = !scoreValido ? `score baixo (${mlHint.score} < ${thresholds.minScore})` : `latência alta (${mlHint.latencyMs}ms > ${thresholds.maxLatencyMs}ms)`;
+        this.registrarDecisao('jsed_fallback_threshold', mlHint.numeroPrevisto, mlHint.score, `ML Hint rejeitado: ${motivo}`, top3JSED);
       }
     }
 

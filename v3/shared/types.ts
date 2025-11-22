@@ -382,11 +382,38 @@ export interface ConfiguracaoComportamentoFila {
   alertarTempoEsperaExcedido: boolean;
 }
 
+// ============================================
+// ESTATÍSTICAS POR HORA (ESTIMADORES)
+// ============================================
+
+export interface EstadoEstatisticasHora {
+  hora: number; // 0-23
+  lambda: { [tipo: string]: number }; // chegadas/hora por tipo
+  mu: { [tipo: string]: number }; // atendimentos/hora por tipo
+  percentis: {
+    p50: { [tipo: string]: number }; // ms
+    p95: { [tipo: string]: number };
+    p99: { [tipo: string]: number };
+  };
+  nAmostras: { [tipo: string]: number };
+  confiabilidade: 'alta' | 'media' | 'baixa';
+  timestamp: number;
+}
+
+// ============================================
+// ROTEAMENTO E IA
+// ============================================
+
 export interface ConfiguracaoRoteamento {
   jsedWeights: { prioridade: number; contratual: number; normal: number };
   wfq: { alphaAging: number; agingWindowMin: number; slowdownMax: number; clampMax: number };
   fast: { msLimit: number; boost: number; windowSize: number; minCount: number; minFraction: number; maxConsecutiveBoost: number; cooldownCalls: number };
   wrr: { weights: { prioridade: number; contratual: number; normal: number }; enableThreshold: number; windowCalls: number; checkRounds: number; cooldownCalls: number };
+  mlHintThresholds: {
+    minScore: number;        // >= 0.65 recomendado
+    maxLatencyMs: number;    // <= 200ms recomendado
+    enabled: boolean;
+  };
 }
 
 export interface ConfiguracaoInterface {
@@ -713,7 +740,8 @@ export function getConfigPadrao(): ConfiguracoesGerais {
       jsedWeights: { prioridade: 1.3, contratual: 1.1, normal: 1.0 },
       wfq: { alphaAging: 0.1, agingWindowMin: 30, slowdownMax: 0.5, clampMax: 2.0 },
       fast: { msLimit: 180000, windowSize: 20, minCount: 10, minFraction: 0.5, boost: 1.1, maxConsecutiveBoost: 3, cooldownCalls: 10 },
-      wrr: { weights: { prioridade: 3, contratual: 2, normal: 1 }, enableThreshold: 0.2, windowCalls: 20, checkRounds: 2, cooldownCalls: 10 }
+      wrr: { weights: { prioridade: 3, contratual: 2, normal: 1 }, enableThreshold: 0.2, windowCalls: 20, checkRounds: 2, cooldownCalls: 10 },
+      mlHintThresholds: { minScore: 0.65, maxLatencyMs: 200, enabled: true }
     },
     algoritmoVersao: '1.0.0',
     versao: '3.2.0',

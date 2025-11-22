@@ -245,7 +245,7 @@
 
 ### Resumo de Implementações Recentes
 
-**Concluído em 2025-11-22:**
+**Concluído em 2025-11-22 (Sessão 1):**
 1. ✅ Atualização de thresholds para valores recomendados (minScore 0.65, fallbackRateMax 0.30)
 2. ✅ Criação de aba "IA" no ConfigurationPanel com:
    - Status atual (modelo ONNX, algoritmo ativo, última decisão)
@@ -254,9 +254,293 @@
 3. ✅ Design Tokens CSS já existentes e funcionais (cores, foco, contraste AA)
 4. ✅ Estilos responsivos para dashboard de IA
 
+**Concluído em 2025-11-22 (Sessão 2):**
+1. ✅ **Gate de ML Hint (T-110, T-111):**
+   - Interface `mlHintThresholds` em `ConfiguracaoRoteamento`
+   - Validação rigorosa no `IAManager`: score ≥ 0.65 e latency ≤ 200ms
+   - Telemetria de rejeições com fonte `jsed_fallback_threshold`
+   - Flag `enabled` para habilitar/desabilitar validação
+2. ✅ **Estrutura de dados estatísticas (T-103):**
+   - Interface `EstadoEstatisticasHora` com λ, μ, percentis, nAmostras
+   - Indicador de confiabilidade (alta/média/baixa)
+3. ✅ **Controles de UI para ML Hint (T-112):**
+   - Seção editável na aba IA do ConfigurationPanel
+   - Toggle para habilitar/desabilitar validação
+   - Inputs para minScore e maxLatencyMs
+   - Info box explicando comportamento
+
 **Próximos Passos Prioritários:**
 1. Conectar dashboard com dados reais (T-086)
 2. Implementar visualização de telemetria (T-087)
 3. Criar testes para IAManager (T-091)
 4. Documentar algoritmo JSED (T-097)
 5. Empacotar para entrega offline (T-037 a T-042)
+
+---
+
+## Sistema de Correção por Tempo Limite Dinâmico (2025-11-22)
+
+### Contexto
+Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/melhoria_logica_correcao_tempo_limite.md`](v3/team_agents/desenvolvimento/melhoria_logica_correcao_tempo_limite.md) propõe substituição de limites fixos (10/20/25min) por limites dinâmicos baseados em estatísticas reais (λ/μ, percentis, carga por hora).
+
+### Peso 1 (CRÍTICO - Sistema de Correção Dinâmica)
+
+#### Fase 1: Fundação de Estimadores
+- [Concluído] [ID: T-103] **Estrutura de dados para estatísticas por hora**
+  - Criar `EstadoEstatisticasHora` em `shared/types.ts`:
+    ```typescript
+    interface EstadoEstatisticasHora {
+      hora: number; // 0-23
+      lambda: { [tipo: string]: number }; // chegadas/hora por tipo
+      mu: { [tipo: string]: number }; // atendimentos/hora por tipo
+      percentis: {
+        p50: { [tipo: string]: number }; // ms
+        p95: { [tipo: string]: number };
+        p99: { [tipo: string]: number };
+      };
+      nAmostras: { [tipo: string]: number };
+      confiabilidade: 'alta' | 'media' | 'baixa';
+      timestamp: number;
+    }
+    ```
+  - Integrar em `StateManager` com persistência em `estatisticas/hora_atual.json`.
+
+- [ID: T-104] **Estimador λ (chegadas por hora)**
+  - Implementar `EstimadorLambda.ts` em `v3/server/src/services/`:
+    - Janelas móveis de 15min e 1h.
+    - EWMA (α = 0.3) para suavização.
+    - Winsorização p1/p99 para robustez a outliers.
+    - Separar por `tipoServico` e calcular global.
+  - Persistir em `estatisticas/lambda_por_hora.json`.
+
+- [ID: T-105] **Estimador μ (taxa de atendimento)**
+  - Implementar `EstimadorMu.ts`:
+    - Calcular `atendimentos/hora ÷ tempo_médio_atendimento`.
+    - Ajustar para interrupções (ausências/não comparecimentos).
+    - EWMA por hora com marcador de confiabilidade.
+    - Separar por `tipoServico` e guichê.
+  - Persistir em `estatisticas/mu_por_hora.json`.
+
+- [ID: T-106] **Estimador de Percentis (P50/P95/P99)**
+  - Implementar `EstimadorPercentis.ts`:
+    - Algoritmo P² (P-square) para fluxo contínuo.
+    - Harrell–Davis para lotes (quando buffer > 100 amostras).
+    - Intervalo de confiança por bootstrap (1.000 reamostragens).
+    - Publicar `tempoEspera_{p50,p95,p99}` e `tempoAtendimento_{p50,p95,p99}`.
+  - Por `tipoServico` e guichê.
+  - Persistir em `estatisticas/percentis_por_hora.json`.
+
+#### Fase 2: Detecção de Não-Estacionariedade
+- [ID: T-107] **Detector de mudança de regime**
+  - Implementar teste CUSUM simplificado por hora.
+  - Sinalizar janelas inválidas aos estimadores.
+  - Quando detectado: reduzir peso das observações antigas (α adaptativo).
+  - Marcar períodos em `estadoEstatisticasHora.naoEstacionario = true`.
+
+#### Fase 3: Cálculo de Limites Dinâmicos
+- [ID: T-108] **Fórmula de limite adaptativo**
+  - Implementar `CalculadorLimiteDinamico.ts`:
+    ```typescript
+    limite_t(h) = clamp(
+      base_t × f_load(h) + P95_t(h),
+      min_t,
+      max_t
+    )
+
+    f_load(h) = min(1.5, EWMA(λ/μ))
+    ```
+  - Parâmetros por tipo:
+    - `base_t`: piso contratual (ex: prioridade 15min, contratual 8min, normal 20min).
+    - `min_t / max_t`: limites de clamp (ex: prioridade [10, 30], contratual [5, 20], normal [15, 40]).
+  - Adicionar em `ConfiguracaoTempoLimite`:
+    ```typescript
+    interface ConfiguracaoTempoLimite {
+      ativo: boolean;
+      modo: 'fixo' | 'dinamico';
+      // Modo fixo (atual)
+      temposPorTipo: {
+        contratual: number;
+        prioridade: number;
+        normal: number;
+      };
+      // Modo dinâmico (novo)
+      parametrosDinamicos?: {
+        [tipo: string]: {
+          base: number;
+          min: number;
+          max: number;
+        };
+      };
+      maxReposicionamentos: number;
+      notificarDisplay: boolean;
+      registrarLog: boolean;
+      mensagemReposicionamento: string;
+    }
+    ```
+
+- [ID: T-109] **Integração com `verificarTemposLimite`**
+  - Modificar `QueueService.verificarTemposLimite()` (linha 580):
+    - Se `modo === 'dinamico'`: usar `CalculadorLimiteDinamico.calcularLimite(tipo, hora)`.
+    - Se `modo === 'fixo'`: usar `temposPorTipo[tipo]` (comportamento atual).
+  - Fallback: quando `nAmostras < 30`, usar medianas do dia anterior ou valores fixos.
+
+#### Fase 4: Gate de ML Hint com Thresholds
+- [Concluído] [ID: T-110] **Adicionar thresholds de ML Hint em configuração**
+  - ✅ Expandido `ConfiguracaoRoteamento` em `shared/types.ts` (linha 412-416).
+  - ✅ Adicionado `mlHintThresholds: { minScore, maxLatencyMs, enabled }`.
+  - ✅ Valores padrão em `getConfigPadrao()`: `{ minScore: 0.65, maxLatencyMs: 200, enabled: true }` (linha 722).
+
+- [Concluído] [ID: T-111] **Implementar gate no IAManager**
+  - ✅ Modificado `IAManager.chamarProximaSenha()` (linhas 75-96):
+    - ✅ Validação de `score >= thresholds.minScore`.
+    - ✅ Validação de `latencyMs <= thresholds.maxLatencyMs`.
+    - ✅ Rejeição registra telemetria com fonte `jsed_fallback_threshold` e motivo detalhado.
+    - ✅ Respeita flag `enabled` (se false, aceita sem validação).
+
+#### Fase 5: UI e Configuração
+- [Concluído] [ID: T-112] **Adicionar controles de ML Hint no ConfigurationPanel**
+  - ✅ Aba "IA" → seção "Thresholds de Aceitação (ML Hint)" (linhas 1416-1474):
+    - ✅ Toggle para habilitar/desabilitar validação.
+    - ✅ Inputs editáveis para `minScore` (0-1, step 0.05).
+    - ✅ Inputs editáveis para `maxLatencyMs` (50-500ms, step 10).
+    - ✅ Info box explicando comportamento e fonte de rejeição.
+    - ✅ Estado reativo `roteamentoConfig` (linha 1825-1831).
+    - ✅ Função `salvarRoteamento()` com emit para servidor (linha 1833-1837).
+    - ✅ Evento `atualizar-roteamento` adicionado aos emits (linha 1561).
+
+- [ID: T-112b] **Adicionar controles de modo dinâmico para Tempo Limite**
+  - Aba "Correções" → nova seção "Modo de Limite de Tempo":
+    - Radio: `Fixo` (atual) vs `Dinâmico` (novo).
+    - Se dinâmico: exibir inputs para `base`, `min`, `max` por tipo.
+    - Exibir aviso se `nAmostras < 30`: "Baixa confiabilidade - usando fallback".
+
+- [ID: T-113] **Dashboard de estatísticas em tempo real**
+  - Aba "Estatísticas" ou "IA" → nova seção "Estimadores":
+    - Tabela com λ(h), μ(h), P95(h) por tipo.
+    - Indicador de confiabilidade (alta/média/baixa).
+    - Gráfico de tendência de carga (λ/μ) nas últimas 24h.
+
+#### Fase 6: Telemetria e Qualidade dos Estimadores
+- [ID: T-114] **Métricas de qualidade do estimador**
+  - Implementar `QualidadeEstimador.ts`:
+    - Calcular `bias`, `variância`, `RMSE`, cobertura de IC.
+    - Expor `nAmostras` por janela.
+  - Persistir em `estatisticas/qualidade_estimadores.json`.
+  - Exibir no dashboard de IA.
+
+- [ID: T-115] **Alertas de amostra insuficiente**
+  - Quando `nAmostras < 30` em uma hora:
+    - Marcar percentis como baixa confiabilidade.
+    - Usar fallback determinístico (medianas do dia anterior).
+    - Exibir warning no console e na UI.
+
+#### Fase 7: Validação e Testes
+- [ID: T-116] **Cenários analíticos de fila**
+  - Definir baterias sintéticas:
+    - M/M/1: chegadas/serviço exponenciais, 1 servidor.
+    - M/M/c: c servidores.
+    - M/G/1: serviço geral.
+    - Chegadas em rajada (burst).
+    - Troca de turno (mudança de μ).
+  - Validar viés/variância dos estimadores.
+  - Registrar resultados em `testes.md` com KPIs (MAE/MAPE/p95 erro).
+
+- [ID: T-117] **Testes de regressão**
+  - Garantir que modo `fixo` mantém comportamento atual.
+  - Validar que modo `dinamico` aplica fórmula corretamente.
+  - Testar fallback quando `nAmostras < 30`.
+  - Testar gate de ML Hint (score/latency).
+
+### Peso 2 (Documentação e Integração)
+
+- [ID: T-118] **Documentar fórmulas e algoritmos**
+  - Criar `v3/team_agents/desenvolvimento/algoritmos_estatisticos.md`:
+    - Detalhamento de λ(h), μ(h), P².
+    - Fórmula de limite dinâmico com exemplos.
+    - Calibração de parâmetros (base, min, max).
+  - Adicionar referências bibliográficas (teoria de filas, algoritmos).
+
+- [ID: T-119] **Guia de operação**
+  - Documentar em README ou manual:
+    - Quando usar modo fixo vs dinâmico.
+    - Como interpretar indicadores de confiabilidade.
+    - Tuning de parâmetros por tipo de serviço.
+
+### Peso 3 (Otimizações e Melhorias)
+
+- [ID: T-120] **Cache de cálculos de limites**
+  - Evitar recalcular limite a cada verificação.
+  - Invalidar cache apenas quando estatísticas mudam.
+
+- [ID: T-121] **Previsão de tempo de espera**
+  - Combinar fórmulas de filas (M/M/1, M/M/c) com λ(h)/μ(h).
+  - Holt–Winters para sazonalidade diária.
+  - Expor `prevTempoEsperaMs` com IC 80/95%.
+
+### Critérios de Aceite
+
+#### Sistema de Limites Dinâmicos
+- ✅ Modo `fixo` mantém comportamento atual (10/20/25min).
+- ✅ Modo `dinamico` calcula limites usando λ, μ e P95.
+- ✅ Fallback ativo quando `nAmostras < 30`.
+- ✅ Limites respeitam clamp (min/max) por tipo.
+- ✅ Pausar contagem durante ausências permanece funcional.
+
+#### Gate de ML Hint
+- ✅ ML Hint rejeitado se `score < 0.65` ou `latency > 200ms`.
+- ✅ Rejeição registrada em telemetria com fonte `jsed_fallback_*`.
+- ✅ Thresholds configuráveis via UI (aba IA).
+
+#### Estimadores e Qualidade
+- ✅ λ(h) e μ(h) calculados por janelas móveis com EWMA.
+- ✅ P50/P95/P99 calculados via P² ou Harrell–Davis.
+- ✅ Métricas de qualidade (bias, var, RMSE) disponíveis.
+- ✅ Indicador de confiabilidade exibido na UI.
+
+#### Persistência e Offline
+- ✅ Estatísticas salvas em JSON local (`estatisticas/*.json`).
+- ✅ Nenhuma chamada HTTP externa.
+- ✅ Rota interna para servir snapshots ao painel.
+
+### Dependências e Bloqueios
+
+**Dependências Técnicas:**
+- T-103 → T-104, T-105, T-106 (estimadores dependem da estrutura de dados).
+- T-104, T-105, T-106 → T-108 (limite dinâmico depende dos estimadores).
+- T-108 → T-109 (integração depende do cálculo).
+- T-110 → T-111 (gate depende da configuração).
+
+**Bloqueios:**
+- Nenhum bloqueador técnico identificado.
+- Requer decisão de produto: habilitar dinâmico por padrão ou deixar em fixo?
+
+### Estimativa de Esforço
+
+| Tarefa | Complexidade | Estimativa |
+|--------|--------------|------------|
+| T-103 | Média | 2-4h |
+| T-104 | Alta | 4-6h |
+| T-105 | Alta | 4-6h |
+| T-106 | Muito Alta | 6-8h |
+| T-107 | Alta | 4-6h |
+| T-108 | Média | 3-4h |
+| T-109 | Baixa | 1-2h |
+| T-110 | Baixa | 1h |
+| T-111 | Média | 2-3h |
+| T-112 | Média | 3-4h |
+| T-113 | Média | 3-4h |
+| T-114 | Alta | 4-6h |
+| T-115 | Baixa | 1-2h |
+| T-116 | Alta | 6-8h |
+| T-117 | Média | 3-4h |
+| T-118 | Média | 2-3h |
+| T-119 | Baixa | 1-2h |
+| T-120 | Baixa | 1-2h |
+| T-121 | Muito Alta | 8-12h |
+
+**Total:** ~60-85h (1.5 a 2 semanas de desenvolvimento full-time)
+
+### Referências
+- Relatório: [`v3/team_agents/desenvolvimento/melhoria_logica_correcao_tempo_limite.md`](v3/team_agents/desenvolvimento/melhoria_logica_correcao_tempo_limite.md)
+- Código atual: [`v3/server/src/services/QueueService.ts:580-643`](v3/server/src/services/QueueService.ts:580-643)
+- Tipos: [`v3/shared/types.ts:509-518`](v3/shared/types.ts:509-518)

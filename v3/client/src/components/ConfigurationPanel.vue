@@ -1416,68 +1416,58 @@
       <div class="config-section">
         <h3>⚙️ Thresholds de Aceitação (ML Hint)</h3>
         <p class="section-hint">
-          Critérios para aceitar sugestões de ML do cliente. Apenas senhas no top-3 JSED e com score ≥ minScore são consideradas.
+          Critérios para aceitar sugestões de ML do cliente. Apenas senhas no top-3 JSED com score e latência válidos são consideradas.
         </p>
+
+        <div class="config-item" style="margin-bottom: 20px;">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              v-model="roteamentoConfig.mlHintThresholds.enabled"
+              @change="salvarRoteamento"
+            >
+            <span>Habilitar validação de ML Hint</span>
+          </label>
+          <p class="input-hint">Quando desabilitado, aceita qualquer ML Hint no top-3 JSED sem validar score/latência</p>
+        </div>
+
         <div class="config-grid-2">
           <div class="config-item">
-            <label>Score Mínimo (minScore):</label>
+            <label>Score Mínimo:</label>
             <input
               type="number"
-              value="0.65"
+              v-model.number="roteamentoConfig.mlHintThresholds.minScore"
               min="0"
               max="1"
               step="0.05"
               class="config-input"
-              disabled
+              @change="salvarRoteamento"
             >
-            <p class="input-hint">Configurado em /ml/thresholds.json</p>
+            <p class="input-hint">Recomendado: ≥ 0.65 (maior confiança mínima)</p>
           </div>
           <div class="config-item">
             <label>Latência Máxima (ms):</label>
             <input
               type="number"
-              value="200"
+              v-model.number="roteamentoConfig.mlHintThresholds.maxLatencyMs"
               min="50"
               max="500"
               step="10"
               class="config-input"
-              disabled
+              @change="salvarRoteamento"
             >
-            <p class="input-hint">Tempo máximo para inferência ML</p>
-          </div>
-          <div class="config-item">
-            <label>Cooldown (chamadas):</label>
-            <input
-              type="number"
-              value="20"
-              min="5"
-              max="50"
-              class="config-input"
-              disabled
-            >
-            <p class="input-hint">Chamadas entre ativações de WRR</p>
-          </div>
-          <div class="config-item">
-            <label>Taxa Máxima Fallback:</label>
-            <input
-              type="number"
-              value="0.30"
-              min="0"
-              max="1"
-              step="0.05"
-              class="config-input"
-              disabled
-            >
-            <p class="input-hint">Máximo de fallbacks aceitável</p>
+            <p class="input-hint">Recomendado: ≤ 200ms (tempo de inferência)</p>
           </div>
         </div>
-        <div class="warning-box" style="margin-top: 20px;">
-          <i class="fas fa-lock" />
+
+        <div class="info-box" style="margin-top: 20px;">
+          <i class="fas fa-info-circle" />
           <div>
-            <strong>Thresholds Offline:</strong>
+            <strong>Como funciona:</strong>
             <p>
-              Os thresholds são carregados do arquivo <code>client/public/ml/thresholds.json</code> e não podem ser editados pela UI.
-              Para alterá-los, edite o arquivo diretamente.
+              Quando habilitado, o servidor rejeita ML Hints com score baixo ou latência alta,
+              mesmo se estiverem no top-3 JSED. A rejeição é registrada na telemetria com fonte
+              <code>jsed_fallback_threshold</code>.
             </p>
           </div>
         </div>
@@ -1568,6 +1558,7 @@ const emit = defineEmits<{
   'atualizar-notificacoes': [config: ConfiguracaoNotificacoes]
   'atualizar-seguranca': [config: ConfiguracaoSeguranca]
   'atualizar-correcoes': [config: ConfiguracaoCorrecoes]
+  'atualizar-roteamento': [config: any]
   'reiniciar-sistema': []
   'atualizar-design-tokens': [tokens: ConfiguracaoDesignTokens]
 }>()
@@ -1830,6 +1821,21 @@ watch(comportamentoConfig, () => {
     salvarComportamento()
   }, 300)
 }, { deep: true })
+
+// Configurações de Roteamento (IA)
+const roteamentoConfig = ref({
+  jsedWeights: { prioridade: 1.3, contratual: 1.1, normal: 1.0 },
+  wfq: { alphaAging: 0.1, agingWindowMin: 30, slowdownMax: 0.5, clampMax: 2.0 },
+  fast: { msLimit: 180000, windowSize: 20, minCount: 10, minFraction: 0.5, boost: 1.1, maxConsecutiveBoost: 3, cooldownCalls: 10 },
+  wrr: { weights: { prioridade: 3, contratual: 2, normal: 1 }, enableThreshold: 0.2, windowCalls: 20, checkRounds: 2, cooldownCalls: 10 },
+  mlHintThresholds: { minScore: 0.65, maxLatencyMs: 200, enabled: true }
+})
+
+const salvarRoteamento = () => {
+  if (carregandoDoServidor) return
+  console.log('💾 [ConfigPanel] Salvando configuração de roteamento')
+  emit('atualizar-roteamento', roteamentoConfig.value)
+}
 
 // Configurações de Interface
 const interfaceConfig = ref<ConfiguracaoInterface>({
