@@ -2,7 +2,7 @@
   "data": "2025-11-22",
   "modoTeste": false,
   "criadoEm": 1763817630537,
-  "atualizadoEm": 1763821230478,
+  "atualizadoEm": 1763832992359,
   "snapshots": [
     {
       "timestamp": 1763817630552,
@@ -696,30 +696,386 @@
         "horarioPicoMaximo": "0h",
         "periodoMenorMovimento": "---"
       }
+    },
+    {
+      "timestamp": 1763832992351,
+      "hora": 14,
+      "estatisticas": {
+        "totalEmitidas": 1,
+        "totalAtendidas": 1,
+        "totalNaoCompareceu": 0,
+        "totalExcluidas": 0,
+        "tempoMedioEsperaGeral": "< 1 min",
+        "tempoMedioEsperaGeralMs": 20962,
+        "tempoMedioAtendimentoGeral": "< 1 min",
+        "tempoMedioAtendimentoGeralMs": 3716,
+        "proximaSenha": "---",
+        "detalhesPorTipo": {
+          "prioridade": {
+            "emitidas": 1,
+            "atendidas": 1,
+            "tempoMedioEspera": "< 1 min",
+            "tempoMedioEsperaMs": 20962,
+            "tempoMedioAtendimento": "< 1 min",
+            "tempoMedioAtendimentoMs": 3716,
+            "maiorTempoEspera": "< 1 min",
+            "maiorTempoEsperaMs": 20962,
+            "menorTempoEspera": "< 1 min",
+            "menorTempoEsperaMs": 20962
+          },
+          "contratual": {
+            "emitidas": 0,
+            "atendidas": 0,
+            "tempoMedioEspera": "0 min",
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimento": "0 min",
+            "tempoMedioAtendimentoMs": 0,
+            "maiorTempoEspera": "0 min",
+            "maiorTempoEsperaMs": 0,
+            "menorTempoEspera": "---",
+            "menorTempoEsperaMs": 0
+          },
+          "normal": {
+            "emitidas": 0,
+            "atendidas": 0,
+            "tempoMedioEspera": "0 min",
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimento": "0 min",
+            "tempoMedioAtendimentoMs": 0,
+            "maiorTempoEspera": "0 min",
+            "maiorTempoEsperaMs": 0,
+            "menorTempoEspera": "---",
+            "menorTempoEsperaMs": 0
+          }
+        },
+        "detalhesPorGuiche": {
+          "guiche_1763829316566_qf8ypud5u": {
+            "atendidas": 1,
+            "tempoMedioAtendimento": "< 1 min",
+            "tempoMedioAtendimentoMs": 3716
+          }
+        },
+        "guichesAtivos": 1,
+        "dataReferencia": "2025-11-22",
+        "timestampInicio": 1763780400000,
+        "timestampFim": 1763832992344,
+        "periodoAtivo": true,
+        "modoTeste": false,
+        "distribuicaoPorHora": [
+          {
+            "hora": 0,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 1,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 2,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 3,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 4,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 5,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 6,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 7,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 8,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 9,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 10,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 11,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 12,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 13,
+            "emitidas": 1,
+            "atendidas": 1,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 20962,
+            "tempoMedioAtendimentoMs": 3716,
+            "pico": true,
+            "p50EsperaMs": 20962,
+            "p90EsperaMs": 20962,
+            "p95EsperaMs": 20962,
+            "p99EsperaMs": 20962,
+            "muPorHora": 16.146393972012916,
+            "lambdaPorHora": 0.016666666666666666
+          },
+          {
+            "hora": 14,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 15,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 16,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 17,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 18,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 19,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 20,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 21,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 22,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          },
+          {
+            "hora": 23,
+            "emitidas": 0,
+            "atendidas": 0,
+            "naoCompareceu": 0,
+            "tempoMedioEsperaMs": 0,
+            "tempoMedioAtendimentoMs": 0,
+            "pico": false,
+            "lambdaPorHora": 0
+          }
+        ],
+        "horasPico": [
+          {
+            "horarioInicio": 13,
+            "horarioFim": 13,
+            "quantidadeSenhas": 1,
+            "descricao": "13h"
+          }
+        ],
+        "performancePorAtendente": [
+          {
+            "guicheId": "guiche_1763829316566_qf8ypud5u",
+            "guicheNome": "Guichê 1",
+            "totalAtendimentos": 1,
+            "tempoMedioAtendimentoMs": 3716,
+            "tempoTotalAtivoMs": 3716,
+            "eficiencia": 0.06845102907851053,
+            "taxaOcupacao": 0.007065667334881809,
+            "maiorTempoAtendimentoMs": 3716,
+            "menorTempoAtendimentoMs": 3716
+          }
+        ],
+        "devolucoes": {
+          "totalDevolucoes": 1,
+          "porMotivo": {
+            "erro_operacional": {
+              "quantidade": 1,
+              "percentual": 100
+            }
+          },
+          "tempoMedioAteRetornoMs": 0
+        },
+        "qualidade": {
+          "taxaAtendimento": 100,
+          "taxaNaoComparecimento": 0,
+          "taxaDevolucao": 100,
+          "eficienciaGeral": 0.06845102777697072,
+          "tempoOciosoMedioMs": 0
+        },
+        "projecao": null,
+        "mediaAtendimentosPorHora": 0.041666666666666664,
+        "picoMaximoAtendimentos": 1,
+        "horarioPicoMaximo": "13h",
+        "periodoMenorMovimento": "13h"
+      }
     }
   ],
   "estatisticasFinais": {
-    "totalEmitidas": 0,
-    "totalAtendidas": 0,
+    "totalEmitidas": 1,
+    "totalAtendidas": 1,
     "totalNaoCompareceu": 0,
     "totalExcluidas": 0,
-    "tempoMedioEsperaGeral": "0 min",
-    "tempoMedioEsperaGeralMs": 0,
-    "tempoMedioAtendimentoGeral": "0 min",
-    "tempoMedioAtendimentoGeralMs": 0,
+    "tempoMedioEsperaGeral": "< 1 min",
+    "tempoMedioEsperaGeralMs": 20962,
+    "tempoMedioAtendimentoGeral": "< 1 min",
+    "tempoMedioAtendimentoGeralMs": 3716,
     "proximaSenha": "---",
     "detalhesPorTipo": {
       "prioridade": {
-        "emitidas": 0,
-        "atendidas": 0,
-        "tempoMedioEspera": "0 min",
-        "tempoMedioEsperaMs": 0,
-        "tempoMedioAtendimento": "0 min",
-        "tempoMedioAtendimentoMs": 0,
-        "maiorTempoEspera": "0 min",
-        "maiorTempoEsperaMs": 0,
-        "menorTempoEspera": "---",
-        "menorTempoEsperaMs": 0
+        "emitidas": 1,
+        "atendidas": 1,
+        "tempoMedioEspera": "< 1 min",
+        "tempoMedioEsperaMs": 20962,
+        "tempoMedioAtendimento": "< 1 min",
+        "tempoMedioAtendimentoMs": 3716,
+        "maiorTempoEspera": "< 1 min",
+        "maiorTempoEsperaMs": 20962,
+        "menorTempoEspera": "< 1 min",
+        "menorTempoEsperaMs": 20962
       },
       "contratual": {
         "emitidas": 0,
@@ -746,11 +1102,17 @@
         "menorTempoEsperaMs": 0
       }
     },
-    "detalhesPorGuiche": {},
+    "detalhesPorGuiche": {
+      "guiche_1763829316566_qf8ypud5u": {
+        "atendidas": 1,
+        "tempoMedioAtendimento": "< 1 min",
+        "tempoMedioAtendimentoMs": 3716
+      }
+    },
     "guichesAtivos": 1,
     "dataReferencia": "2025-11-22",
     "timestampInicio": 1763780400000,
-    "timestampFim": 1763821230474,
+    "timestampFim": 1763832992344,
     "periodoAtivo": true,
     "modoTeste": false,
     "distribuicaoPorHora": [
@@ -886,13 +1248,18 @@
       },
       {
         "hora": 13,
-        "emitidas": 0,
-        "atendidas": 0,
+        "emitidas": 1,
+        "atendidas": 1,
         "naoCompareceu": 0,
-        "tempoMedioEsperaMs": 0,
-        "tempoMedioAtendimentoMs": 0,
-        "pico": false,
-        "lambdaPorHora": 0
+        "tempoMedioEsperaMs": 20962,
+        "tempoMedioAtendimentoMs": 3716,
+        "pico": true,
+        "p50EsperaMs": 20962,
+        "p90EsperaMs": 20962,
+        "p95EsperaMs": 20962,
+        "p99EsperaMs": 20962,
+        "muPorHora": 16.146393972012916,
+        "lambdaPorHora": 0.016666666666666666
       },
       {
         "hora": 14,
@@ -995,24 +1362,48 @@
         "lambdaPorHora": 0
       }
     ],
-    "horasPico": [],
-    "performancePorAtendente": [],
+    "horasPico": [
+      {
+        "horarioInicio": 13,
+        "horarioFim": 13,
+        "quantidadeSenhas": 1,
+        "descricao": "13h"
+      }
+    ],
+    "performancePorAtendente": [
+      {
+        "guicheId": "guiche_1763829316566_qf8ypud5u",
+        "guicheNome": "Guichê 1",
+        "totalAtendimentos": 1,
+        "tempoMedioAtendimentoMs": 3716,
+        "tempoTotalAtivoMs": 3716,
+        "eficiencia": 0.06845102907851053,
+        "taxaOcupacao": 0.007065667334881809,
+        "maiorTempoAtendimentoMs": 3716,
+        "menorTempoAtendimentoMs": 3716
+      }
+    ],
     "devolucoes": {
-      "totalDevolucoes": 0,
-      "porMotivo": {},
+      "totalDevolucoes": 1,
+      "porMotivo": {
+        "erro_operacional": {
+          "quantidade": 1,
+          "percentual": 100
+        }
+      },
       "tempoMedioAteRetornoMs": 0
     },
     "qualidade": {
-      "taxaAtendimento": 0,
+      "taxaAtendimento": 100,
       "taxaNaoComparecimento": 0,
-      "taxaDevolucao": 0,
-      "eficienciaGeral": 0,
+      "taxaDevolucao": 100,
+      "eficienciaGeral": 0.06845102777697072,
       "tempoOciosoMedioMs": 0
     },
     "projecao": null,
-    "mediaAtendimentosPorHora": 0,
-    "picoMaximoAtendimentos": 0,
-    "horarioPicoMaximo": "0h",
-    "periodoMenorMovimento": "---"
+    "mediaAtendimentosPorHora": 0.041666666666666664,
+    "picoMaximoAtendimentos": 1,
+    "horarioPicoMaximo": "13h",
+    "periodoMenorMovimento": "13h"
   }
 }

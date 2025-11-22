@@ -53,9 +53,9 @@
  - [ID: T-023] Ajustar UI do filtro "Automática" para indicar que ordenação está sincronizada com servidor quando `algoritmo === 'jsed_fair_wrr'`.
 
 ### Peso 3 (Qualidade/Build)
-- [ID: T-003] Rodar e fechar `npm run type-check && npm run build` no servidor e no cliente após patches.
-- [ID: T-004] Reexecutar smoke/E2E (`v3/qa/smoke-socket.js`) e validar métricas de latência e campos: `servicoDoCliente`, `tempoEspera`, `chamadaTimestamp`, `finalizadoTimestamp`.
-- [ID: T-005] Solicitar nova auditoria do Supervisor Crítico após correções.
+ - [Concluído] [ID: T-003] Rodar e fechar `npm run type-check && npm run build` no servidor e no cliente após patches.
+ - [Concluído] [ID: T-004] Reexecutar smoke (`v3/qa/smoke-socket.js`) e validar métricas de latência e campos: `servicoDoCliente`, `tempoEspera`, `chamadaTimestamp`, `finalizadoTimestamp`.
+ - [ID: T-005] Solicitar nova auditoria do Supervisor Crítico após correções.
  - [ID: T-024] Criar testes E2E para evento `solicitarPreviewJSED` garantindo que ordenação e chamada real sejam consistentes.
  - [ID: T-025] Medir impacto de `jsed_fair_wrr` em latência de chamada e bundle do cliente (não quebrar offline).
 
@@ -96,7 +96,8 @@
 - UI destaca `tempoLimiteAtingido` e exibe histórico/feedback de correções.
 - Modelo ONNX presente ou fallback claramente sinalizado na UI.
 - Supervisor Crítico libera gate (sem bloqueios remanescentes).
- - Filtro "Automática" usa ordenação JSED do servidor quando habilitado e está consistente com a chamada real.
+- Filtro "Automática" usa ordenação JSED do servidor quando habilitado e está consistente com a chamada real.
+ - Painel de Guichê alterna corretamente: finaliza se estiver atendendo e chama próxima se livre.
 
 ## Convenção de IDs de Tarefa
 - Formato: `[ID: T-###]` prefixado no item do plano.
