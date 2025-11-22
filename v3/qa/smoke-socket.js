@@ -1,7 +1,24 @@
-const { io } = require('../client/node_modules/socket.io-client');
+// Robust logging for QA smoke
+process.on('uncaughtException', (err) => {
+  console.error('SMOKE_UNCAUGHT', err && err.stack || err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('SMOKE_UNHANDLED_REJECTION', reason);
+  process.exit(1);
+});
+
+let io;
+try {
+  // Prefer project-local socket.io-client to avoid global dependency issues
+  ({ io } = require('../client/node_modules/socket.io-client'));
+} catch (e) {
+  console.error('SMOKE_ERROR_REQUIRE', e && e.message || e);
+  throw e;
+}
 
 async function run() {
-  const sock = io('http://localhost:3000');
+  const sock = io('http://localhost:3000', { transports: ['websocket'] });
   let initialEstado = null;
   let guicheId = null;
   let emittedNumero = null;
@@ -21,7 +38,13 @@ async function run() {
 
   const onceEstado = () => waitFor('estadoAtualizado');
 
-  await new Promise((resolve) => sock.on('connect', resolve));
+  await new Promise((resolve, reject) => {
+    sock.on('connect', resolve);
+    sock.on('connect_error', (err) => {
+      console.error('SMOKE_CONNECT_ERROR', err && err.message || err);
+      reject(err);
+    });
+  });
 
   metrics.emitStart = Date.now();
   sock.emit('emitirSenha', { tipo: 'normal', subtipo: '', servicoDoCliente: 'Cadastro' });

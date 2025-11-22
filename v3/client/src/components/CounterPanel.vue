@@ -43,8 +43,9 @@
             </span>
             <span
               v-if="aiDecision && aiDecision.numero === senhaAtual(guiche.id)?.numero"
-              class="ai-badge"
+              class="badge badge-ia"
               :title="`Decisão IA: ${aiDecision.source}`"
+              :aria-label="`IA ativa — decisão: ${aiDecision.source}`"
             >
               <i class="fas fa-robot" />
             </span>
@@ -312,18 +313,7 @@ const handleGuicheClick = (guiche: Guiche) => {
   display: block;
 }
 
-.ai-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  background: #e7f5ff;
-  color: #004a8d;
-  border: 1px solid #4dabf7;
-  border-radius: 12px;
-  padding: 2px 6px;
-  font-size: 0.85rem;
-}
+/* Badge IA agora usa classes globais `.badge` e `.badge-ia` definidas em `src/styles/main.css` */
 
 .senha-numero.vazio {
   color: #adb5bd;

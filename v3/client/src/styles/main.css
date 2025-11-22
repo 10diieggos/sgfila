@@ -3,6 +3,41 @@
  * Global styles and CSS reset
  */
 
+/* Design Tokens */
+:root {
+  /* Base */
+  --color-bg: #f5f7fa;
+  --color-text: #111827; /* neutral-900 */
+
+  /* Primary (blue) */
+  --primary-700: #1D4ED8;
+  --primary-800: #1E40AF;
+
+  /* Focus */
+  --focus-ring: #1D4ED8;
+
+  /* Neutrals */
+  --neutral-700: #374151;
+  --neutral-500: #6B7280;
+
+  /* Status */
+  --success-600: #16A34A;
+  --danger-600: #DC2626;
+  --warning-600: #CA8A04;
+
+  /* Tipos de senha */
+  --priority-700: #B91C1C;
+  --priority-50: #FEF2F2;
+  --normal-700: #1D4ED8;
+  --normal-50: #EFF6FF;
+  --contract-700: #6D28D9;
+  --contract-50: #F5F3FF;
+
+  /* Links */
+  --link: var(--primary-700);
+  --link-hover: var(--primary-800);
+}
+
 /* CSS Reset */
 * {
   margin: 0;
@@ -18,8 +53,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f5f7fa;
-  color: #333;
+  background: var(--color-bg);
+  color: var(--color-text);
   line-height: 1.6;
 }
 
@@ -49,13 +84,13 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Links */
 a {
-  color: #667eea;
+  color: var(--link);
   text-decoration: none;
   transition: color 0.3s;
 }
 
 a:hover {
-  color: #764ba2;
+  color: var(--link-hover);
 }
 
 /* Buttons */
@@ -76,8 +111,24 @@ input, textarea, select {
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Focus visível (A11Y) */
+button:focus-visible,
+.btn:focus-visible,
+.btn-modal:focus-visible,
+.tab-link:focus-visible,
+.btn-config-small:focus-visible,
+.modal-close-btn:focus-visible,
+.guiche-card-selecao:focus-visible,
+.servico-check:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.priority-icon:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 /* Utilities */
@@ -125,6 +176,26 @@ input:focus, textarea:focus, select:focus {
 .fa-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.badge-ia {
+  background: var(--normal-50);
+  color: var(--normal-700);
+  border-color: var(--normal-700);
+}
+
+.badge i { margin-right: 4px; }
 
 /* Responsive */
 @media (max-width: 768px) {

@@ -25,6 +25,11 @@
 - [ID: T-020] Opção do atendente desligar o sequenciamento da IA e adotar um dos algoritmos na seção "Comportamento da fila" na aba "Configurações". A IA continua funcional para treinamento, avaliação e sequenciamento virtual; apenas não se refletirá no próximo sequenciamento real.
  - [Concluído] [ID: T-021] Implementar "lista preview" ordenada por JSED no servidor e consumo pela UI no filtro "Automática".
 
+#### Thresholds e Top‑3 (Aceitação de `mlHint`)
+- [ID: T-043] Publicar thresholds offline em `client/public/ml/thresholds.json` com: `minScore ≥ 0.65`, `latencyMsMax ≤ 200`, `cooldownCalls = 20`, `accuracyTarget ≥ 0.75`, `recallPrioridadeMin ≥ 0.85`, `fallbackRateMax ≤ 0.30`.
+- [ID: T-044] Validar aceitação de `mlHint` apenas se `numeroPrevisto ∈ top‑3 JSED` e `score ≥ minScore` (servidor: `IAManager.ts` linhas 63–78).
+- [ID: T-048] Persistir últimas decisões de IA (fonte, confiança, top‑3, accepted_hint) e exibir no painel.
+
 #### Como alinhar com JSED
 - Servidor: quando `algoritmo === 'jsed_fair_wrr'` em `chamarSenha` (`v3/server/src/services/QueueService.ts:159–169`), usar `iaManager.chamarProximaSenha(estado, senhasEspera, mlHint)` e depois `_atualizarEstadoSenhaChamada(...)`.
 - Cliente (filtro "Automática"):
@@ -49,8 +54,38 @@
 - [Concluído] [ID: T-011] Adotar `designTokens.colors.primary` no título da Fila de Espera.
 - [Concluído] [ID: T-012] Instrumentar tempo de troca de sub-aba no Painel de Configurações e registrar métricas.
 - [ID: T-022] Persistir telemetria de decisões da IA no servidor (fonte, confiança, top‑3, wrrAtivo) e expor no painel de IA.
- - [Concluído] [ID: T-022] Persistir telemetria de decisões da IA no servidor (fonte, confiança, top‑3, wrrAtivo) e expor última decisão via `estado.ultimaDecisaoIA`.
- - [ID: T-023] Ajustar UI do filtro "Automática" para indicar que ordenação está sincronizada com servidor quando `algoritmo === 'jsed_fair_wrr'`.
+- [Concluído] [ID: T-022] Persistir telemetria de decisões da IA no servidor (fonte, confiança, top‑3, wrrAtivo) e expor última decisão via `estado.ultimaDecisaoIA`.
+- [ID: T-023] Ajustar UI do filtro "Automática" para indicar que ordenação está sincronizada com servidor quando `algoritmo === 'jsed_fair_wrr'`.
+ - [ID: T-031] Revisar UX do filtro "Automática (JSED)": microcopy, tooltip acessível e estados visuais para "Sincronizado com servidor" e "Local (fallback)"; remover ambiguidades de ordenação e destacar fonte da ordenação.
+ - [ID: T-032] Refinar badge de IA no `CounterPanel`: contraste AA, rótulo acessível com estado (ativo/fallback/inativo) e confiança, tooltip com última decisão (`estado.ultimaDecisaoIA`).
+ - [ID: T-033] Padronizar toasts de erro: componente único com `role="alert"`, alto contraste, botões acessíveis, fechamento por `Esc` e persistência opcional em `localStorage` sem rede.
+ - [ID: T-034] Acessibilidade por teclado: ordem de tabulação lógica em `CounterPanel`, `ConfigurationPanel` e filtros; indicadores de foco visíveis; atalhos para ações críticas (chamar/ finalizar).
+ - [ID: T-035] Contraste de cores (WCAG 2.1 AA): revisar pares principais dos tokens e ajustar onde necessário para atingir ≥ 4.5:1 em texto normal e ≥ 3:1 em UI/ícones.
+- [ID: T-036] Validação cross‑browser/offline: testar filtros, badge e toasts em Windows (Chrome/Edge) com assets locais e sem chamadas externas.
+- [ID: T-052] Design Tokens (CSS vars): introduzir tokens globais de cores e foco em `v3/client/src/styles/main.css` (`:root`), substituir cores de links/inputs por `var(--link)`/`var(--focus-ring)` para contraste AA.
+- [ID: T-053] Foco visível consistente: adicionar regras globais `:focus-visible` com `outline: 3px` e `outline-offset: 2px` cobrindo `button`, `.btn`, `.btn-modal`, `.tab-link`, `.modal-close-btn`, controles de formulário e `.guiche-card-selecao`.
+- [ID: T-054] Padronizar Badge IA: criar `.badge` base e `.badge-ia` em `main.css` e migrar uso em `CounterPanel.vue` com `aria-label` descritivo; garantir contraste AA.
+- [ID: T-055] Auditar painéis por tipo (prioridade/normal/contratual): validar contraste texto/fundo; ajustar tokens (`--priority-700`, `--normal-700`, `--contract-700`) se algum par < 4.5:1.
+
+### Peso 2 (Performance)
+- [ID: T-060] Instrumentar latência de socket no cliente: medir RTT de `emitirSenha`/`chamarSenha`/`finalizarAtendimento`/`solicitarPreviewJSED` via `performance.now()` no `emit` e captura do primeiro `estadoAtualizado`/`previewJSED`. Local alvo: `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\composables\useSocket.ts`.
+- [ID: T-061] Debounce de busca em `QueueList.vue`: aplicar `debounce = 150 ms` ao `termoBusca` para reduzir recomputes e garantir frame `≤ 16 ms`. Local alvo: `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\components\QueueList.vue`.
+- [ID: T-062] Contenção CSS para lista: adicionar `contain: content` (ou `layout paint`) no container de lista para minimizar reflows. Local alvo: classe do container da fila na mesma `QueueList.vue`/CSS global.
+- [ID: T-063] Code splitting e lazy ML: separar chunk `ml` (ONNX/ORT) com `import()` e `manualChunks` em Vite; carregar somente quando necessário (chamadas/preview). Locais: `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\ml\inference.ts`, `vite.config.ts`.
+- [ID: T-064] Orçamento de bundle e auditoria: registrar tamanhos gzip de `app`+`vendor` (`≤ 250 KB`) e manter crescimento `≤ 10%` por build; adicionar checklist no `testes.md`.
+- [ID: T-065] Medição de render de filtros: instrumentar troca de filtro e busca com Performance API e `requestAnimationFrame` (duplo) para medir tempo até quadro estável; reportar p95.
+
+### Peso 2 (Modelagem de Fila/Estimadores)
+- [ID: T-070] Estimadores de chegada `λ(hora)`: implementar contagem por janelas móveis (15 min/1 h) com suavização (EWMA) e robustez a outliers (winsorização p1/p99). Separar por `tipoServico` e por guichê. Persistir em `v3/server/dist/estatisticas/lam_mu_por_hora.json`.
+- [ID: T-071] Estimadores de serviço `μ(hora)`: calcular taxa de atendimento por hora via razão `atendimentos/hora ÷ tempo_médio_atendimento` com ajuste para interrupções (ausências/não comparecimentos). Usar EWMA por hora e marcador de confiabilidade por volume de amostras.
+- [ID: T-072] Percentis de tempos (P50/P95/P99): adotar estimador Harrell–Davis para lotes e algoritmo P² para fluxo contínuo, com IC por bootstrap (1.000 reamostragens). Publicar `tempoEspera_{p50,p95,p99}` e `tempoAtendimento_{p50,p95,p99}` por `tipoServico/guichê`.
+- [ID: T-073] Previsão de TEMPO de espera: combinar fórmulas de filas (M/M/1, M/M/c) usando `λ(hora)`/`μ(hora)` e correção empírica; em paralelo, Holt–Winters (sazonalidade diária) para `tempoEspera` curto prazo. Expor `prevTempoEsperaMs` com intervalo de confiança 80/95%.
+- [ID: T-074] Detecção de não‑estacionariedade: realizar teste de mudança (CUSUM/KPSS simplificado) por hora para sinalizar janelas inválidas aos estimadores. Quando detectado, reduzir peso das observações antigas (α adaptativo).
+- [ID: T-075] Cenários analíticos de fila: definir baterias sintéticas (M/M/1, M/M/c, M/G/1, chegadas em rajada, troca de turno) para validar viés/variância dos estimadores e precisão de previsões. Registrar resultados em `testes.md` com KPIs (MAE/MAPE/p95 erro).
+- [ID: T-076] Persistência e offline: garantir escrita somente local (`v3/server/dist/estatisticas/*.json`) e nenhum HTTP externo. Adicionar rota/endpoint interno para servir snapshots ao painel.
+- [ID: T-077] Métricas de qualidade do estimador: acompanhar `bias`, `var`, `RMSE`, cobertura de IC e `nAmostras` por janela; expor no painel de IA/Estatísticas.
+- [ID: T-078] Alertas de amostra insuficiente: quando `nAmostras < 30` em uma hora, marcar percentis como baixa confiabilidade e usar fallback determinístico (medianas do dia anterior).
+- [ID: T-079] Integração UI: mostrar P50/P95/P99 e previsão de espera por `tipoServico` no `ConfigurationPanel.vue` e no painel do guichê, com rótulos acessíveis e fonte/local de cálculo.
 
 ### Peso 3 (Qualidade/Build)
  - [Concluído] [ID: T-003] Rodar e fechar `npm run type-check && npm run build` no servidor e no cliente após patches.
@@ -73,9 +108,34 @@
 - [Concluído] Destacar visualmente na UI senhas com `tempoLimiteAtingido` quando `destacarSenhasTempoLimite` estiver ativo; exibir histórico de ausências quando configurado.
 - [ID: T-001] Disponibilizar `client/public/models/next_senha_int8.onnx` (e assets `onnxruntime-web`) para habilitar inferência ONNX ou indicar explicitamente fallback na UI.
 - [Concluído] Corrigir tipagem do cliente para refletir `'jsed_fair_wrr'` nos componentes afetados e aceitar campos opcionais de telemetria.
- - [ID: T-028] Empacotar offline com dependências pré-instaladas e scripts de validação em pendrive (cliente/servidor).
- - [ID: T-029] Restringir CORS em produção e revisar privilégios mínimos de execução.
- - [ID: T-030] Documentar procedimentos de build e validação em `testes.md` e `proximos_passos.md` com evidências.
+- [ID: T-028] Empacotar offline com dependências pré-instaladas e scripts de validação em pendrive (cliente/servidor).
+- [ID: T-029] Restringir CORS em produção e revisar privilégios mínimos de execução.
+  - Produção: limitar `cors.origin` a `http://localhost:${PORT}` e `http://127.0.0.1:${PORT}`; remover portas de DEV.
+  - Desenvolvimento: permitir `5173/5174` (Vite) além da porta local do servidor.
+  - Aceitar `process.env.CORS_ORIGIN` como lista separada por vírgulas (ex.: `http://host1,http://host2`), sobrescrevendo defaults.
+  - Validar handshake do Socket.IO e preflight: `origin` bloqueia origens não listadas; métodos `GET/POST` suficientes para WS/Polling; sem `credentials` enquanto não houver cookies/sessão.
+  - Evidências: registrar em `v3/team_agents/desenvolvimento/testes.md` origens testadas (permitidas/bloqueadas) e logs do servidor.
+- [ID: T-030] Documentar procedimentos de build e validação em `testes.md` e `proximos_passos.md` com evidências.
+
+#### Entrega Offline (sem admin) — Plano Detalhado
+- [ID: T-037] Cache de dependências offline: vendorizar `node_modules` de `v3/server` e `v3/client` no pacote; opcionalmente capturar cache do npm em `v3/_npmcache` com `npm ci --prefer-offline` para rebuild local sem internet.
+- [ID: T-038] Copiar assets de IA locais: colocar `client/public/models/next_senha_int8.onnx` e `client/public/onnxruntime-web/{ort-wasm.wasm, ort-wasm-simd.wasm, ort-web.min.js}`; ajustar mapping em `inference.ts` (`ort.env.wasm.wasmPaths`) para carregar do `public/onnxruntime-web` offline.
+- [ID: T-039] Scripts `.bat` de DEV: `start-server-dev.bat` (executa `npm run dev` em `v3/server`) e `start-client-dev.bat` (executa `npm run dev` em `v3/client`), ambos usando Node portátil local sem alterar `PATH` do sistema.
+- [ID: T-040] Script `.bat` de PRODUÇÃO: `start-sgfila.bat` (executa `npm run build` em cliente/servidor, inicia `npm start` no servidor e abre `http://localhost:3000`), e `stop-sgfila.bat` (encerra processo do servidor) — sem privilégios administrativos.
+- [ID: T-041] Validação pós-build offline: iniciar servidor (`npm start`) e cliente (build servido pelo Express), validar socket, IA ONNX ativa com assets locais e fallback sinalizado quando ausente; assegurar ausência de chamadas externas e escrita apenas dentro de `v3/server/dist/estatisticas/`.
+- [ID: T-042] Mitigação de firewall sem admin: limitar bind a `127.0.0.1`; em ambientes restritos, orientar execução local em cada guichê com sincronização manual de dados via pendrive; registrar alternativa de porta configurável (`PORT`) e teste de loopback (Windows normalmente permite loopback sem criar regra de firewall).
+  - Implementado: adicionar `HOST='127.0.0.1'` por padrão e `listen(PORT, HOST, ...)` no servidor.
+  - Testar: acesso externo pela rede deve falhar; acesso local `http://127.0.0.1:${PORT}` deve funcionar.
+  - Aceite: nenhum privilégio administrativo necessário; sem criação de regra de firewall; logs mostram `Servidor rodando em http://127.0.0.1:${PORT}` e `CORS origins` apenas locais.
+
+### Peso 2 (Segurança/Conformidade)
+- [ID: T-081] Auditoria de segredos/variáveis: confirmar ausência de segredos hardcoded; `process.env` usado apenas para `PORT`, `MODO_TESTE`, `CORS_ORIGIN`, `HOST`. Evidenciar com grep e revisão de arquivos.
+- [ID: T-082] Telemetria/Logs: garantir que logs não incluam PII/tokens; manter mensagens genéricas e caminhos locais. Revisar `SocketHandlers` e `StatisticsPersistence` para evitar dados sensíveis nos logs.
+
+### Critérios de Aceite — IA (Atualizados)
+- `mlHint` aceito somente se `top‑3 JSED` e `score ≥ 0.65`; latência da predição `≤ 200 ms`.
+- Em ausência de assets ONNX/ORT, UI sinaliza fallback e operações continuam com regra determinística.
+- Telemetria local mantém `accepted_hint`, `latency_ms` e `score`; painel de IA exibe última decisão (`estado.ultimaDecisaoIA`).
 
 ## Atualizações do Supervisor Crítico
 - commit_gate=allow com recomendações:
@@ -99,6 +159,25 @@
 - Filtro "Automática" usa ordenação JSED do servidor quando habilitado e está consistente com a chamada real.
  - Painel de Guichê alterna corretamente: finaliza se estiver atendendo e chama próxima se livre.
 
+### Critérios de Aceite — UX/Acessibilidade
+- Filtro "Automática (JSED)" — [IDs: T-023, T-031]
+  - Quando `algoritmo === 'jsed_fair_wrr'`, a UI exibe rótulo "Ordenado por IA (JSED)" e ícone de sincronização; a lista apresentada corresponde à "preview" do servidor em 100% dos casos de smoke.
+  - Em fallback/local, o rótulo muda para "Automática (local)" e exibe aviso não bloqueante; nenhum request externo é feito.
+- Badge IA no `CounterPanel` — [ID: T-032]
+  - Contraste de texto/ícone ≥ 4.5:1 em tema padrão; nome acessível inclui estado e confiança (ex.: "IA ativa — confiança 0,78"). Tooltip mostra `source` e `numero` da `ultimaDecisaoIA` quando disponível.
+- Toasts de erro — [ID: T-033]
+  - `role="alert"`, foco não é capturado; fechamento por `Esc` e botão "Fechar" (teclado/ponteiro); autoocultação entre 5–8s configurável; conteúdo legível; eventos de erro comuns cobertos (falha de socket, ONNX ausente, chamada/finalização rejeitada). Persistência opcional apenas em `localStorage`.
+- Teclado/Focus — [ID: T-034]
+  - Todos controles são alcançáveis por `Tab`; ordem segue leitura visual; `Enter/Space` ativam; indicador de foco com contraste ≥ 3:1. Atalhos: `Alt+N` chamar próxima, `Alt+F` finalizar, sem conflitar com atalhos do navegador.
+- Contraste (WCAG AA) — [ID: T-035]
+  - Pares de cor dos tokens principais atendem ≥ 4.5:1 (texto normal) e ≥ 3:1 (grandes/ícones). Itens com falha recebem ajuste documentado nos tokens.
+ - Links e Inputs — [IDs: T-052, T-053]
+   - Cor de link padrão usa `--link` com contraste ≥ 4.5:1 sobre `--color-bg`; hover usa `--link-hover` mantendo AA. Foco visível aplica `outline` sólido com `--focus-ring` e `outline-offset ≥ 2px` em todos os controles interativos listados.
+ - Badge IA — [ID: T-054]
+   - Badge utiliza `.badge .badge-ia` com `aria-label` presente; contraste texto/fundo ≥ 4.5:1; ícone legível; aparece apenas quando `ultimaDecisaoIA.numero` coincide com a senha exibida.
+- Cross‑browser/offline — [ID: T-036]
+  - Comportamentos idênticos em Chrome 122+ e Edge 122+ no Windows; nenhuma chamada HTTP externa em tempo de execução; assets servidos de `client/public`.
+
 ## Convenção de IDs de Tarefa
 - Formato: `[ID: T-###]` prefixado no item do plano.
 - Uso: referenciar o ID nos resultados em `testes.md` para cruzar evidências e facilitar rastreabilidade.
@@ -113,3 +192,15 @@
 - `Test Automation Engineer`: inserir objetivos de cobertura e casos automatizados prioritários.
 - `Security Reviewer`: registrar recomendações e correções necessárias de conformidade.
 - `Performance Engineer`: definir metas (latência, reflows, tamanho de bundle) e tarefas.
+
+#### ONNX/ORT WASM (Otimização e Offline)
+- [ID: T-045] Configurar ONNX Runtime Web (WASM) com assets locais em `client/public/onnxruntime-web/` e preferir build `SIMD`.
+- [ID: T-046] Mapear caminhos WASM no cliente para execução offline:
+  - Código alvo: `v3/client/src/ml/inference.ts`.
+  - Ajuste: `ort.env.wasm.wasmPaths = { 'ort-wasm.wasm': '/onnxruntime-web/ort-wasm.wasm', 'ort-wasm-simd.wasm': '/onnxruntime-web/ort-wasm-simd.wasm' }` antes de `InferenceSession.create(...)`.
+- [ID: T-047] Validar modelo quantizado INT8 (`client/public/models/next_senha_int8.onnx`) e medir latência p95 ≤ 35 ms.
+- [ID: T-049] Planejar pipeline de quantização/otimização offline (ONNX): usar `mcp_mcp-model-optimizer_quantize_model` (INT8 dinâmico) e `mcp_mcp-model-optimizer_optimize_model` (fusão de operadores). Documentar perda de acurácia tolerada (≤ 2 p.p.).
+
+#### Metas de Latência/Memória (IA)
+- [ID: T-050] Estabelecer metas: `session.create ≤ 1500 ms (p95)`, `inferência p95 ≤ 35 ms`, `p99 ≤ 60 ms`, memória adicional `≤ 32 MB`, modelo `≤ 1.5 MB`.
+- [ID: T-051] Implementar medição automática de latência e memória (DevTools/Performance API) com registro em telemetria local.

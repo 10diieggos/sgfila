@@ -19,7 +19,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Configuração
-const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const HOST = process.env.HOST || '127.0.0.1'; // restringe bind por padrão
+const PORT = Number(process.env.PORT) || 3000;
 const MODO_TESTE = process.env.MODO_TESTE === 'true' || false;
 const INTERVALO_SNAPSHOT_MS = 3600000; // 1 hora
 
@@ -28,17 +30,24 @@ const app = express();
 const httpServer = createServer(app);
 
 // Configura Socket.IO com tipos
-// Permite desenvolvimento com Vite (5173) via proxy e execução direta do cliente em 3000
-const ORIGIN = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN
-  : [
-      `http://localhost:${PORT}`,
-      'http://localhost:5173',
-      'http://127.0.0.1:5173'
-    ];
+// Em produção, restringe CORS a localhost/loopback na porta do servidor;
+// Em desenvolvimento, permite Vite (5173/5174) e porta local do servidor.
+const ORIGIN_ENV = process.env.CORS_ORIGIN;
+const ORIGINS = ORIGIN_ENV
+  ? ORIGIN_ENV.split(',').map(s => s.trim()).filter(Boolean)
+  : (NODE_ENV === 'production'
+      ? [`http://localhost:${PORT}`, `http://127.0.0.1:${PORT}`]
+      : [
+          `http://localhost:${PORT}`,
+          `http://127.0.0.1:${PORT}`,
+          'http://localhost:5173',
+          'http://127.0.0.1:5173',
+          'http://localhost:5174',
+          'http://127.0.0.1:5174'
+        ]);
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: ORIGIN,
+    origin: ORIGINS,
     methods: ["GET", "POST"]
   }
 });
@@ -96,14 +105,14 @@ io.on('connection', (socket) => {
   socketHandlers.setupHandlers(socket);
 });
 
-// Inicia servidor
-httpServer.listen(PORT, async () => {
+// Inicia servidor (bind restrito ao HOST por padrão)
+httpServer.listen(PORT, HOST, async () => {
   console.log('=================================');
   console.log('SGFILA v3.0 - TypeScript + Vue 3');
   console.log('=================================');
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`Servidor rodando em http://${HOST}:${PORT}`);
   console.log(`Modo teste: ${MODO_TESTE ? 'ATIVADO' : 'DESATIVADO'}`);
-  console.log(`CORS origin: ${ORIGIN}`);
+  console.log(`CORS origins: ${Array.isArray(ORIGINS) ? ORIGINS.join(', ') : ORIGINS}`);
   console.log('Pressione Ctrl+C para parar');
   console.log('=================================');
 
