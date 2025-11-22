@@ -34,6 +34,7 @@ export function useSocket() {
   const connected = ref(false)
   const estado = ref<EstadoSistema | null>(null)
   const estatisticas = ref<Estatisticas | null>(null)
+  const previewJSED = ref<string[]>([])
   const { beep } = useBeep()
 
   // Callback para erros (pode ser definido externamente)
@@ -65,6 +66,10 @@ export function useSocket() {
     socket.value.on('estadoAtualizado', (payload) => {
       estado.value = payload.estado
       estatisticas.value = payload.estatisticas
+    })
+
+    socket.value.on('previewJSED', (dados) => {
+      previewJSED.value = Array.isArray(dados?.numeros) ? dados.numeros : []
     })
 
     socket.value.on('beep', (dados) => {
@@ -217,6 +222,10 @@ export function useSocket() {
     socket.value?.emit('atualizarDesignTokens', tokens)
   }
 
+  const solicitarPreviewJSED = (limit?: number) => {
+    socket.value?.emit('solicitarPreviewJSED', { limit })
+  }
+
   const atualizarNotificacoes = (notificacoes: ConfiguracaoNotificacoes) => {
     socket.value?.emit('atualizarNotificacoes', notificacoes)
   }
@@ -243,6 +252,7 @@ export function useSocket() {
     connected,
     estado,
     estatisticas,
+    previewJSED,
 
     // Métodos
     connect,
@@ -266,6 +276,7 @@ export function useSocket() {
     atualizarComportamentoFila,
     atualizarConfigInterface,
     atualizarDesignTokens,
+    solicitarPreviewJSED,
     atualizarNotificacoes,
     atualizarSeguranca,
     atualizarCorrecoes

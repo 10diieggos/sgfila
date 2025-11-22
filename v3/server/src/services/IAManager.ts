@@ -75,12 +75,12 @@ export class IAManager {
         senhaFinal = mlSenha;
         decisaoSource = 'mlHint-desempate';
         decisaoConfianca = mlHint.score;
-        this.registrarDecisao(decisaoSource, senhaFinal.numero, decisaoConfianca, `ML Hint aceito (source: ${mlHint.source})`);
+        this.registrarDecisao(decisaoSource, senhaFinal.numero, decisaoConfianca, `ML Hint aceito (source: ${mlHint.source})`, top3JSED);
         return senhaFinal;
       }
     }
 
-    this.registrarDecisao(decisaoSource, senhaFinal?.numero || 'N/A', decisaoConfianca, 'Decisão JSED/Fairness/WRR');
+    this.registrarDecisao(decisaoSource, senhaFinal?.numero || 'N/A', decisaoConfianca, 'Decisão JSED/Fairness/WRR', top3JSED);
     return senhaFinal;
   }
 
@@ -220,8 +220,29 @@ export class IAManager {
    * @param confianca A confiança da decisão (score do ML ou inverso do SED).
    * @param motivo Uma descrição breve da decisão.
    */
-  private registrarDecisao(source: 'jsed_fair_wrr' | 'mlHint-desempate' | 'wrr', numeroSenha: string, confianca: number, motivo: string): void {
+  private registrarDecisao(source: 'jsed_fair_wrr' | 'mlHint-desempate' | 'wrr', numeroSenha: string, confianca: number, motivo: string, top3?: string[]): void {
     console.log(`[IAManager] Decisão: ${source}, Senha: ${numeroSenha}, Confiança: ${confianca.toFixed(2)}, Motivo: ${motivo}`);
-    // TODO: Implementar persistência real da telemetria (StateManager ou novo serviço)
+    try {
+      const estado = this.stateManager.getEstado();
+      this.stateManager.registrarDecisaoIA({ numero: numeroSenha, source, confianca, timestamp: Date.now(), top3, wrrAtivo: !!estado.wrrAtivo });
+    } catch {}
+  }
+
+  public ordenarFilaPorJSED(estado: EstadoSistema, senhasEspera: Senha[]): string[] {
+    const agora = Date.now();
+    const configRoteamento = estado.configuracoes.roteamento;
+    const jsedScores: { numero: string; score: number }[] = [];
+    for (const s of senhasEspera) {
+      const tEsperaMs = this.tempoEsperaAtualMs(s, agora);
+      const tServicoMs = this.estimativaServicoMs(s, estado);
+      const wBase = this.pesoPorTipo(s.tipo, configRoteamento.jsedWeights);
+      const wAging = 1 + configRoteamento.wfq.alphaAging * Math.min(tEsperaMs / 60000 / configRoteamento.wfq.agingWindowMin, configRoteamento.wfq.slowdownMax);
+      const wFast = (tServicoMs <= configRoteamento.fast.msLimit) ? configRoteamento.fast.boost : 1;
+      const wEff = wBase * wAging * wFast;
+      const sed = (tEsperaMs + tServicoMs) / wEff;
+      jsedScores.push({ numero: s.numero, score: sed });
+    }
+    jsedScores.sort((a, b) => a.score - b.score);
+    return jsedScores.map(x => x.numero);
   }
 }

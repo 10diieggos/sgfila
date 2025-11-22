@@ -19,16 +19,16 @@
 
 ### Peso 1 (CRÍTICO - IA Operacional)
 - [Concluído] [ID: T-016] Criar `IAManager.ts` com algoritmo de decisão JSED/Fairness/WRR (ver `v3/server/src/services/IAManager.ts`).
-- [ID: T-017] Integrar IA ao `QueueService` substituindo lógica fixa e registrar decisão com confiança.
+- [Concluído] [ID: T-017] Integrar IA ao `QueueService` substituindo lógica fixa e registrar decisão com confiança. Implementado ramo `jsed_fair_wrr` em `chamarSenha`.
 - [ID: T-018] Implementar fallback robusto no sequenciamento e sinalização na UI quando ativo.
 - [ID: T-019] Coletar métricas para aprendizado contínuo (`tempoEspera`, `prioridade`, `tipoServico`, `resultadoDecisao`).
 - [ID: T-020] Opção do atendente desligar o sequenciamento da IA e adotar um dos algoritmos na seção "Comportamento da fila" na aba "Configurações". A IA continua funcional para treinamento, avaliação e sequenciamento virtual; apenas não se refletirá no próximo sequenciamento real.
+ - [Concluído] [ID: T-021] Implementar "lista preview" ordenada por JSED no servidor e consumo pela UI no filtro "Automática".
 
 #### Como alinhar com JSED
 - Servidor: quando `algoritmo === 'jsed_fair_wrr'` em `chamarSenha` (`v3/server/src/services/QueueService.ts:159–169`), usar `iaManager.chamarProximaSenha(estado, senhasEspera, mlHint)` e depois `_atualizarEstadoSenhaChamada(...)`.
 - Cliente (filtro "Automática"):
-  - Opção A: adicionar um ramo que replica o scoring JSED no cliente usando estado atual.
-  - Opção B (preferível): solicitar ao servidor uma lista "preview" ordenada por JSED e usá-la na UI para o filtro "Automática", garantindo consistência com a decisão real.
+  - Opção B (implementada): solicitar ao servidor uma lista "preview" ordenada por JSED e usá-la na UI para o filtro "Automática", garantindo consistência com a decisão real.
 
 #### Resumo
 - Hoje, "Automática" reflete a política simples do cliente (proporção/round robin/FIFO), não JSED.
@@ -48,23 +48,34 @@
 - [ID: T-008] Exibir feedback dos eventos de correção (ausência/não comparecimento) com alerta sonoro/visual conforme configuração.
 - [Concluído] [ID: T-011] Adotar `designTokens.colors.primary` no título da Fila de Espera.
 - [Concluído] [ID: T-012] Instrumentar tempo de troca de sub-aba no Painel de Configurações e registrar métricas.
+- [ID: T-022] Persistir telemetria de decisões da IA no servidor (fonte, confiança, top‑3, wrrAtivo) e expor no painel de IA.
+ - [Concluído] [ID: T-022] Persistir telemetria de decisões da IA no servidor (fonte, confiança, top‑3, wrrAtivo) e expor última decisão via `estado.ultimaDecisaoIA`.
+ - [ID: T-023] Ajustar UI do filtro "Automática" para indicar que ordenação está sincronizada com servidor quando `algoritmo === 'jsed_fair_wrr'`.
 
 ### Peso 3 (Qualidade/Build)
- - [ID: T-003] Rodar e fechar `npm run type-check && npm run build` no servidor e no cliente após patches.
- - [ID: T-004] Reexecutar smoke/E2E (`v3/qa/smoke-socket.js`) e validar métricas de latência e campos: `servicoDoCliente`, `tempoEspera`, `chamadaTimestamp`, `finalizadoTimestamp`.
- - [ID: T-005] Solicitar nova auditoria do Supervisor Crítico após correções.
+- [ID: T-003] Rodar e fechar `npm run type-check && npm run build` no servidor e no cliente após patches.
+- [ID: T-004] Reexecutar smoke/E2E (`v3/qa/smoke-socket.js`) e validar métricas de latência e campos: `servicoDoCliente`, `tempoEspera`, `chamadaTimestamp`, `finalizadoTimestamp`.
+- [ID: T-005] Solicitar nova auditoria do Supervisor Crítico após correções.
+ - [ID: T-024] Criar testes E2E para evento `solicitarPreviewJSED` garantindo que ordenação e chamada real sejam consistentes.
+ - [ID: T-025] Medir impacto de `jsed_fair_wrr` em latência de chamada e bundle do cliente (não quebrar offline).
 
 ### Peso 4 (Confiabilidade/Consistência)
 - [Concluído] Garantir fallback claro de `estado.configuracoes.roteamento` em `QueueService` quando carregar dados antigos.
 - [Concluído] Ajustar `recordPrediction` para aceitar `accepted_hint` e `latency_ms` mantendo compatibilidade.
- - [ID: T-002] Habilitar o algoritmo `'jsed_fair_wrr'` nas configurações apenas por ação do atendente (sem autochamada), mantendo a decisão no servidor com validação top‑3 e `mlHint` opcional.
+- [ID: T-002] Habilitar o algoritmo `'jsed_fair_wrr'` nas configurações apenas por ação do atendente (sem autochamada), mantendo a decisão no servidor com validação top‑3 e `mlHint` opcional.
+ - [ID: T-026] Substituir `estimativaServicoMs` por cálculo baseado em estatísticas reais (por serviço/tipo) com fallback robusto.
+- [ID: T-027] Adicionar marcador no estado `ultimaDecisaoIA` e ícone por senha chamada na UI.
+ - [Concluído] [ID: T-027] Adicionar marcador no estado `ultimaDecisaoIA` e ícone por senha chamada na UI (badge em `CounterPanel`).
 
 ### Peso 5 (Bloqueios/Alta Prioridade)
 - [Concluído] Incluir `roteamento` e `algoritmoVersao` em `StateManager.mesclarConfiguracoes` com merge de defaults na migração.
 - [Concluído] Adicionar listeners de cliente para `notificacaoAusencia` e `notificacaoNaoComparecimento` em `useSocket.ts`.
 - [Concluído] Destacar visualmente na UI senhas com `tempoLimiteAtingido` quando `destacarSenhasTempoLimite` estiver ativo; exibir histórico de ausências quando configurado.
- - [ID: T-001] Disponibilizar `client/public/models/next_senha_int8.onnx` (e assets `onnxruntime-web`) para habilitar inferência ONNX ou indicar explicitamente fallback na UI.
+- [ID: T-001] Disponibilizar `client/public/models/next_senha_int8.onnx` (e assets `onnxruntime-web`) para habilitar inferência ONNX ou indicar explicitamente fallback na UI.
 - [Concluído] Corrigir tipagem do cliente para refletir `'jsed_fair_wrr'` nos componentes afetados e aceitar campos opcionais de telemetria.
+ - [ID: T-028] Empacotar offline com dependências pré-instaladas e scripts de validação em pendrive (cliente/servidor).
+ - [ID: T-029] Restringir CORS em produção e revisar privilégios mínimos de execução.
+ - [ID: T-030] Documentar procedimentos de build e validação em `testes.md` e `proximos_passos.md` com evidências.
 
 ## Atualizações do Supervisor Crítico
 - commit_gate=allow com recomendações:
@@ -85,6 +96,7 @@
 - UI destaca `tempoLimiteAtingido` e exibe histórico/feedback de correções.
 - Modelo ONNX presente ou fallback claramente sinalizado na UI.
 - Supervisor Crítico libera gate (sem bloqueios remanescentes).
+ - Filtro "Automática" usa ordenação JSED do servidor quando habilitado e está consistente com a chamada real.
 
 ## Convenção de IDs de Tarefa
 - Formato: `[ID: T-###]` prefixado no item do plano.

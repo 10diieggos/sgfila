@@ -234,6 +234,17 @@
               <strong>FIFO</strong> - Primeiro a entrar, primeiro a sair
             </span>
           </label>
+          <label class="radio-item">
+            <input
+              v-model="comportamentoConfig.algoritmo"
+              type="radio"
+              value="jsed_fair_wrr"
+              @change="salvarComportamento"
+            >
+            <span>
+              <strong>IA (JSED/Fair/WRR)</strong> - Decisão no servidor com validação top‑3 e dica ML opcional
+            </span>
+          </label>
         </div>
       </div>
 
@@ -524,6 +535,17 @@
             >
             <span>
               <strong>FIFO</strong> - Primeiro a entrar, primeiro a sair
+            </span>
+          </label>
+          <label class="radio-item">
+            <input
+              v-model="comportamentoConfig.algoritmo"
+              type="radio"
+              value="jsed_fair_wrr"
+              @change="salvarComportamento"
+            >
+            <span>
+              <strong>IA (JSED/Fair/WRR)</strong> - Decisão no servidor com validação top‑3 e dica ML opcional
             </span>
           </label>
         </div>

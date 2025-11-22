@@ -41,6 +41,13 @@
             <span class="senha-numero">
               {{ senhaAtual(guiche.id)?.numero }}
             </span>
+            <span
+              v-if="aiDecision && aiDecision.numero === senhaAtual(guiche.id)?.numero"
+              class="ai-badge"
+              :title="`Decisão IA: ${aiDecision.source}`"
+            >
+              <i class="fas fa-robot" />
+            </span>
             <div class="tempos-container">
               <span class="tempo-espera">
                 <i class="fas fa-hourglass-half" />
@@ -74,6 +81,7 @@ const props = withDefaults(defineProps<{
   atendimentosAtuais: AtendimentoAtual
   guichesExibicao?: string[]
   filaVazia?: boolean
+  aiDecision?: { numero: string; source: string } | null
 }>(), {
   guichesExibicao: () => [],
   filaVazia: false
@@ -302,6 +310,19 @@ const handleGuicheClick = (guiche: Guiche) => {
   color: inherit;
   line-height: 1.1;
   display: block;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  background: #e7f5ff;
+  color: #004a8d;
+  border: 1px solid #4dabf7;
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 0.85rem;
 }
 
 .senha-numero.vazio {

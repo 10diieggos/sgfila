@@ -121,6 +121,15 @@ export class SocketHandlers {
       }
     });
 
+    socket.on('solicitarPreviewJSED', ({ limit }) => {
+      try {
+        const numeros = this.queueService.previewOrdenacaoJSED(limit);
+        socket.emit('previewJSED', { numeros });
+      } catch (error) {
+        console.error('Erro ao gerar preview JSED:', error);
+      }
+    });
+
     socket.on('chamarSenhaEspecifica', ({ guicheId, numeroSenha }) => {
       try {
         const senha = this.queueService.chamarSenhaEspecifica(guicheId, numeroSenha);

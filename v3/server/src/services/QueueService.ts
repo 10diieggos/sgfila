@@ -150,7 +150,7 @@ export class QueueService {
     }
 
     // NOVA LÓGICA v3.2: Reordena fila colocando senhas em tempo limite primeiro
-
+    senhasEspera = this.reordenarFilaPorTempoLimite(senhasEspera)
 
     // Aplica algoritmo de chamada configurado
     const algoritmo = estado.configuracoes?.comportamentoFila?.algoritmo || 'proporcao';
@@ -160,12 +160,22 @@ export class QueueService {
       // FIFO: Primeira senha em espera (já ordenado e reordenado por tempo limite)
       senhaChamada = senhasEspera[0];
       console.log(`Algoritmo FIFO: chamando ${senhaChamada.numero}`);
+      this.stateManager.registrarDecisaoIA({ numero: senhaChamada.numero, source: 'fifo', confianca: 0, timestamp: Date.now(), wrrAtivo: !!estado.wrrAtivo });
     } else if (algoritmo === 'round_robin') {
       // Round Robin: Alterna entre tipos igualmente
       senhaChamada = this.chamarRoundRobin(estado, senhasEspera);
+      if (senhaChamada) this.stateManager.registrarDecisaoIA({ numero: senhaChamada.numero, source: 'round_robin', confianca: 0, timestamp: Date.now(), wrrAtivo: !!estado.wrrAtivo });
+    } else if (algoritmo === 'jsed_fair_wrr') {
+      // IA Operacional: JSED + Fairness + WRR com consideração de dica ML
+      const escolhida = this.iaManager.chamarProximaSenha(estado, senhasEspera, mlHint);
+      if (escolhida) {
+        senhaChamada = escolhida;
+        console.log(`Algoritmo JSED/Fair/WRR: chamando ${senhaChamada.numero}`);
+      }
     } else {
       // Proporção (padrão): Respeita proporção configurada
       senhaChamada = this.chamarProporcao(estado, senhasEspera);
+      if (senhaChamada) this.stateManager.registrarDecisaoIA({ numero: senhaChamada.numero, source: 'proporcao', confianca: 0, timestamp: Date.now(), wrrAtivo: !!estado.wrrAtivo });
     }
 
     if (!senhaChamada) {
@@ -731,5 +741,13 @@ export class QueueService {
 
       console.log(`[Ausência] ${senha.numero} retomou contagem de tempo (ajustado +${Math.floor(tempoAusente / 60000)}min)`);
     }
+  }
+
+  public previewOrdenacaoJSED(limit?: number): string[] {
+    const estado = this.stateManager.getEstado();
+    let senhasEspera = estado.senhas.filter(s => s.status === 'espera').sort((a, b) => a.timestamp - b.timestamp);
+    senhasEspera = this.reordenarFilaPorTempoLimite(senhasEspera);
+    const ordenacao = this.iaManager.ordenarFilaPorJSED(estado, senhasEspera);
+    return typeof limit === 'number' ? ordenacao.slice(0, limit) : ordenacao;
   }
 }

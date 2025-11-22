@@ -93,6 +93,7 @@
             :atendimentos-atuais="estado.atendimentosAtuais"
             :guiches-exibicao="guichesExibicao"
             :fila-vazia="senhasEspera.length === 0"
+            :ai-decision="estado?.ultimaDecisaoIA || null"
             @chamar="handleChamarGuiche"
             @finalizar="handleFinalizarAtendimento"
             @nao-compareceu="handleNaoCompareceu"
@@ -193,10 +194,12 @@
             :contador-contratual-desde-ultima-normal="estado.contadorContratualDesdeUltimaNormal"
             :algoritmo="estado.configuracoes?.comportamentoFila?.algoritmo"
             :estado="estado || undefined"
+            :preview-jsed="previewJSED"
             @ver-detalhes="handleVerDetalhes"
             @chamar="handleChamarSenhaEspecifica"
             @editar="handleEditarDescricao"
             @excluir="handleExcluirSenha"
+            @solicitar-preview-jsed="solicitarPreviewJSED"
           />
         </div>
       </div>
@@ -450,7 +453,9 @@ const {
   atualizarConfigInterface,
   atualizarNotificacoes,
   atualizarSeguranca,
-  atualizarCorrecoes
+  atualizarCorrecoes,
+  previewJSED,
+  solicitarPreviewJSED
 } = useSocket()
 
 // Configurar handler de erros do servidor

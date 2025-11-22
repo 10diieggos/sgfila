@@ -424,6 +424,19 @@ export class StateManager {
   }
 
   /**
+   * Registra telemetria de decisão de IA e atualiza última decisão
+   */
+  public registrarDecisaoIA(info: { numero: string; source: string; confianca?: number; timestamp: number; top3?: string[]; wrrAtivo?: boolean }): void {
+    const estado = this.getEstado();
+    const entry = { numero: info.numero, source: info.source as any, confianca: info.confianca, timestamp: info.timestamp, top3: info.top3, wrrAtivo: info.wrrAtivo };
+    if (!estado.iaTelemetria) estado.iaTelemetria = [];
+    estado.iaTelemetria.push(entry);
+    while (estado.iaTelemetria.length > 500) estado.iaTelemetria.shift();
+    estado.ultimaDecisaoIA = entry as any;
+    this.setEstado(estado);
+  }
+
+  /**
    * Atualiza configurações gerais (parcial ou completa)
    */
   public atualizarConfiguracoes(configParcial: Partial<ConfiguracoesGerais>): void {

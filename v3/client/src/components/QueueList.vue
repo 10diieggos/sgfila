@@ -123,6 +123,7 @@ interface Props {
   contadorContratualDesdeUltimaNormal?: number
   algoritmo?: 'proporcao' | 'round_robin' | 'fifo' | 'jsed_fair_wrr'
   estado?: EstadoSistema
+  previewJSED?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -135,11 +136,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // Emits
-defineEmits<{
+const emit = defineEmits<{
   'ver-detalhes': [numero: string]
   chamar: [numero: string]
   editar: [numero: string]
   excluir: [numero: string]
+  'solicitar-preview-jsed': [limit?: number]
 }>()
 
 // State
@@ -184,11 +186,16 @@ onUnmounted(() => {
 // Atualiza prévia IA quando filtro automático está ativo
 watch([filtroAtivo, () => props.senhas, () => props.estado], async () => {
   if (filtroAtivo.value === 'automatica' && props.estado && props.senhas.length > 0) {
-    try {
-      const pred = await predictNextOrFallback(props.estado)
-      iaPreviewNumero.value = pred.numeroPrevisto || null
-    } catch {
+    if (props.algoritmo === 'jsed_fair_wrr') {
+      emit('solicitar-preview-jsed', 50)
       iaPreviewNumero.value = null
+    } else {
+      try {
+        const pred = await predictNextOrFallback(props.estado)
+        iaPreviewNumero.value = pred.numeroPrevisto || null
+      } catch {
+        iaPreviewNumero.value = null
+      }
     }
   } else {
     iaPreviewNumero.value = null
@@ -224,11 +231,9 @@ const senhasFiltradas = computed(() => {
       return a.timestamp - b.timestamp
     })
   } else if (filtroAtivo.value === 'automatica') {
-    // Simula a lógica de chamamento automático do servidor
     const algoritmo = props.algoritmo || 'proporcao'
 
     if (algoritmo === 'fifo') {
-      // FIFO: apenas ordena por timestamp
       result.sort((a, b) => a.timestamp - b.timestamp)
     } else if (algoritmo === 'round_robin') {
       // Round Robin: alterna entre tipos
@@ -271,6 +276,17 @@ const senhasFiltradas = computed(() => {
         }
       }
       result = filaSimulada
+    } else if (algoritmo === 'jsed_fair_wrr' && Array.isArray(props.previewJSED) && props.previewJSED.length > 0) {
+      const indexMap: Record<string, number> = {}
+      props.previewJSED.forEach((num, idx) => { indexMap[num] = idx })
+      result.sort((a, b) => {
+        const iaA = indexMap[a.numero]
+        const iaB = indexMap[b.numero]
+        if (iaA !== undefined && iaB !== undefined) return iaA - iaB
+        if (iaA !== undefined) return -1
+        if (iaB !== undefined) return 1
+        return a.timestamp - b.timestamp
+      })
     } else {
       // Proporção (padrão)
       const filaSimulada: Senha[] = []

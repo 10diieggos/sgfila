@@ -91,6 +91,9 @@ export interface EstadoSistema {
   chamadasPorTipoRecente: { [key in TipoSenha]?: number; };
   totalChamadasRecente: number;
   wrrAtivo?: boolean;
+  // Telemetria IA
+  ultimaDecisaoIA?: DecisaoIAInfo;
+  iaTelemetria?: DecisaoIAInfo[];
 }
 
 // ============================================
@@ -173,6 +176,15 @@ export interface EstatisticasPorAtendente {
   taxaOcupacao: number; // % do tempo ocupado
   maiorTempoAtendimentoMs: number;
   menorTempoAtendimentoMs: number;
+}
+
+export interface DecisaoIAInfo {
+  numero: string;
+  source: 'jsed_fair_wrr' | 'mlHint-desempate' | 'wrr' | 'proporcao' | 'round_robin' | 'fifo';
+  confianca?: number;
+  timestamp: number;
+  top3?: string[];
+  wrrAtivo?: boolean;
 }
 
 export interface EstatisticasDevolucoes {
@@ -263,6 +275,7 @@ export interface ServerToClientEvents {
   beep: (dados: { times: number; tipo: 'emissao' | 'chamada'; numero?: string }) => void;
   sistemaReiniciado: () => void;
   erroOperacao: (dados: { mensagem: string; tipo: string }) => void;
+  previewJSED: (dados: { numeros: string[] }) => void;
 
   // Eventos de estatísticas históricas
   estatisticasAgregadas: (dados: { estatisticas: EstatisticasAvancadas; periodoDescricao: string }) => void;
@@ -310,6 +323,7 @@ export interface ClientToServerEvents {
     dataFim?: string;
   }) => void;
   solicitarDiasDisponiveis: () => void;
+  solicitarPreviewJSED: (dados: { limit?: number }) => void;
 }
 
 // ============================================
