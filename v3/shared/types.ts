@@ -293,6 +293,7 @@ export interface ClientToServerEvents {
   atualizarNotificacoes: (notificacoes: ConfiguracaoNotificacoes) => void;
   atualizarSeguranca: (seguranca: ConfiguracaoSeguranca) => void;
   atualizarCorrecoes: (correcoes: ConfiguracaoCorrecoes) => void;
+  atualizarDesignTokens: (tokens: ConfiguracaoDesignTokens) => void;
   resetarConfiguracoes: () => void;
 
   // Eventos de correções (v3.2)
@@ -319,7 +320,7 @@ export interface ConfiguracaoGuiche {
 
 export type TabType = 'stats' | 'history' | 'config';
 export type SubTabStats = 'geral' | 'ticket';
-export type SubTabConfig = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes' | 'correcoes';
+export type SubTabConfig = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'design' | 'notificacoes' | 'correcoes';
 
 export interface ModalData {
   show: boolean;
@@ -392,6 +393,53 @@ export interface ConfiguracaoNotificacoes {
   tempoInativoMinutos: number;
 }
 
+// Design Tokens (visual)
+export interface ConfiguracaoDesignTokens {
+  colors: {
+    primary: string;
+    secondary: string;
+    success: string;
+    danger: string;
+    warning: string;
+    info: string;
+    neutral: string;
+  };
+  spacing: {
+    xs: number;
+    sm: number;
+    md: number;
+    lg: number;
+    xl: number;
+  };
+  radii: {
+    sm: number;
+    md: number;
+    lg: number;
+  };
+  fontSizes: {
+    small: number;
+    base: number;
+    md: number;
+    lg: number;
+    xl: number;
+  };
+  shadows?: {
+    sm: string;
+    md: string;
+    lg: string;
+  };
+  zIndex?: {
+    modal: number;
+    overlay: number;
+    dropdown: number;
+  };
+  transitions?: {
+    fast: string;
+    normal: string;
+    slow: string;
+  };
+}
+
 export interface ConfiguracaoEstatisticas {
   metricas: {
     totalEmitidas: boolean;
@@ -461,6 +509,7 @@ export interface ConfiguracoesGerais {
   seguranca: ConfiguracaoSeguranca;
   correcoes: ConfiguracaoCorrecoes;
   roteamento: ConfiguracaoRoteamento;
+  designTokens: ConfiguracaoDesignTokens;
   algoritmoVersao: string;
   versao: string;
   ultimaAtualizacao: number;
@@ -566,6 +615,23 @@ export function getConfigPadrao(): ConfiguracoesGerais {
       mostrarTempoAtendimento: true,
       ordenacaoFilaPadrao: 'emissao',
       exibirIconesPrioridade: true
+    },
+    designTokens: {
+      colors: {
+        primary: '#004a8d',
+        secondary: '#6c757d',
+        success: '#198754',
+        danger: '#dc3545',
+        warning: '#ff922b',
+        info: '#17a2b8',
+        neutral: '#868e96'
+      },
+      spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
+      radii: { sm: 4, md: 6, lg: 8 },
+      fontSizes: { small: 12, base: 14, md: 16, lg: 18, xl: 20 },
+      shadows: { sm: '0 1px 2px rgba(0,0,0,0.06)', md: '0 2px 6px rgba(0,0,0,0.1)', lg: '0 4px 12px rgba(0,0,0,0.12)' },
+      zIndex: { modal: 1000, overlay: 900, dropdown: 800 },
+      transitions: { fast: '150ms ease-out', normal: '250ms ease', slow: '400ms ease-in' }
     },
     notificacoes: {
       somAtivo: true,

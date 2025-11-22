@@ -210,7 +210,10 @@
         </span>
       </div>
 
-      <div class="table-responsive" style="margin-top: 10px;">
+      <div
+        class="table-responsive"
+        style="margin-top: 10px;"
+      >
         <table class="stats-table">
           <thead>
             <tr>
@@ -224,7 +227,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="h in estatisticas.distribuicaoPorHora" :key="h.hora">
+            <tr
+              v-for="h in estatisticas.distribuicaoPorHora"
+              :key="h.hora"
+            >
               <td>{{ h.hora }}h</td>
               <td>{{ (h.lambdaPorHora || 0).toFixed(2) }}</td>
               <td>{{ (h.muPorHora || 0).toFixed(2) }}</td>

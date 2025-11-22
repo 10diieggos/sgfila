@@ -28,9 +28,10 @@ const app = express();
 const httpServer = createServer(app);
 
 // Configura Socket.IO com tipos
+const ORIGIN = process.env.CORS_ORIGIN || (MODO_TESTE ? "*" : `http://localhost:${PORT}`);
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: "*",
+    origin: ORIGIN,
     methods: ["GET", "POST"]
   }
 });
@@ -95,6 +96,7 @@ httpServer.listen(PORT, async () => {
   console.log('=================================');
   console.log(`Servidor rodando em http://localhost:${PORT}`);
   console.log(`Modo teste: ${MODO_TESTE ? 'ATIVADO' : 'DESATIVADO'}`);
+  console.log(`CORS origin: ${ORIGIN}`);
   console.log('Pressione Ctrl+C para parar');
   console.log('=================================');
 

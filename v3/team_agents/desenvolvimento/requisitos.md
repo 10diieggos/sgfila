@@ -11,3 +11,10 @@
 - Telemetria local: registros de predição devem permanecer no armazenamento local do navegador (`localStorage`) e não devem ser enviados para rede.
 - Persistência local de estatísticas: snapshots e agregados históricos em `v3/server/dist/estatisticas/*.json`, sem banco de dados externo.
 - CORS em produção: recomendado restringir `origin` do Socket.IO/HTTP ao domínio esperado; não publicar com `origin: "*"` em ambientes sensíveis.
+
+## Instruções por Agente
+- `Security Reviewer`: manter recomendações atualizadas (CORS, autochamada, telemetria, privilégios), alinhadas ao gate.
+- `Build/Release Engineer`: refletir requisitos operacionais de entrega offline e mitigação de firewall sem admin.
+- `Edge‑AI Engineer`: definir requisitos de modelo/thresholds e comportamento de fallback.
+- `UI/UX Planner` e `Interface Designer`: requisitos de acessibilidade e consistência visual.
+- `Performance Engineer`: metas e limites de performance por tela/fluxo.

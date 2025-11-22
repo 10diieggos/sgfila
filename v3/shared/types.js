@@ -103,6 +103,23 @@ export function getConfigPadrao() {
             ordenacaoFilaPadrao: 'emissao',
             exibirIconesPrioridade: true
         },
+        designTokens: {
+            colors: {
+                primary: '#004a8d',
+                secondary: '#6c757d',
+                success: '#198754',
+                danger: '#dc3545',
+                warning: '#ff922b',
+                info: '#17a2b8',
+                neutral: '#868e96'
+            },
+            spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
+            radii: { sm: 4, md: 6, lg: 8 },
+            fontSizes: { small: 12, base: 14, md: 16, lg: 18, xl: 20 },
+            shadows: { sm: '0 1px 2px rgba(0,0,0,0.06)', md: '0 2px 6px rgba(0,0,0,0.1)', lg: '0 4px 12px rgba(0,0,0,0.12)' },
+            zIndex: { modal: 1000, overlay: 900, dropdown: 800 },
+            transitions: { fast: '150ms ease-out', normal: '250ms ease', slow: '400ms ease-in' }
+        },
         notificacoes: {
             somAtivo: true,
             volumeSom: 80,

@@ -44,6 +44,7 @@ export function exportarDatasetJsonl(destDir: string) {
       subtipo: s.subtipo,
       tempoEspera_ms: s.tempoEspera,
       tempoAtendimento_ms: s.tempoAtendimento,
+      tempoAteNaoComparecer_ms: s.tempoAteNaoComparecer || null,
       tempoLimiteAtingido: !!s.tempoLimiteAtingido,
       reposicionamentos: s.reposicionamentos,
       tentativasAusencia: s.tentativasAusencia,
@@ -57,7 +58,7 @@ export function exportarDatasetJsonl(destDir: string) {
   return file
 }
 
-if (import.meta.url.endsWith('export-dataset-jsonl.ts')) {
-  const file = exportarDatasetJsonl('v3/server/exports/datasets')
+if (process.argv[1] && process.argv[1].includes('export-dataset-jsonl')) {
+  const file = exportarDatasetJsonl('exports/datasets')
   console.log(file)
 }

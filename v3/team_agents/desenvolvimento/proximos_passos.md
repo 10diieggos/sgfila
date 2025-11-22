@@ -1,0 +1,101 @@
+# Próximos Passos — Integração C e IA
+
+## Premissas Operacionais
+- Chamada nunca automática: o atendente deve acionar manualmente no painel de guichê (alternador de chamada sem escolha de senha e finalização). Validar que `chamarProximaAutomatica` permaneça desativado.
+
+## Pendências e Pesos
+
+### Guia de Pesos
+- Pesos são prioridades: `1` é mais crítico, `6` menos crítico.
+- Itens podem coexistir no mesmo peso por trilha temática (ex.: IA Operacional vs Documentação).
+- Execução segue: primeiro todos os `Peso 1`, depois `Peso 2`, e assim por diante.
+- Dentro de cada peso, ordenar por dependências técnicas e bloqueios.
+- Itens concluídos permanecem para rastreabilidade.
+
+### Peso 1 (Funções Desejadas pelo Dono do SGFila)
+- Implementar dashboard de IA no ConfigurationPanel.vue
+- Conectar interface com dados reais do StateManager
+- Adicionar visualização de métricas e histórico de decisões
+
+### Peso 1 (CRÍTICO - IA Operacional)
+- [ID: T-016] Criar `IAManager.ts` com algoritmo de decisão de sequência da fila (tempo de espera + prioridade + tipo de serviço).
+- [ID: T-017] Integrar IA ao `QueueService` substituindo lógica fixa e registrar decisão com confiança.
+- [ID: T-018] Implementar fallback robusto no sequenciamento e sinalização na UI quando ativo.
+- [ID: T-019] Coletar métricas para aprendizado contínuo (`tempoEspera`, `prioridade`, `tipoServico`, `resultadoDecisao`).
+- [ID: T-020] Opção do atendente desligar o sequenciamento da IA e adotar um dos algoritmos na seção "Comportamento da fila" na aba "Configurações". A IA continua funcional para treinamento, avaliação e sequenciamento virtual; apenas não se refletirá no próximo sequenciamento real.
+
+#### Como alinhar com JSED
+- Servidor: integrar a chamada de `chamarPorJSEDFairWRR` quando `algoritmo === 'jsed_fair_wrr'` em `chamarSenha` (`v3/server/src/services/QueueService.ts:254–267`).
+- Cliente (filtro "Automática"):
+  - Opção A: adicionar um ramo que replica o scoring JSED no cliente usando estado atual.
+  - Opção B (preferível): solicitar ao servidor uma lista "preview" ordenada por JSED e usá-la na UI para o filtro "Automática", garantindo consistência com a decisão real.
+
+#### Resumo
+- Hoje, "Automática" reflete a política simples do cliente (proporção/round robin/FIFO), não JSED.
+- Para que "Automática" seja calculada pela IA via JSED, é preciso integrar JSED no servidor e expor/consumir uma ordenação JSED na UI.
+
+#### Sinalizar decisão da IA
+- Podemos incluir no estado um marcador da fonte da decisão usada na chamada, por exemplo `ultimaDecisaoIA`: { numero, source: 'jsef|wrr|proporcao|fifo|mlHint', confianca } vindo do servidor, e exibir um ícone por senha chamada. Isso dá rastreabilidade clara da origem da decisão além do badge global de status.
+
+### Peso 1 (Documentação/Instalação)
+ - [ID: T-009] Planejar instalação offline: cache de `node_modules` ou pacote zip com dependências preinstaladas.
+ - [ID: T-010] Documentar no README os requisitos para IA (modelo ONNX e assets) e comportamento quando em fallback.
+
+### Peso 2 (UX e Telemetria)
+- [ID: T-006] Indicar na UI quando a IA estiver em fallback (sem modelo) e quando uma dica ML foi aceita/rejeitada.
+- [ID: T-007] Mostrar histórico de ausências e contadores quando `mostrarHistoricoAusencias` ativo.
+- [ID: T-008] Exibir feedback dos eventos de correção (ausência/não comparecimento) com alerta sonoro/visual conforme configuração.
+ - [ID: T-011] Adotar `designTokens.colors.primary` no título da Fila de Espera.
+ - [ID: T-012] Instrumentar tempo de troca de sub-aba no Painel de Configurações e registrar métricas.
+
+### Peso 3 (Qualidade/Build)
+ - [ID: T-003] Rodar e fechar `npm run type-check && npm run build` no servidor e no cliente após patches.
+ - [ID: T-004] Reexecutar smoke/E2E (`v3/qa/smoke-socket.js`) e validar métricas de latência e campos: `servicoDoCliente`, `tempoEspera`, `chamadaTimestamp`, `finalizadoTimestamp`.
+ - [ID: T-005] Solicitar nova auditoria do Supervisor Crítico após correções.
+
+### Peso 4 (Confiabilidade/Consistência)
+- [Concluído] Garantir fallback claro de `estado.configuracoes.roteamento` em `QueueService` quando carregar dados antigos.
+- [Concluído] Ajustar `recordPrediction` para aceitar `accepted_hint` e `latency_ms` mantendo compatibilidade.
+ - [ID: T-002] Habilitar o algoritmo `'jsed_fair_wrr'` nas configurações apenas por ação do atendente (sem autochamada), mantendo a decisão no servidor com validação top‑3 e `mlHint` opcional.
+
+### Peso 5 (Bloqueios/Alta Prioridade)
+- [Concluído] Incluir `roteamento` e `algoritmoVersao` em `StateManager.mesclarConfiguracoes` com merge de defaults na migração.
+- [Concluído] Adicionar listeners de cliente para `notificacaoAusencia` e `notificacaoNaoComparecimento` em `useSocket.ts`.
+- [Concluído] Destacar visualmente na UI senhas com `tempoLimiteAtingido` quando `destacarSenhasTempoLimite` estiver ativo; exibir histórico de ausências quando configurado.
+ - [ID: T-001] Disponibilizar `client/public/models/next_senha_int8.onnx` (e assets `onnxruntime-web`) para habilitar inferência ONNX ou indicar explicitamente fallback na UI.
+- [Concluído] Corrigir tipagem do cliente para refletir `'jsed_fair_wrr'` nos componentes afetados e aceitar campos opcionais de telemetria.
+
+## Atualizações do Supervisor Crítico
+- commit_gate=allow com recomendações:
+  - Restringir CORS em produção.
+  - Ajustar thresholds (`minScore ≥ 0.6`) conforme plano.
+  - Disponibilizar modelo ONNX local opcional.
+
+## Origem das Pendências (Resumo)
+- Build/Tipagem: mescla incompleta de configs; tipos do cliente desatualizados.
+- Consistência: `mlHint` compatível; falta fallback robusto para `roteamento` legado.
+- UI/Notificações: eventos de correção não escutados; flags de UI sem efeito visual.
+- ML: modelo ONNX ausente (inferência caiu em fallback); offline ok após instalada.
+- Auditoria Crítica: gate de commit negado até listeners/UI/modelo.
+
+## Critérios de Aceite
+- Smoke passa com latências baixas e campos corretos.
+- Type‑check e build sem erros em cliente/servidor.
+- UI destaca `tempoLimiteAtingido` e exibe histórico/feedback de correções.
+- Modelo ONNX presente ou fallback claramente sinalizado na UI.
+- Supervisor Crítico libera gate (sem bloqueios remanescentes).
+
+## Convenção de IDs de Tarefa
+- Formato: `[ID: T-###]` prefixado no item do plano.
+- Uso: referenciar o ID nos resultados em `testes.md` para cruzar evidências e facilitar rastreabilidade.
+
+## Instruções por Agente
+- `SOLO Coder`: consolidar prioridades, marcar status e manter rastreabilidade mínima.
+- `UI/UX Planner`: adicionar épicos de experiência e critérios de aceite; alinhar com `Interface Designer`.
+- `Interface Designer`: propor tarefas visuais/acessibilidade e tokens; detalhar componentes.
+- `Edge‑AI Engineer`: priorizar tarefas de modelo/thresholds/fallback; registrar dependências técnicas.
+- `Queue Data Scientist`: incluir tarefas de medições/estimadores e análises de dados.
+- `Build/Release Engineer`: planejar marcos de build e entrega offline; scripts `.bat` e estrutura de pendrive.
+- `Test Automation Engineer`: inserir objetivos de cobertura e casos automatizados prioritários.
+- `Security Reviewer`: registrar recomendações e correções necessárias de conformidade.
+- `Performance Engineer`: definir metas (latência, reflows, tamanho de bundle) e tarefas.

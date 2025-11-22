@@ -349,6 +349,19 @@ export class SocketHandlers {
       }
     });
 
+    socket.on('atualizarDesignTokens', (tokens) => {
+      try {
+        this.stateManager.atualizarDesignTokens(tokens);
+        this.emitirEstadoAtualizado();
+      } catch (error) {
+        console.error('Erro ao atualizar tokens de design:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar tokens de design',
+          tipo: 'atualizarDesignTokens'
+        });
+      }
+    });
+
     socket.on('atualizarNotificacoes', (notificacoes) => {
       try {
         this.stateManager.atualizarNotificacoes(notificacoes);

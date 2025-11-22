@@ -4,7 +4,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes, ConfiguracaoSeguranca, ConfiguracaoCorrecoes } from '../../../shared/types.ts';
+import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes, ConfiguracaoSeguranca, ConfiguracaoCorrecoes, ConfiguracaoDesignTokens } from '../../../shared/types.ts';
 function getConfigPadraoLocal(): ConfiguracoesGerais {
   return {
     tiposSenha: [
@@ -104,6 +104,23 @@ function getConfigPadraoLocal(): ConfiguracoesGerais {
       mostrarTempoAtendimento: true,
       ordenacaoFilaPadrao: 'emissao',
       exibirIconesPrioridade: true
+    },
+    designTokens: {
+      colors: {
+        primary: '#004a8d',
+        secondary: '#6c757d',
+        success: '#198754',
+        danger: '#dc3545',
+        warning: '#ff922b',
+        info: '#17a2b8',
+        neutral: '#868e96'
+      },
+      spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
+      radii: { sm: 4, md: 6, lg: 8 },
+      fontSizes: { small: 12, base: 14, md: 16, lg: 18, xl: 20 },
+      shadows: { sm: '0 1px 2px rgba(0,0,0,0.06)', md: '0 2px 6px rgba(0,0,0,0.1)', lg: '0 4px 12px rgba(0,0,0,0.12)' },
+      zIndex: { modal: 1000, overlay: 900, dropdown: 800 },
+      transitions: { fast: '150ms ease-out', normal: '250ms ease', slow: '400ms ease-in' }
     },
     notificacoes: {
       somAtivo: true,
@@ -378,6 +395,15 @@ export class StateManager {
         destacarSenhasTempoLimite: configExistente.correcoes.destacarSenhasTempoLimite ?? padrao.correcoes.destacarSenhasTempoLimite,
         mostrarHistoricoAusencias: configExistente.correcoes.mostrarHistoricoAusencias ?? padrao.correcoes.mostrarHistoricoAusencias
       } : padrao.correcoes,
+      designTokens: configExistente.designTokens ? ({
+        colors: { ...padrao.designTokens.colors, ...configExistente.designTokens.colors },
+        spacing: { ...padrao.designTokens.spacing, ...configExistente.designTokens.spacing },
+        radii: { ...padrao.designTokens.radii, ...configExistente.designTokens.radii },
+        fontSizes: { ...padrao.designTokens.fontSizes, ...configExistente.designTokens.fontSizes },
+        shadows: { ...(padrao.designTokens.shadows || {}), ...(configExistente.designTokens.shadows || {}) },
+        zIndex: { ...(padrao.designTokens.zIndex || {}), ...(configExistente.designTokens.zIndex || {}) },
+        transitions: { ...(padrao.designTokens.transitions || {}), ...(configExistente.designTokens.transitions || {}) }
+      } as ConfiguracaoDesignTokens) : padrao.designTokens,
       roteamento: configExistente.roteamento ? {
         jsedWeights: { ...padrao.roteamento.jsedWeights, ...configExistente.roteamento.jsedWeights },
         wfq: { ...padrao.roteamento.wfq, ...configExistente.roteamento.wfq },
@@ -434,6 +460,15 @@ export class StateManager {
    */
   public atualizarConfigInterface(interfaceConfig: ConfiguracaoInterface): void {
     this.estado.configuracoes.interface = interfaceConfig;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+  }
+
+  /**
+   * Atualiza tokens de design (visual)
+   */
+  public atualizarDesignTokens(tokens: ConfiguracaoDesignTokens): void {
+    this.estado.configuracoes.designTokens = tokens;
     this.estado.configuracoes.ultimaAtualizacao = Date.now();
     this.salvarEstado();
   }

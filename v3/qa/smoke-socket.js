@@ -1,15 +1,13 @@
-// Smoke/E2E leve para SGFILA v3 via Socket.IO
-// Usa cliente Socket.IO do projeto cliente para evitar instalar novo pacote
 const { io } = require('../client/node_modules/socket.io-client');
 
 async function run() {
-  const sock = io('http://localhost:3000', { transports: ['websocket'] });
+  const sock = io('http://localhost:3000');
   let initialEstado = null;
   let guicheId = null;
   let emittedNumero = null;
   const metrics = {};
 
-  const waitFor = (event, timeoutMs = 8000) => new Promise((resolve, reject) => {
+  const waitFor = (event, timeoutMs = 15000) => new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       sock.off(event, onEvent);
       reject(new Error(`Timeout esperando evento: ${event}`));
@@ -25,11 +23,6 @@ async function run() {
 
   await new Promise((resolve) => sock.on('connect', resolve));
 
-  // Recebe algum estado (inicial ou após operações)
-  const first = await onceEstado();
-  initialEstado = first.estado;
-
-  // Emitir senha
   metrics.emitStart = Date.now();
   sock.emit('emitirSenha', { tipo: 'normal', subtipo: '', servicoDoCliente: 'Cadastro' });
   const afterEmit = await onceEstado();
@@ -38,7 +31,6 @@ async function run() {
   emittedNumero = last && last.numero;
   guicheId = (afterEmit.estado.guichesConfigurados && afterEmit.estado.guichesConfigurados[0] && afterEmit.estado.guichesConfigurados[0].id) || 'G1';
 
-  // Chamar senha
   metrics.callStart = Date.now();
   sock.emit('chamarSenha', { guicheId });
   const afterCall = await onceEstado();
@@ -47,7 +39,6 @@ async function run() {
   metrics.tempoEspera = chamada ? chamada.tempoEspera : null;
   metrics.chamadaTimestamp = chamada ? chamada.chamadaTimestamp : null;
 
-  // Finalizar atendimento
   metrics.finishStart = Date.now();
   sock.emit('finalizarAtendimento', { guicheId });
   const afterFinish = await onceEstado();

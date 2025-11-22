@@ -1,6 +1,14 @@
 <template>
   <div class="queue-list">
-    <h3><i class="fas fa-clock" /> Fila de Espera</h3>
+    <h3 :style="{ color: props.estado?.configuracoes?.designTokens?.colors?.primary || '#004a8d' }"><i class="fas fa-clock" /> Fila de Espera</h3>
+
+    <div class="ai-status">
+      <span :class="['ai-badge', iaSource === 'fallback' ? 'warn' : 'ok']">IA: {{ iaSource === 'fallback' ? 'Fallback' : iaSource === 'onnx' ? 'ONNX' : 'Indefinida' }}</span>
+      <span
+        v-if="lastHintStatus !== null"
+        :class="['hint-badge', lastHintStatus ? 'ok' : 'warn']"
+      >Dica ML: {{ lastHintStatus ? 'Aceita' : 'Rejeitada' }}</span>
+    </div>
 
     <!-- Filtros -->
     <div class="filter-wrapper">
@@ -58,7 +66,11 @@
 
         <div class="ticket-controls">
           <span class="wait-time">{{ formatarTempoHMS(currentTime - senha.timestamp) }}</span>
-          <span v-if="props.estado?.configuracoes?.correcoes?.mostrarHistoricoAusencias && senha.tentativasAusencia > 0" class="badge-ausencia" :title="`Ausências: ${senha.tentativasAusencia}`">Aus {{ senha.tentativasAusencia }}</span>
+          <span
+            v-if="props.estado?.configuracoes?.correcoes?.mostrarHistoricoAusencias && senha.tentativasAusencia > 0"
+            class="badge-ausencia"
+            :title="`Ausências: ${senha.tentativasAusencia}`"
+          >Aus {{ senha.tentativasAusencia }}</span>
 
           <div class="action-buttons">
             <button
@@ -134,6 +146,8 @@ defineEmits<{
 const filtroAtivo = ref<FiltroFila>('emissao')
 const termoBusca = ref('')
 const iaPreviewNumero = ref<string | null>(null)
+const iaSource = ref<string | null>(null)
+const lastHintStatus = ref<boolean | null>(null)
 
 // Força atualização a cada segundo
 const currentTime = ref(Date.now())
@@ -143,6 +157,22 @@ onMounted(() => {
   intervalId = window.setInterval(() => {
     currentTime.value = Date.now()
   }, 1000)
+  const updateAi = () => {
+    const src = (window as any)._sgfAiSource
+    iaSource.value = typeof src === 'string' ? src : ((window as any)._sgfAiRuntimeUnavailable ? 'fallback' : null)
+    try {
+      const raw = localStorage.getItem('sgfila_ml_telemetry')
+      if (raw) {
+        const arr = JSON.parse(raw)
+        const last = Array.isArray(arr) && arr.length > 0 ? arr[arr.length - 1] : null
+        lastHintStatus.value = last && typeof last.accepted_hint === 'boolean' ? last.accepted_hint : null
+      }
+    } catch {
+      lastHintStatus.value = null
+    }
+  }
+  updateAi()
+  window.setInterval(updateAi, 1500)
 })
 
 onUnmounted(() => {
@@ -540,4 +570,18 @@ const mensagemVazia = computed(() => {
   border-radius: 6px;
   font-size: 0.75rem;
 }
+.ai-status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.ai-badge, .hint-badge {
+  border: 1px solid;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+.ai-badge.ok, .hint-badge.ok { color: #198754; border-color: #198754; }
+.ai-badge.warn, .hint-badge.warn { color: #d63384; border-color: #d63384; }
 </style>

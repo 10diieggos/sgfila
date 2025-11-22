@@ -13,6 +13,7 @@ export async function loadModelLazy(): Promise<void> {
     session = await ort.InferenceSession.create('/models/next_senha_int8.onnx')
   } catch {
     runtimeUnavailable = true
+    ;(window as any)._sgfAiRuntimeUnavailable = true
   }
 }
 
@@ -20,7 +21,9 @@ export async function predictNextOrFallback(estado: EstadoSistema): Promise<{ nu
   await loadModelLazy()
   if (!session) {
     const r = predictByRule(estado)
-    return { ...r, source: 'fallback' }
+    const out = { ...r, source: 'fallback' as const }
+    ;(window as any)._sgfAiSource = 'fallback'
+    return out
   }
   try {
     const features = extractFeatures(estado)
@@ -31,11 +34,17 @@ export async function predictNextOrFallback(estado: EstadoSistema): Promise<{ nu
     const score = Number(out[1] || 0)
     if (!numero) {
       const r = predictByRule(estado)
-      return { ...r, source: 'fallback' }
+      const o = { ...r, source: 'fallback' as const }
+      ;(window as any)._sgfAiSource = 'fallback'
+      return o
     }
-    return { numeroPrevisto: numero, score, source: 'onnx' }
+    const o = { numeroPrevisto: numero, score, source: 'onnx' as const }
+    ;(window as any)._sgfAiSource = 'onnx'
+    return o
   } catch {
     const r = predictByRule(estado)
-    return { ...r, source: 'fallback' }
+    const o = { ...r, source: 'fallback' as const }
+    ;(window as any)._sgfAiSource = 'fallback'
+    return o
   }
 }

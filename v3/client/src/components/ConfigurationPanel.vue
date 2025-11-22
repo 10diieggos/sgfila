@@ -26,6 +26,12 @@
       >
         <i class="fas fa-redo" /> Reiniciar
       </button>
+      <button
+        :class="['sub-tab-link', { active: activeSubTab === 'design' }]"
+        @click="changeSubTab('design')"
+      >
+        <i class="fas fa-palette" /> Design
+      </button>
     </div>
 
     <!-- Conteúdo Guichês -->
@@ -830,6 +836,69 @@
       </div>
     </div>
 
+    <!-- Conteúdo Design Tokens -->
+    <div
+      v-if="activeSubTab === 'design'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-palette" /> Design Tokens</h2>
+      <p class="hint">
+        Defina a paleta de cores, espaçamentos, raios e tamanhos de fonte para padronização visual.
+      </p>
+
+      <div class="config-section">
+        <h3>Paleta de Cores</h3>
+        <div class="config-grid-3">
+          <div class="config-item"><label>Primária</label><input v-model="designTokens.colors.primary" type="color" class="config-input-color" @change="salvarDesignTokens"></div>
+          <div class="config-item"><label>Secundária</label><input v-model="designTokens.colors.secondary" type="color" class="config-input-color" @change="salvarDesignTokens"></div>
+          <div class="config-item"><label>Sucesso</label><input v-model="designTokens.colors.success" type="color" class="config-input-color" @change="salvarDesignTokens"></div>
+          <div class="config-item"><label>Perigo</label><input v-model="designTokens.colors.danger" type="color" class="config-input-color" @change="salvarDesignTokens"></div>
+          <div class="config-item"><label>Aviso</label><input v-model="designTokens.colors.warning" type="color" class="config-input-color" @change="salvarDesignTokens"></div>
+          <div class="config-item"><label>Informação</label><input v-model="designTokens.colors.info" type="color" class="config-input-color" @change="salvarDesignTokens"></div>
+          <div class="config-item"><label>Neutra</label><input v-model="designTokens.colors.neutral" type="color" class="config-input-color" @change="salvarDesignTokens"></div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Escala de Espaçamentos (px)</h3>
+        <div class="config-grid-3">
+          <div class="config-item"><label>xs</label><input v-model.number="designTokens.spacing.xs" type="number" min="0" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>sm</label><input v-model.number="designTokens.spacing.sm" type="number" min="0" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>md</label><input v-model.number="designTokens.spacing.md" type="number" min="0" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>lg</label><input v-model.number="designTokens.spacing.lg" type="number" min="0" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>xl</label><input v-model.number="designTokens.spacing.xl" type="number" min="0" class="config-input" @blur="salvarDesignTokens"></div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Raios de Borda (px)</h3>
+        <div class="config-grid-3">
+          <div class="config-item"><label>sm</label><input v-model.number="designTokens.radii.sm" type="number" min="0" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>md</label><input v-model.number="designTokens.radii.md" type="number" min="0" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>lg</label><input v-model.number="designTokens.radii.lg" type="number" min="0" class="config-input" @blur="salvarDesignTokens"></div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>Tamanhos de Fonte (px)</h3>
+        <div class="config-grid-3">
+          <div class="config-item"><label>small</label><input v-model.number="designTokens.fontSizes.small" type="number" min="8" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>base</label><input v-model.number="designTokens.fontSizes.base" type="number" min="10" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>md</label><input v-model.number="designTokens.fontSizes.md" type="number" min="12" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>lg</label><input v-model.number="designTokens.fontSizes.lg" type="number" min="14" class="config-input" @blur="salvarDesignTokens"></div>
+          <div class="config-item"><label>xl</label><input v-model.number="designTokens.fontSizes.xl" type="number" min="16" class="config-input" @blur="salvarDesignTokens"></div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle" />
+        <div>
+          <strong>Documentação leve:</strong>
+          <p>Os tokens de design padronizam a aparência do sistema. Expanda gradualmente conforme surgirem novos componentes (ex.: sombras, z-index, transições).</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Conteúdo Notificações -->
     <div
       v-if="activeSubTab === 'notificacoes'"
@@ -1311,10 +1380,11 @@ import type {
   ConfiguracaoComportamentoFila,
   ConfiguracaoSeguranca,
   ConfiguracaoCorrecoes,
-  ConfiguracoesGerais
+  ConfiguracoesGerais,
+  ConfiguracaoDesignTokens
 } from '../../../shared/types'
 
-type SubTab = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'notificacoes' | 'seguranca' | 'correcoes' | 'reiniciar'
+type SubTab = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'design' | 'notificacoes' | 'seguranca' | 'correcoes' | 'reiniciar'
 
 const props = withDefaults(defineProps<{
   guichesGlobais: Guiche[]
@@ -1339,13 +1409,19 @@ const emit = defineEmits<{
   'atualizar-seguranca': [config: ConfiguracaoSeguranca]
   'atualizar-correcoes': [config: ConfiguracaoCorrecoes]
   'reiniciar-sistema': []
+  'atualizar-design-tokens': [tokens: ConfiguracaoDesignTokens]
 }>()
 
 const activeSubTab = ref<SubTab>(props.initialTab)
 
 // Mudar sub-aba
 const changeSubTab = (tab: SubTab) => {
+  const t0 = performance.now()
   activeSubTab.value = tab
+  requestAnimationFrame(() => {
+    const dt = performance.now() - t0
+    console.log('[Perf] Troca de sub-aba', tab, Math.round(dt), 'ms')
+  })
 }
 
 // Watch para atualizar quando a prop initialTab mudar
@@ -1607,6 +1683,27 @@ const interfaceConfig = ref<ConfiguracaoInterface>({
   exibirIconesPrioridade: true
 })
 
+// Design Tokens
+const designTokens = ref<ConfiguracaoDesignTokens>({
+  colors: {
+    primary: '#004a8d',
+    secondary: '#6c757d',
+    success: '#198754',
+    danger: '#dc3545',
+    warning: '#ff922b',
+    info: '#17a2b8',
+    neutral: '#868e96'
+  },
+  spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
+  radii: { sm: 4, md: 6, lg: 8 },
+  fontSizes: { small: 12, base: 14, md: 16, lg: 18, xl: 20 }
+})
+
+const salvarDesignTokens = () => {
+  if (carregandoDoServidor) return
+  emit('atualizar-design-tokens', designTokens.value)
+}
+
 const salvarInterface = () => {
   if (carregandoDoServidor) return
   console.log('💾 [ConfigPanel] Salvando configuração de interface')
@@ -1761,6 +1858,12 @@ watch(() => props.configuracoes, (novasConfiguracoes) => {
   if (novasConfiguracoes.interface) {
     console.log('✅ [ConfigPanel] Carregando interface:', novasConfiguracoes.interface.tema)
     interfaceConfig.value = { ...novasConfiguracoes.interface }
+  }
+
+  // Atualizar design tokens
+  if (novasConfiguracoes.designTokens) {
+    console.log('✅ [ConfigPanel] Carregando design tokens')
+    designTokens.value = { ...novasConfiguracoes.designTokens }
   }
 
   // Atualizar notificações

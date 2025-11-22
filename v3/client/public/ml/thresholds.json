@@ -1,5 +1,5 @@
 {
-  "minScore": 0,
+  "minScore": 0.6,
   "latencyMsMax": 200,
   "accuracyTarget": 0.7,
   "driftTolerance": 0.2,

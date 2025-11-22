@@ -19,7 +19,8 @@ import type {
   ConfiguracaoInterface,
   ConfiguracaoNotificacoes,
   ConfiguracaoSeguranca,
-  ConfiguracaoCorrecoes
+  ConfiguracaoCorrecoes,
+  ConfiguracaoDesignTokens
 } from '@shared/types'
 import { useBeep } from './useBeep'
 import { predictNextOrFallback } from '../ml/inference'
@@ -212,6 +213,10 @@ export function useSocket() {
     socket.value?.emit('atualizarConfigInterface', interfaceConfig)
   }
 
+  const atualizarDesignTokens = (tokens: ConfiguracaoDesignTokens) => {
+    socket.value?.emit('atualizarDesignTokens', tokens)
+  }
+
   const atualizarNotificacoes = (notificacoes: ConfiguracaoNotificacoes) => {
     socket.value?.emit('atualizarNotificacoes', notificacoes)
   }
@@ -260,6 +265,7 @@ export function useSocket() {
     atualizarMotivosRetorno,
     atualizarComportamentoFila,
     atualizarConfigInterface,
+    atualizarDesignTokens,
     atualizarNotificacoes,
     atualizarSeguranca,
     atualizarCorrecoes
