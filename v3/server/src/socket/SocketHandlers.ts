@@ -411,6 +411,20 @@ export class SocketHandlers {
       }
     });
 
+    socket.on('atualizarRoteamento', (roteamento) => {
+      try {
+        this.stateManager.atualizarRoteamento(roteamento);
+        this.emitirEstadoAtualizado();
+        console.log('✅ [SocketHandlers] Configuração de roteamento atualizada');
+      } catch (error) {
+        console.error('Erro ao atualizar roteamento:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao atualizar configurações de roteamento',
+          tipo: 'atualizarRoteamento'
+        });
+      }
+    });
+
     // ========================================
     // REINICIAR SISTEMA
     // ========================================

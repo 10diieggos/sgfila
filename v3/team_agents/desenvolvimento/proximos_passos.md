@@ -268,6 +268,13 @@
    - Toggle para habilitar/desabilitar validação
    - Inputs para minScore e maxLatencyMs
    - Info box explicando comportamento
+   - Estado reativo `roteamentoConfig` e função `salvarRoteamento()`
+   - Evento `atualizar-roteamento` no emit
+4. ✅ **Integração servidor-cliente para thresholds ML Hint:**
+   - Handler `atualizarRoteamento` em `SocketHandlers.ts` (linha 414-426)
+   - Método `atualizarRoteamento()` em `StateManager` (linha 523-532)
+   - Merge de `mlHintThresholds` em `mesclarConfiguracoes()` (linha 419)
+   - Compatibilidade com dados legados via merge com defaults
 
 **Próximos Passos Prioritários:**
 1. Conectar dashboard com dados reais (T-086)

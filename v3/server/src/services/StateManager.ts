@@ -415,7 +415,8 @@ export class StateManager {
         jsedWeights: { ...padrao.roteamento.jsedWeights, ...configExistente.roteamento.jsedWeights },
         wfq: { ...padrao.roteamento.wfq, ...configExistente.roteamento.wfq },
         fast: { ...padrao.roteamento.fast, ...configExistente.roteamento.fast },
-        wrr: { ...padrao.roteamento.wrr, ...configExistente.roteamento.wrr }
+        wrr: { ...padrao.roteamento.wrr, ...configExistente.roteamento.wrr },
+        mlHintThresholds: { ...padrao.roteamento.mlHintThresholds, ...(configExistente.roteamento as any).mlHintThresholds }
       } : padrao.roteamento,
       algoritmoVersao: configExistente.algoritmoVersao || padrao.algoritmoVersao,
       versao: padrao.versao,
@@ -518,6 +519,17 @@ export class StateManager {
     this.estado.configuracoes.correcoes = correcoes;
     this.estado.configuracoes.ultimaAtualizacao = Date.now();
     this.salvarEstado();
+  }
+
+  public atualizarRoteamento(roteamento: any): void {
+    this.estado.configuracoes.roteamento = roteamento;
+    this.estado.configuracoes.ultimaAtualizacao = Date.now();
+    this.salvarEstado();
+    console.log('✅ [StateManager] Configuração de roteamento atualizada:', {
+      mlHintEnabled: roteamento.mlHintThresholds?.enabled,
+      minScore: roteamento.mlHintThresholds?.minScore,
+      maxLatency: roteamento.mlHintThresholds?.maxLatencyMs
+    });
   }
 
   /**
