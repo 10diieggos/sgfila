@@ -1,5 +1,5 @@
 console.log('Tentando importar...');
-import('./shared/types.js')
+import('./shared/types.ts')
   .then(mod => {
     console.log('Modulo importado!');
     console.log('Exports disponiveis:', Object.keys(mod));

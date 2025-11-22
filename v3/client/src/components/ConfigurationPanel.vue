@@ -6,32 +6,35 @@
         :class="['sub-tab-link', { active: activeSubTab === 'guiches' }]"
         @click="changeSubTab('guiches')"
       >
-        <i class="fas fa-desktop"></i> Guichês
+        <i class="fas fa-desktop" /> Guichês
       </button>
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'proporcao' }]"
         @click="changeSubTab('proporcao')"
       >
-        <i class="fas fa-balance-scale-right"></i> Proporção & Comportamento
+        <i class="fas fa-balance-scale-right" /> Proporção & Comportamento
       </button>
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'correcoes' }]"
         @click="changeSubTab('correcoes')"
       >
-        <i class="fas fa-tools"></i> Correções
+        <i class="fas fa-tools" /> Correções
       </button>
       <button
         :class="['sub-tab-link', { active: activeSubTab === 'reiniciar' }]"
         @click="changeSubTab('reiniciar')"
       >
-        <i class="fas fa-redo"></i> Reiniciar
+        <i class="fas fa-redo" /> Reiniciar
       </button>
     </div>
 
     <!-- Conteúdo Guichês -->
-    <div v-if="activeSubTab === 'guiches'" class="sub-tab-content">
+    <div
+      v-if="activeSubTab === 'guiches'"
+      class="sub-tab-content"
+    >
       <!-- Exibição Local -->
-      <h3><i class="fas fa-desktop-alt"></i> Exibição (Este Navegador)</h3>
+      <h3><i class="fas fa-desktop-alt" /> Exibição (Este Navegador)</h3>
       <p class="hint">
         Selecione os guichês que deseja exibir no painel de controle desta aba.
         A seleção é salva automaticamente no navegador.
@@ -49,16 +52,19 @@
             :checked="guichesExibicaoLocal.includes(guiche.id)"
             :disabled="!guiche.ativo"
             @change="toggleGuicheExibicao(guiche.id)"
-          />
+          >
           <span>{{ guiche.nome }}</span>
-          <span v-if="!guiche.ativo" class="badge-inactive">Inativo</span>
+          <span
+            v-if="!guiche.ativo"
+            class="badge-inactive"
+          >Inativo</span>
         </label>
       </div>
 
-      <hr class="divider" />
+      <hr class="divider">
 
       <!-- Guichês Globais -->
-      <h3><i class="fas fa-users-cog"></i> Guichês (Global)</h3>
+      <h3><i class="fas fa-users-cog" /> Guichês (Global)</h3>
       <p class="hint">
         Adicione, nomeie e ative/desative guichês para <strong>todo o sistema</strong>.
         Guichês inativos não são contados na estimativa de tempo.
@@ -72,40 +78,46 @@
           class="guiche-item"
         >
           <input
-            type="text"
             v-model="guiche.nome"
+            type="text"
             placeholder="Nome do guichê"
             class="guiche-input"
             @input="salvarGuichesGlobais"
             @blur="salvarGuichesGlobais"
-          />
+          >
           <label class="toggle-switch">
             <input
-              type="checkbox"
               v-model="guiche.ativo"
+              type="checkbox"
               @change="handleToggleAtivo(guiche)"
-            />
-            <span class="toggle-slider"></span>
+            >
+            <span class="toggle-slider" />
           </label>
           <span class="status-label">{{ guiche.ativo ? 'Ativo' : 'Inativo' }}</span>
           <button
             class="btn-icon btn-delete"
-            @click="removerGuiche(guiche.id)"
             title="Remover guichê"
+            @click="removerGuiche(guiche.id)"
           >
-            <i class="fas fa-trash"></i>
+            <i class="fas fa-trash" />
           </button>
         </div>
       </div>
 
-      <button class="btn btn-add" @click="adicionarGuiche">
-        <i class="fas fa-plus"></i> Adicionar Guichê
+      <button
+        class="btn btn-add"
+        @click="adicionarGuiche"
+      >
+        <i class="fas fa-plus" /> Adicionar Guichê
       </button>
     </div>
 
     <!-- Conteúdo Proporção -->
-    <div v-if="activeSubTab === 'proporcao'" class="sub-tab-content">
-      <h2><i class="fas fa-balance-scale-right"></i> Configurações de Proporção</h2>
+    <div
+      v-if="activeSubTab === 'proporcao'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-balance-scale-right" /> Configurações de Proporção</h2>
       <p class="hint">
         Defina a proporção de atendimento entre tipos de senha.
         Exemplo: P:N = 2:1 significa que a cada 2 senhas prioritárias, 1 normal é chamada.
@@ -114,17 +126,17 @@
       <div class="ratio-controls">
         <div class="ratio-control">
           <label for="input-ratio">
-            <i class="fas fa-wheelchair"></i> Proporção Prioritária : Normal (P:N):
+            <i class="fas fa-wheelchair" /> Proporção Prioritária : Normal (P:N):
           </label>
           <div class="ratio-input-group">
             <input
-              type="number"
               id="input-ratio"
               v-model.number="proporcaoPrioridadeLocal"
+              type="number"
               min="1"
               max="20"
               @blur="salvarProporcaoPrioridade"
-            />
+            >
             <span class="ratio-separator">:</span>
             <span class="ratio-fixed">1</span>
           </div>
@@ -136,17 +148,17 @@
 
         <div class="ratio-control">
           <label for="input-ratio-contratual">
-            <i class="fas fa-file-contract"></i> Proporção Contratual : Normal (C:N):
+            <i class="fas fa-file-contract" /> Proporção Contratual : Normal (C:N):
           </label>
           <div class="ratio-input-group">
             <input
-              type="number"
               id="input-ratio-contratual"
               v-model.number="proporcaoContratualLocal"
+              type="number"
               min="1"
               max="20"
               @blur="salvarProporcaoContratual"
-            />
+            >
             <span class="ratio-separator">:</span>
             <span class="ratio-fixed">1</span>
           </div>
@@ -158,7 +170,7 @@
       </div>
 
       <div class="info-box">
-        <i class="fas fa-info-circle"></i>
+        <i class="fas fa-info-circle" />
         <div>
           <strong>Como funciona a lógica de proporção:</strong>
           <p>
@@ -169,10 +181,13 @@
         </div>
       </div>
 
-      <hr class="divider" style="margin: 30px 0;" />
+      <hr
+        class="divider"
+        style="margin: 30px 0;"
+      >
 
       <!-- Comportamento da Fila (integrado) -->
-      <h2><i class="fas fa-cogs"></i> Comportamento da Fila</h2>
+      <h2><i class="fas fa-cogs" /> Comportamento da Fila</h2>
       <p class="hint">
         Configure como o sistema gerencia a fila de atendimento.
       </p>
@@ -181,19 +196,34 @@
         <h3>Algoritmo de Chamada</h3>
         <div class="radio-group">
           <label class="radio-item">
-            <input type="radio" value="proporcao" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <input
+              v-model="comportamentoConfig.algoritmo"
+              type="radio"
+              value="proporcao"
+              @change="salvarComportamento"
+            >
             <span>
               <strong>Proporção</strong> - Respeita proporção entre tipos
             </span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="round_robin" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <input
+              v-model="comportamentoConfig.algoritmo"
+              type="radio"
+              value="round_robin"
+              @change="salvarComportamento"
+            >
             <span>
               <strong>Round Robin</strong> - Alterna entre tipos igualmente
             </span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="fifo" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <input
+              v-model="comportamentoConfig.algoritmo"
+              type="radio"
+              value="fifo"
+              @change="salvarComportamento"
+            >
             <span>
               <strong>FIFO</strong> - Primeiro a entrar, primeiro a sair
             </span>
@@ -204,12 +234,20 @@
       <div class="config-section">
         <h3>Opções de Chamada</h3>
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="comportamentoConfig.permitirPularSenhas" @change="salvarComportamento" />
+          <input
+            v-model="comportamentoConfig.permitirPularSenhas"
+            type="checkbox"
+            @change="salvarComportamento"
+          >
           <span>Permitir pular senhas (chamar senha específica)</span>
         </label>
 
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="comportamentoConfig.chamarProximaAutomatica" @change="salvarComportamento" />
+          <input
+            v-model="comportamentoConfig.chamarProximaAutomatica"
+            type="checkbox"
+            @change="salvarComportamento"
+          >
           <span>Chamar próxima senha automaticamente após finalizar</span>
         </label>
       </div>
@@ -219,82 +257,123 @@
         <div class="config-item">
           <label>Auto-finalizar atendimento após (minutos):</label>
           <input
-            type="number"
             v-model.number="comportamentoConfig.autoFinalizarMinutos"
+            type="number"
             min="0"
             max="120"
-            @blur="salvarComportamento"
             class="config-input"
             placeholder="Desativado"
-          />
-          <p class="input-hint">0 ou vazio = desativado</p>
+            @blur="salvarComportamento"
+          >
+          <p class="input-hint">
+            0 ou vazio = desativado
+          </p>
         </div>
 
         <div class="config-item">
           <label>Tempo máximo de espera (minutos):</label>
           <input
-            type="number"
             v-model.number="comportamentoConfig.tempoEsperaMaximoMinutos"
+            type="number"
             min="0"
             max="300"
-            @blur="salvarComportamento"
             class="config-input"
             placeholder="Sem limite"
-          />
+            @blur="salvarComportamento"
+          >
         </div>
 
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="comportamentoConfig.alertarTempoEsperaExcedido" @change="salvarComportamento" />
+          <input
+            v-model="comportamentoConfig.alertarTempoEsperaExcedido"
+            type="checkbox"
+            @change="salvarComportamento"
+          >
           <span>Alertar quando tempo máximo de espera for excedido</span>
         </label>
       </div>
     </div>
 
     <!-- Conteúdo Tipos de Senha -->
-    <div v-if="activeSubTab === 'tipos'" class="sub-tab-content">
-      <h2><i class="fas fa-ticket-alt"></i> Tipos de Senha</h2>
+    <div
+      v-if="activeSubTab === 'tipos'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-ticket-alt" /> Tipos de Senha</h2>
       <p class="hint">
         Configure os tipos de senha disponíveis no sistema, incluindo cores, prefixos e subtipos.
       </p>
 
       <div class="info-box">
-        <i class="fas fa-info-circle"></i>
+        <i class="fas fa-info-circle" />
         <div>
           <strong>Importante:</strong>
           <p>Alterações nos tipos de senha afetam todo o sistema. Tipos desativados não estarão disponíveis para emissão.</p>
         </div>
       </div>
 
-      <div v-for="(tipo, index) in tiposConfig" :key="tipo.id" class="tipo-senha-card">
+      <div
+        v-for="(tipo, index) in tiposConfig"
+        :key="tipo.id"
+        class="tipo-senha-card"
+      >
         <div class="tipo-header">
-          <div class="tipo-badge" :style="{ background: tipo.corFundo, color: tipo.cor }">
-            <i :class="'fas fa-' + tipo.icone"></i> {{ tipo.nome }}
+          <div
+            class="tipo-badge"
+            :style="{ background: tipo.corFundo, color: tipo.cor }"
+          >
+            <i :class="'fas fa-' + tipo.icone" /> {{ tipo.nome }}
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" v-model="tipo.ativo" @change="salvarTipos" />
-            <span class="toggle-slider"></span>
+            <input
+              v-model="tipo.ativo"
+              type="checkbox"
+              @change="salvarTipos"
+            >
+            <span class="toggle-slider" />
           </label>
         </div>
 
         <div class="tipo-config-grid">
           <div class="config-item">
             <label>Nome Completo:</label>
-            <input type="text" v-model="tipo.nomeCompleto" @blur="salvarTipos" class="config-input" />
+            <input
+              v-model="tipo.nomeCompleto"
+              type="text"
+              class="config-input"
+              @blur="salvarTipos"
+            >
           </div>
 
           <div class="config-item">
             <label>Prefixo:</label>
-            <input type="text" v-model="tipo.prefixo" maxlength="3" @blur="salvarTipos" class="config-input small" />
+            <input
+              v-model="tipo.prefixo"
+              type="text"
+              maxlength="3"
+              class="config-input small"
+              @blur="salvarTipos"
+            >
           </div>
 
           <div class="config-item">
             <label>Cor do Texto:</label>
-            <input type="color" v-model="tipo.cor" @change="salvarTipos" class="config-input-color" />
+            <input
+              v-model="tipo.cor"
+              type="color"
+              class="config-input-color"
+              @change="salvarTipos"
+            >
           </div>
 
           <div class="config-item">
             <label>Cor de Fundo:</label>
-            <input type="color" v-model="tipo.corFundo" @change="salvarTipos" class="config-input-color" />
+            <input
+              v-model="tipo.corFundo"
+              type="color"
+              class="config-input-color"
+              @change="salvarTipos"
+            >
           </div>
         </div>
 
@@ -303,60 +382,91 @@
           <input
             type="text"
             :value="tipo.subtipos.join(', ')"
-            @blur="atualizarSubtipos(index, $event)"
             class="config-input"
             placeholder="Ex: Idoso, Gestante, Deficiente"
-          />
+            @blur="atualizarSubtipos(index, $event)"
+          >
         </div>
       </div>
     </div>
 
     <!-- Conteúdo Motivos de Retorno -->
-    <div v-if="activeSubTab === 'retornos'" class="sub-tab-content">
-      <h2><i class="fas fa-undo"></i> Motivos de Retorno</h2>
+    <div
+      v-if="activeSubTab === 'retornos'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-undo" /> Motivos de Retorno</h2>
       <p class="hint">
         Configure os motivos disponíveis para devolução de senhas à fila.
       </p>
 
-      <div v-for="motivo in motivosConfig" :key="motivo.id" class="motivo-card">
+      <div
+        v-for="motivo in motivosConfig"
+        :key="motivo.id"
+        class="motivo-card"
+      >
         <div class="motivo-header">
           <div class="motivo-title">
-            <i :class="'fas fa-' + motivo.icone" :style="{ color: motivo.cor }"></i>
+            <i
+              :class="'fas fa-' + motivo.icone"
+              :style="{ color: motivo.cor }"
+            />
             <strong>{{ motivo.nome }}</strong>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" v-model="motivo.ativo" @change="salvarMotivos" />
-            <span class="toggle-slider"></span>
+            <input
+              v-model="motivo.ativo"
+              type="checkbox"
+              @change="salvarMotivos"
+            >
+            <span class="toggle-slider" />
           </label>
         </div>
 
         <div class="motivo-body">
           <div class="config-item">
             <label>Descrição:</label>
-            <input type="text" v-model="motivo.descricao" @blur="salvarMotivos" class="config-input" />
+            <input
+              v-model="motivo.descricao"
+              type="text"
+              class="config-input"
+              @blur="salvarMotivos"
+            >
           </div>
 
           <div class="config-grid-2">
             <div class="config-item">
               <label>Prazo (minutos):</label>
               <input
-                type="number"
                 v-model.number="motivo.prazoMinutos"
+                type="number"
                 min="0"
                 max="120"
-                @blur="salvarMotivos"
                 class="config-input"
                 placeholder="Sem prazo"
-              />
+                @blur="salvarMotivos"
+              >
             </div>
 
             <div class="config-item">
               <label>Posição na Fila:</label>
-              <select v-model="motivo.posicionamentoFila" @change="salvarMotivos" class="config-select">
-                <option value="inicio">Início</option>
-                <option value="meio">Meio</option>
-                <option value="fim">Fim</option>
-                <option value="original">Posição Original</option>
+              <select
+                v-model="motivo.posicionamentoFila"
+                class="config-select"
+                @change="salvarMotivos"
+              >
+                <option value="inicio">
+                  Início
+                </option>
+                <option value="meio">
+                  Meio
+                </option>
+                <option value="fim">
+                  Fim
+                </option>
+                <option value="original">
+                  Posição Original
+                </option>
               </select>
             </div>
           </div>
@@ -365,8 +475,11 @@
     </div>
 
     <!-- Conteúdo Comportamento da Fila -->
-    <div v-if="activeSubTab === 'comportamento'" class="sub-tab-content">
-      <h2><i class="fas fa-cogs"></i> Comportamento da Fila</h2>
+    <div
+      v-if="activeSubTab === 'comportamento'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-cogs" /> Comportamento da Fila</h2>
       <p class="hint">
         Configure como o sistema gerencia a fila de atendimento.
       </p>
@@ -375,19 +488,34 @@
         <h3>Algoritmo de Chamada</h3>
         <div class="radio-group">
           <label class="radio-item">
-            <input type="radio" value="proporcao" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <input
+              v-model="comportamentoConfig.algoritmo"
+              type="radio"
+              value="proporcao"
+              @change="salvarComportamento"
+            >
             <span>
               <strong>Proporção</strong> - Respeita proporção entre tipos
             </span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="round_robin" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <input
+              v-model="comportamentoConfig.algoritmo"
+              type="radio"
+              value="round_robin"
+              @change="salvarComportamento"
+            >
             <span>
               <strong>Round Robin</strong> - Alterna entre tipos igualmente
             </span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="fifo" v-model="comportamentoConfig.algoritmo" @change="salvarComportamento" />
+            <input
+              v-model="comportamentoConfig.algoritmo"
+              type="radio"
+              value="fifo"
+              @change="salvarComportamento"
+            >
             <span>
               <strong>FIFO</strong> - Primeiro a entrar, primeiro a sair
             </span>
@@ -398,12 +526,20 @@
       <div class="config-section">
         <h3>Opções de Chamada</h3>
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="comportamentoConfig.permitirPularSenhas" @change="salvarComportamento" />
+          <input
+            v-model="comportamentoConfig.permitirPularSenhas"
+            type="checkbox"
+            @change="salvarComportamento"
+          >
           <span>Permitir pular senhas (chamar senha específica)</span>
         </label>
 
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="comportamentoConfig.chamarProximaAutomatica" @change="salvarComportamento" />
+          <input
+            v-model="comportamentoConfig.chamarProximaAutomatica"
+            type="checkbox"
+            @change="salvarComportamento"
+          >
           <span>Chamar próxima senha automaticamente após finalizar</span>
         </label>
       </div>
@@ -413,40 +549,49 @@
         <div class="config-item">
           <label>Auto-finalizar atendimento após (minutos):</label>
           <input
-            type="number"
             v-model.number="comportamentoConfig.autoFinalizarMinutos"
+            type="number"
             min="0"
             max="120"
-            @blur="salvarComportamento"
             class="config-input"
             placeholder="Desativado"
-          />
-          <p class="input-hint">0 ou vazio = desativado</p>
+            @blur="salvarComportamento"
+          >
+          <p class="input-hint">
+            0 ou vazio = desativado
+          </p>
         </div>
 
         <div class="config-item">
           <label>Tempo máximo de espera (minutos):</label>
           <input
-            type="number"
             v-model.number="comportamentoConfig.tempoEsperaMaximoMinutos"
+            type="number"
             min="0"
             max="300"
-            @blur="salvarComportamento"
             class="config-input"
             placeholder="Sem limite"
-          />
+            @blur="salvarComportamento"
+          >
         </div>
 
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="comportamentoConfig.alertarTempoEsperaExcedido" @change="salvarComportamento" />
+          <input
+            v-model="comportamentoConfig.alertarTempoEsperaExcedido"
+            type="checkbox"
+            @change="salvarComportamento"
+          >
           <span>Alertar quando tempo máximo de espera for excedido</span>
         </label>
       </div>
     </div>
 
     <!-- Conteúdo Segurança -->
-    <div v-if="activeSubTab === 'seguranca'" class="sub-tab-content">
-      <h2><i class="fas fa-shield-alt"></i> Segurança</h2>
+    <div
+      v-if="activeSubTab === 'seguranca'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-shield-alt" /> Segurança</h2>
       <p class="hint">
         Configure opções de segurança e proteção do sistema.
       </p>
@@ -454,12 +599,20 @@
       <div class="config-section">
         <h3>Confirmações</h3>
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="segurancaConfig.exigirConfirmacaoExclusao" @change="salvarSeguranca" />
+          <input
+            v-model="segurancaConfig.exigirConfirmacaoExclusao"
+            type="checkbox"
+            @change="salvarSeguranca"
+          >
           <span>Exigir confirmação para excluir senhas</span>
         </label>
 
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="segurancaConfig.exigirConfirmacaoReinicio" @change="salvarSeguranca" />
+          <input
+            v-model="segurancaConfig.exigirConfirmacaoReinicio"
+            type="checkbox"
+            @change="salvarSeguranca"
+          >
           <span>Exigir confirmação para reiniciar sistema</span>
         </label>
       </div>
@@ -467,33 +620,44 @@
       <div class="config-section">
         <h3>Auditoria e Backup</h3>
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="segurancaConfig.logAuditoria" @change="salvarSeguranca" />
+          <input
+            v-model="segurancaConfig.logAuditoria"
+            type="checkbox"
+            @change="salvarSeguranca"
+          >
           <span>Manter log de auditoria de operações</span>
         </label>
 
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="segurancaConfig.backupAutomatico" @change="salvarSeguranca" />
+          <input
+            v-model="segurancaConfig.backupAutomatico"
+            type="checkbox"
+            @change="salvarSeguranca"
+          >
           <span>Ativar backup automático</span>
         </label>
 
-        <div v-if="segurancaConfig.backupAutomatico" class="config-subsection">
+        <div
+          v-if="segurancaConfig.backupAutomatico"
+          class="config-subsection"
+        >
           <div class="config-item">
             <label>Intervalo de backup (minutos):</label>
             <input
-              type="number"
               v-model.number="segurancaConfig.intervaloBackupMinutos"
+              type="number"
               min="5"
               max="1440"
               step="5"
-              @blur="salvarSeguranca"
               class="config-input"
-            />
+              @blur="salvarSeguranca"
+            >
           </div>
         </div>
       </div>
 
       <div class="warning-box">
-        <i class="fas fa-exclamation-triangle"></i>
+        <i class="fas fa-exclamation-triangle" />
         <div>
           <strong>Nota de Segurança:</strong>
           <p>As configurações de segurança são importantes para proteger a integridade dos dados do sistema. Certifique-se de configurá-las adequadamente.</p>
@@ -502,8 +666,11 @@
     </div>
 
     <!-- Conteúdo Interface -->
-    <div v-if="activeSubTab === 'interface'" class="sub-tab-content">
-      <h2><i class="fas fa-palette"></i> Configurações de Interface</h2>
+    <div
+      v-if="activeSubTab === 'interface'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-palette" /> Configurações de Interface</h2>
       <p class="hint">
         Personalize a aparência e o comportamento visual do sistema.
       </p>
@@ -512,16 +679,31 @@
         <h3>Tema</h3>
         <div class="radio-group">
           <label class="radio-item">
-            <input type="radio" value="claro" v-model="interfaceConfig.tema" @change="salvarInterface" />
-            <span><i class="fas fa-sun"></i> Claro</span>
+            <input
+              v-model="interfaceConfig.tema"
+              type="radio"
+              value="claro"
+              @change="salvarInterface"
+            >
+            <span><i class="fas fa-sun" /> Claro</span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="escuro" v-model="interfaceConfig.tema" @change="salvarInterface" />
-            <span><i class="fas fa-moon"></i> Escuro</span>
+            <input
+              v-model="interfaceConfig.tema"
+              type="radio"
+              value="escuro"
+              @change="salvarInterface"
+            >
+            <span><i class="fas fa-moon" /> Escuro</span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="auto" v-model="interfaceConfig.tema" @change="salvarInterface" />
-            <span><i class="fas fa-adjust"></i> Automático</span>
+            <input
+              v-model="interfaceConfig.tema"
+              type="radio"
+              value="auto"
+              @change="salvarInterface"
+            >
+            <span><i class="fas fa-adjust" /> Automático</span>
           </label>
         </div>
       </div>
@@ -530,19 +712,39 @@
         <h3>Tamanho da Fonte (Senhas)</h3>
         <div class="radio-group">
           <label class="radio-item">
-            <input type="radio" value="pequeno" v-model="interfaceConfig.tamanhoFonteSenhas" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.tamanhoFonteSenhas"
+              type="radio"
+              value="pequeno"
+              @change="salvarInterface"
+            >
             <span>Pequeno</span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="medio" v-model="interfaceConfig.tamanhoFonteSenhas" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.tamanhoFonteSenhas"
+              type="radio"
+              value="medio"
+              @change="salvarInterface"
+            >
             <span>Médio</span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="grande" v-model="interfaceConfig.tamanhoFonteSenhas" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.tamanhoFonteSenhas"
+              type="radio"
+              value="grande"
+              @change="salvarInterface"
+            >
             <span>Grande</span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="extra-grande" v-model="interfaceConfig.tamanhoFonteSenhas" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.tamanhoFonteSenhas"
+              type="radio"
+              value="extra-grande"
+              @change="salvarInterface"
+            >
             <span>Extra Grande</span>
           </label>
         </div>
@@ -552,15 +754,30 @@
         <h3>Formato do Número da Senha</h3>
         <div class="radio-group">
           <label class="radio-item">
-            <input type="radio" value="com-hifen" v-model="interfaceConfig.formatoNumeroSenha" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.formatoNumeroSenha"
+              type="radio"
+              value="com-hifen"
+              @change="salvarInterface"
+            >
             <span>Com hífen (P-001)</span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="sem-hifen" v-model="interfaceConfig.formatoNumeroSenha" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.formatoNumeroSenha"
+              type="radio"
+              value="sem-hifen"
+              @change="salvarInterface"
+            >
             <span>Sem hífen (P001)</span>
           </label>
           <label class="radio-item">
-            <input type="radio" value="apenas-numero" v-model="interfaceConfig.formatoNumeroSenha" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.formatoNumeroSenha"
+              type="radio"
+              value="apenas-numero"
+              @change="salvarInterface"
+            >
             <span>Apenas número (001)</span>
           </label>
         </div>
@@ -570,26 +787,42 @@
         <h3>Opções de Exibição</h3>
         <div class="checkbox-list">
           <label class="checkbox-item-config">
-            <input type="checkbox" v-model="interfaceConfig.mostrarDescricaoSenha" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.mostrarDescricaoSenha"
+              type="checkbox"
+              @change="salvarInterface"
+            >
             <span>Mostrar descrição das senhas</span>
           </label>
           <label class="checkbox-item-config">
-            <input type="checkbox" v-model="interfaceConfig.mostrarTempoEspera" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.mostrarTempoEspera"
+              type="checkbox"
+              @change="salvarInterface"
+            >
             <span>Mostrar tempo de espera</span>
           </label>
           <label class="checkbox-item-config">
-            <input type="checkbox" v-model="interfaceConfig.mostrarTempoAtendimento" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.mostrarTempoAtendimento"
+              type="checkbox"
+              @change="salvarInterface"
+            >
             <span>Mostrar tempo de atendimento</span>
           </label>
           <label class="checkbox-item-config">
-            <input type="checkbox" v-model="interfaceConfig.exibirIconesPrioridade" @change="salvarInterface" />
+            <input
+              v-model="interfaceConfig.exibirIconesPrioridade"
+              type="checkbox"
+              @change="salvarInterface"
+            >
             <span>Exibir ícones de prioridade</span>
           </label>
         </div>
       </div>
 
       <div class="info-box">
-        <i class="fas fa-info-circle"></i>
+        <i class="fas fa-info-circle" />
         <div>
           <strong>Nota:</strong>
           <p>Algumas alterações podem exigir recarregar a página para serem totalmente aplicadas.</p>
@@ -598,8 +831,11 @@
     </div>
 
     <!-- Conteúdo Notificações -->
-    <div v-if="activeSubTab === 'notificacoes'" class="sub-tab-content">
-      <h2><i class="fas fa-bell"></i> Configurações de Notificações</h2>
+    <div
+      v-if="activeSubTab === 'notificacoes'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-bell" /> Configurações de Notificações</h2>
       <p class="hint">
         Configure alertas sonoros e notificações do sistema.
       </p>
@@ -607,47 +843,54 @@
       <div class="config-section">
         <h3>Som</h3>
         <label class="checkbox-item-config large">
-          <input type="checkbox" v-model="notificacoesConfig.somAtivo" @change="salvarNotificacoes" />
+          <input
+            v-model="notificacoesConfig.somAtivo"
+            type="checkbox"
+            @change="salvarNotificacoes"
+          >
           <span><strong>Ativar som</strong></span>
         </label>
 
-        <div v-if="notificacoesConfig.somAtivo" class="config-subsection">
+        <div
+          v-if="notificacoesConfig.somAtivo"
+          class="config-subsection"
+        >
           <div class="slider-control">
             <label>
               Volume do Som: <strong>{{ notificacoesConfig.volumeSom }}%</strong>
             </label>
             <input
+              v-model.number="notificacoesConfig.volumeSom"
               type="range"
               min="0"
               max="100"
-              v-model.number="notificacoesConfig.volumeSom"
-              @change="salvarNotificacoes"
               class="slider"
-            />
+              @change="salvarNotificacoes"
+            >
           </div>
 
           <div class="number-control">
             <label>Número de beeps na emissão:</label>
             <input
+              v-model.number="notificacoesConfig.beepsEmissao"
               type="number"
               min="1"
               max="5"
-              v-model.number="notificacoesConfig.beepsEmissao"
-              @change="salvarNotificacoes"
               class="number-input"
-            />
+              @change="salvarNotificacoes"
+            >
           </div>
 
           <div class="number-control">
             <label>Número de beeps na chamada:</label>
             <input
+              v-model.number="notificacoesConfig.beepsChamada"
               type="number"
               min="1"
               max="10"
-              v-model.number="notificacoesConfig.beepsChamada"
-              @change="salvarNotificacoes"
               class="number-input"
-            />
+              @change="salvarNotificacoes"
+            >
           </div>
         </div>
       </div>
@@ -655,42 +898,56 @@
       <div class="config-section">
         <h3>Alertas</h3>
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="notificacoesConfig.alertaFilaCheia" @change="salvarNotificacoes" />
+          <input
+            v-model="notificacoesConfig.alertaFilaCheia"
+            type="checkbox"
+            @change="salvarNotificacoes"
+          >
           <span>Alertar quando fila estiver cheia</span>
         </label>
 
-        <div v-if="notificacoesConfig.alertaFilaCheia" class="config-subsection">
+        <div
+          v-if="notificacoesConfig.alertaFilaCheia"
+          class="config-subsection"
+        >
           <div class="number-control">
             <label>Limite para fila cheia:</label>
             <input
+              v-model.number="notificacoesConfig.limiteFilaCheia"
               type="number"
               min="10"
               max="500"
               step="10"
-              v-model.number="notificacoesConfig.limiteFilaCheia"
-              @change="salvarNotificacoes"
               class="number-input"
-            />
+              @change="salvarNotificacoes"
+            >
             <span class="input-hint">senhas</span>
           </div>
         </div>
 
         <label class="checkbox-item-config">
-          <input type="checkbox" v-model="notificacoesConfig.alertaGuicheInativo" @change="salvarNotificacoes" />
+          <input
+            v-model="notificacoesConfig.alertaGuicheInativo"
+            type="checkbox"
+            @change="salvarNotificacoes"
+          >
           <span>Alertar quando guichê ficar inativo</span>
         </label>
 
-        <div v-if="notificacoesConfig.alertaGuicheInativo" class="config-subsection">
+        <div
+          v-if="notificacoesConfig.alertaGuicheInativo"
+          class="config-subsection"
+        >
           <div class="number-control">
             <label>Tempo de inatividade:</label>
             <input
+              v-model.number="notificacoesConfig.tempoInativoMinutos"
               type="number"
               min="1"
               max="60"
-              v-model.number="notificacoesConfig.tempoInativoMinutos"
-              @change="salvarNotificacoes"
               class="number-input"
-            />
+              @change="salvarNotificacoes"
+            >
             <span class="input-hint">minutos</span>
           </div>
         </div>
@@ -698,14 +955,17 @@
     </div>
 
     <!-- Conteúdo Correções -->
-    <div v-if="activeSubTab === 'correcoes'" class="sub-tab-content">
-      <h2><i class="fas fa-tools"></i> Sistema de Correção de Distorções (v3.2)</h2>
+    <div
+      v-if="activeSubTab === 'correcoes'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-tools" /> Sistema de Correção de Distorções (v3.2)</h2>
       <p class="hint">
         Configure o sistema automático de correção de distorções na fila, incluindo tempos limite e controle de ausências.
       </p>
 
       <div class="info-box">
-        <i class="fas fa-info-circle"></i>
+        <i class="fas fa-info-circle" />
         <div>
           <strong>Sobre o Sistema de Correções:</strong>
           <p>
@@ -723,85 +983,111 @@
         </p>
 
         <label class="checkbox-item-config large">
-          <input type="checkbox" v-model="correcoesConfig.tempoLimite.ativo" @change="salvarCorrecoes" />
+          <input
+            v-model="correcoesConfig.tempoLimite.ativo"
+            type="checkbox"
+            @change="salvarCorrecoes"
+          >
           <span><strong>Ativar correção por tempo limite</strong></span>
         </label>
 
-        <div v-if="correcoesConfig.tempoLimite.ativo" class="config-subsection">
+        <div
+          v-if="correcoesConfig.tempoLimite.ativo"
+          class="config-subsection"
+        >
           <h4>Tempos Limite por Tipo (minutos)</h4>
           <div class="config-grid-3">
             <div class="config-item">
-              <label><i class="fas fa-file-contract"></i> Contratual:</label>
+              <label><i class="fas fa-file-contract" /> Contratual:</label>
               <input
-                type="number"
                 v-model.number="correcoesConfig.tempoLimite.temposPorTipo.contratual"
+                type="number"
                 min="1"
                 max="120"
-                @blur="salvarCorrecoes"
                 class="config-input"
-              />
+                @blur="salvarCorrecoes"
+              >
               <span class="input-hint">minutos</span>
             </div>
             <div class="config-item">
-              <label><i class="fas fa-wheelchair"></i> Prioridade:</label>
+              <label><i class="fas fa-wheelchair" /> Prioridade:</label>
               <input
-                type="number"
                 v-model.number="correcoesConfig.tempoLimite.temposPorTipo.prioridade"
+                type="number"
                 min="1"
                 max="120"
-                @blur="salvarCorrecoes"
                 class="config-input"
-              />
+                @blur="salvarCorrecoes"
+              >
               <span class="input-hint">minutos</span>
             </div>
             <div class="config-item">
-              <label><i class="fas fa-user"></i> Normal:</label>
+              <label><i class="fas fa-user" /> Normal:</label>
               <input
-                type="number"
                 v-model.number="correcoesConfig.tempoLimite.temposPorTipo.normal"
+                type="number"
                 min="1"
                 max="120"
-                @blur="salvarCorrecoes"
                 class="config-input"
-              />
+                @blur="salvarCorrecoes"
+              >
               <span class="input-hint">minutos</span>
             </div>
           </div>
 
-          <div class="config-item" style="margin-top: 20px;">
+          <div
+            class="config-item"
+            style="margin-top: 20px;"
+          >
             <label>Máximo de Reposicionamentos:</label>
             <input
-              type="number"
               v-model.number="correcoesConfig.tempoLimite.maxReposicionamentos"
+              type="number"
               min="0"
               max="10"
-              @blur="salvarCorrecoes"
               class="config-input"
               style="max-width: 150px;"
-            />
-            <p class="input-hint">0 = ilimitado</p>
+              @blur="salvarCorrecoes"
+            >
+            <p class="input-hint">
+              0 = ilimitado
+            </p>
           </div>
 
-          <div class="checkbox-list" style="margin-top: 20px;">
+          <div
+            class="checkbox-list"
+            style="margin-top: 20px;"
+          >
             <label class="checkbox-item-config">
-              <input type="checkbox" v-model="correcoesConfig.tempoLimite.notificarDisplay" @change="salvarCorrecoes" />
+              <input
+                v-model="correcoesConfig.tempoLimite.notificarDisplay"
+                type="checkbox"
+                @change="salvarCorrecoes"
+              >
               <span>Notificar no display quando senha for reposicionada</span>
             </label>
             <label class="checkbox-item-config">
-              <input type="checkbox" v-model="correcoesConfig.tempoLimite.registrarLog" @change="salvarCorrecoes" />
+              <input
+                v-model="correcoesConfig.tempoLimite.registrarLog"
+                type="checkbox"
+                @change="salvarCorrecoes"
+              >
               <span>Registrar reposicionamentos no log</span>
             </label>
           </div>
 
-          <div class="config-item" style="margin-top: 20px;">
+          <div
+            class="config-item"
+            style="margin-top: 20px;"
+          >
             <label>Mensagem de Reposicionamento:</label>
             <input
-              type="text"
               v-model="correcoesConfig.tempoLimite.mensagemReposicionamento"
-              @blur="salvarCorrecoes"
+              type="text"
               class="config-input"
               placeholder="Senha reposicionada - tempo limite excedido"
-            />
+              @blur="salvarCorrecoes"
+            >
           </div>
         </div>
       </div>
@@ -814,45 +1100,68 @@
         </p>
 
         <label class="checkbox-item-config large">
-          <input type="checkbox" v-model="correcoesConfig.ausencias.ativo" @change="salvarCorrecoes" />
+          <input
+            v-model="correcoesConfig.ausencias.ativo"
+            type="checkbox"
+            @change="salvarCorrecoes"
+          >
           <span><strong>Ativar controle de ausências</strong></span>
         </label>
 
-        <div v-if="correcoesConfig.ausencias.ativo" class="config-subsection">
+        <div
+          v-if="correcoesConfig.ausencias.ativo"
+          class="config-subsection"
+        >
           <div class="config-item">
             <label>Tentativas Permitidas (chamadas):</label>
             <input
-              type="number"
               v-model.number="correcoesConfig.ausencias.tentativasPermitidas"
+              type="number"
               min="1"
               max="5"
-              @blur="salvarCorrecoes"
               class="config-input"
               style="max-width: 150px;"
-            />
-            <p class="input-hint">Após este número, a senha vai para histórico como "Não Compareceu"</p>
+              @blur="salvarCorrecoes"
+            >
+            <p class="input-hint">
+              Após este número, a senha vai para histórico como "Não Compareceu"
+            </p>
           </div>
 
-          <div class="checkbox-list" style="margin-top: 20px;">
+          <div
+            class="checkbox-list"
+            style="margin-top: 20px;"
+          >
             <label class="checkbox-item-config">
-              <input type="checkbox" v-model="correcoesConfig.ausencias.notificarDisplay" @change="salvarCorrecoes" />
+              <input
+                v-model="correcoesConfig.ausencias.notificarDisplay"
+                type="checkbox"
+                @change="salvarCorrecoes"
+              >
               <span>Notificar no display quando cliente não comparecer</span>
             </label>
             <label class="checkbox-item-config">
-              <input type="checkbox" v-model="correcoesConfig.ausencias.alertaSonoro" @change="salvarCorrecoes" />
+              <input
+                v-model="correcoesConfig.ausencias.alertaSonoro"
+                type="checkbox"
+                @change="salvarCorrecoes"
+              >
               <span>Emitir alerta sonoro em caso de ausência</span>
             </label>
           </div>
 
-          <div class="config-item" style="margin-top: 20px;">
+          <div
+            class="config-item"
+            style="margin-top: 20px;"
+          >
             <label>Mensagem de Ausência:</label>
             <input
-              type="text"
               v-model="correcoesConfig.ausencias.mensagemAusencia"
-              @blur="salvarCorrecoes"
+              type="text"
               class="config-input"
               placeholder="Cliente ausente - senha devolvida à fila"
-            />
+              @blur="salvarCorrecoes"
+            >
           </div>
         </div>
       </div>
@@ -861,12 +1170,25 @@
       <div class="config-section">
         <h3>⚙️ Configurações Gerais</h3>
 
-        <div class="config-item" style="margin-bottom: 20px;">
+        <div
+          class="config-item"
+          style="margin-bottom: 20px;"
+        >
           <label>Frequência de Verificação:</label>
-          <select v-model="correcoesConfig.frequenciaVerificacao" @change="salvarCorrecoes" class="config-select">
-            <option value="tempo_real">Tempo Real (Verificação Contínua)</option>
-            <option value="por_minuto">Por Minuto (Intervalo Fixo)</option>
-            <option value="por_chamada">Por Chamada (Ao Chamar Senha)</option>
+          <select
+            v-model="correcoesConfig.frequenciaVerificacao"
+            class="config-select"
+            @change="salvarCorrecoes"
+          >
+            <option value="tempo_real">
+              Tempo Real (Verificação Contínua)
+            </option>
+            <option value="por_minuto">
+              Por Minuto (Intervalo Fixo)
+            </option>
+            <option value="por_chamada">
+              Por Chamada (Ao Chamar Senha)
+            </option>
           </select>
           <p class="input-hint">
             <strong>Tempo Real:</strong> Verifica continuamente em intervalo configurado<br>
@@ -875,49 +1197,71 @@
           </p>
         </div>
 
-        <div class="config-item" v-if="correcoesConfig.frequenciaVerificacao !== 'por_chamada'">
+        <div
+          v-if="correcoesConfig.frequenciaVerificacao !== 'por_chamada'"
+          class="config-item"
+        >
           <label>Intervalo de Verificação:</label>
           <input
-            type="number"
             v-model.number="correcoesConfig.intervaloVerificacaoMinutos"
+            type="number"
             min="1"
             max="60"
-            @blur="salvarCorrecoes"
             class="config-input"
             style="max-width: 150px;"
-          />
+            @blur="salvarCorrecoes"
+          >
           <span class="input-hint">minutos</span>
         </div>
 
-        <div class="checkbox-list" style="margin-top: 20px;">
+        <div
+          class="checkbox-list"
+          style="margin-top: 20px;"
+        >
           <label class="checkbox-item-config">
-            <input type="checkbox" v-model="correcoesConfig.limitarCorrecoesEmMassa" @change="salvarCorrecoes" />
+            <input
+              v-model="correcoesConfig.limitarCorrecoesEmMassa"
+              type="checkbox"
+              @change="salvarCorrecoes"
+            >
             <span>Limitar correções em massa (previne sobrecarga)</span>
           </label>
 
-          <div v-if="correcoesConfig.limitarCorrecoesEmMassa" class="config-subsection" style="margin-top: 10px;">
+          <div
+            v-if="correcoesConfig.limitarCorrecoesEmMassa"
+            class="config-subsection"
+            style="margin-top: 10px;"
+          >
             <div class="config-item">
               <label>Máximo de Correções Simultâneas:</label>
               <input
-                type="number"
                 v-model.number="correcoesConfig.maxCorrecoesSimultaneas"
+                type="number"
                 min="1"
                 max="100"
-                @blur="salvarCorrecoes"
                 class="config-input"
                 style="max-width: 150px;"
-              />
+                @blur="salvarCorrecoes"
+              >
               <span class="input-hint">senhas por verificação</span>
             </div>
           </div>
 
           <label class="checkbox-item-config">
-            <input type="checkbox" v-model="correcoesConfig.destacarSenhasTempoLimite" @change="salvarCorrecoes" />
+            <input
+              v-model="correcoesConfig.destacarSenhasTempoLimite"
+              type="checkbox"
+              @change="salvarCorrecoes"
+            >
             <span>Destacar senhas em tempo limite visualmente</span>
           </label>
 
           <label class="checkbox-item-config">
-            <input type="checkbox" v-model="correcoesConfig.mostrarHistoricoAusencias" @change="salvarCorrecoes" />
+            <input
+              v-model="correcoesConfig.mostrarHistoricoAusencias"
+              type="checkbox"
+              @change="salvarCorrecoes"
+            >
             <span>Mostrar histórico de ausências na interface</span>
           </label>
         </div>
@@ -925,15 +1269,18 @@
     </div>
 
     <!-- Conteúdo Reiniciar -->
-    <div v-if="activeSubTab === 'reiniciar'" class="sub-tab-content">
-      <h2><i class="fas fa-redo"></i> Reiniciar Sistema</h2>
+    <div
+      v-if="activeSubTab === 'reiniciar'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-redo" /> Reiniciar Sistema</h2>
       <p class="hint">
         Esta ação irá reiniciar completamente o sistema, zerando todos os contadores
         e removendo todas as senhas (em espera, em atendimento e histórico).
       </p>
 
       <div class="warning-box">
-        <i class="fas fa-exclamation-triangle"></i>
+        <i class="fas fa-exclamation-triangle" />
         <div>
           <strong>⚠️ ATENÇÃO:</strong>
           <p>
@@ -943,8 +1290,11 @@
         </div>
       </div>
 
-      <button class="btn btn-reset-danger" @click="confirmarReinicio">
-        <i class="fas fa-redo"></i> Reiniciar Sistema Agora
+      <button
+        class="btn btn-reset-danger"
+        @click="confirmarReinicio"
+      >
+        <i class="fas fa-redo" /> Reiniciar Sistema Agora
       </button>
     </div>
   </div>

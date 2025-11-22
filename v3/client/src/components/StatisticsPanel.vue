@@ -2,7 +2,7 @@
   <div class="statistics-panel">
     <!-- Conteúdo Geral -->
     <div class="sub-tab-content">
-      <h2><i class="fas fa-chart-pie"></i> Resumo do Dia</h2>
+      <h2><i class="fas fa-chart-pie" /> Resumo do Dia</h2>
       <div class="stats-list">
         <div class="stat-item">
           <span>Senhas emitidas hoje:</span>
@@ -22,7 +22,9 @@
         </div>
       </div>
 
-      <h2 style="margin-top: 30px;"><i class="fas fa-tasks"></i> Desempenho por Tipo</h2>
+      <h2 style="margin-top: 30px;">
+        <i class="fas fa-tasks" /> Desempenho por Tipo
+      </h2>
       <div class="table-responsive">
         <table class="stats-table">
           <thead>
@@ -37,7 +39,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(tipo, key) in estatisticas.detalhesPorTipo" :key="key">
+            <tr
+              v-for="(tipo, key) in estatisticas.detalhesPorTipo"
+              :key="key"
+            >
               <td><span :class="['badge-tipo', key]">{{ getTipoLabel(key) }}</span></td>
               <td>{{ tipo.emitidas }}</td>
               <td>{{ tipo.atendidas }}</td>
@@ -50,17 +55,25 @@
         </table>
       </div>
 
-      <h2 style="margin-top: 30px;"><i class="fas fa-user-headset"></i> Desempenho por Guichê</h2>
-      <div v-if="Object.keys(estatisticas.detalhesPorGuiche).length === 0" class="empty-state">
+      <h2 style="margin-top: 30px;">
+        <i class="fas fa-user-headset" /> Desempenho por Guichê
+      </h2>
+      <div
+        v-if="Object.keys(estatisticas.detalhesPorGuiche).length === 0"
+        class="empty-state"
+      >
         <p>Nenhum atendimento realizado ainda.</p>
       </div>
-      <div v-else class="guiche-stats-grid">
+      <div
+        v-else
+        class="guiche-stats-grid"
+      >
         <div
           v-for="(dados, guicheId) in estatisticas.detalhesPorGuiche"
           :key="guicheId"
           class="guiche-stat-card"
         >
-          <h4>{{ getGuicheNome(guicheId) }}</h4>
+          <h4>{{ getGuicheNome(String(guicheId)) }}</h4>
           <div class="guiche-stat-item">
             <span class="label">Atendidas:</span>
             <strong>{{ dados.atendidas }}</strong>
@@ -72,7 +85,9 @@
         </div>
       </div>
 
-      <h2 style="margin-top: 30px;"><i class="fas fa-user-slash"></i> Abandono e Exclusões</h2>
+      <h2 style="margin-top: 30px;">
+        <i class="fas fa-user-slash" /> Abandono e Exclusões
+      </h2>
       <div class="stats-list">
         <div class="stat-item">
           <span>Senhas (Ausente):</span>

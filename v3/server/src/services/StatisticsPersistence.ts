@@ -6,7 +6,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { ArquivoEstatisticasDia, EstatisticasAvancadas, EstatisticasSnapshot } from '../../../shared/types.js';
+import { ArquivoEstatisticasDia, EstatisticasAvancadas, EstatisticasSnapshot } from '../../../shared/types';
 import {
   getDataFormatadaBrasilia,
   getHoraBrasilia,

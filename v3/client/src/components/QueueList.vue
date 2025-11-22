@@ -38,7 +38,7 @@
       <div
         v-for="senha in senhasFiltradas"
         :key="senha.numero"
-        :class="['ticket-item', senha.tipo]"
+        :class="['ticket-item', senha.tipo, (props.estado?.configuracoes?.correcoes?.destacarSenhasTempoLimite && senha.tempoLimiteAtingido) ? 'tempo-limite' : '']"
       >
         <div class="ticket-info">
           <i :class="getIconClass(senha.tipo)" />
@@ -58,6 +58,7 @@
 
         <div class="ticket-controls">
           <span class="wait-time">{{ formatarTempoHMS(currentTime - senha.timestamp) }}</span>
+          <span v-if="props.estado?.configuracoes?.correcoes?.mostrarHistoricoAusencias && senha.tentativasAusencia > 0" class="badge-ausencia" :title="`Ausências: ${senha.tentativasAusencia}`">Aus {{ senha.tentativasAusencia }}</span>
 
           <div class="action-buttons">
             <button
@@ -108,7 +109,7 @@ interface Props {
   proporcaoContratual?: number
   contadorPrioridadeDesdeUltimaNormal?: number
   contadorContratualDesdeUltimaNormal?: number
-  algoritmo?: 'proporcao' | 'round_robin' | 'fifo'
+  algoritmo?: 'proporcao' | 'round_robin' | 'fifo' | 'jsed_fair_wrr'
   estado?: EstadoSistema
 }
 
@@ -527,5 +528,16 @@ const mensagemVazia = computed(() => {
   text-align: center;
   color: #868e96;
   font-size: 0.9em;
+}
+
+.tempo-limite {
+  box-shadow: inset 0 0 0 2px #ff922b;
+}
+.badge-ausencia {
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.75rem;
 }
 </style>

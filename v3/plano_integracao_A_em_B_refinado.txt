@@ -1,0 +1,177 @@
+Plano técnico refinado: JSED 1‑guichê + f_aging (clamp) + Serviços rápidos (limiares) + WRR leve + Thresholds IA + Telemetria + Integração em código
+
+Objetivo
+- Detalhar a decisão para um único guichê usando `JSED` com fairness via `f_aging` (clamp), regra de serviços rápidos com limiares de contagem/fração, salvaguarda `WRR` leve, thresholds de IA (latência, accuracy, fallback_rate) e pontos de telemetria. Incluir assinaturas de funções, parâmetros de configuração e checklist por arquivo.
+
+JSED (1 guichê)
+- Definição: para cada senha elegível `s`, calcular `SED(s) = tempoEsperaAtualMs(s) + estimativaServicoMs(s)`.
+- Score de decisão: `score(s) = SED(s) / w_eff(s)` e selecionar `argmin_s score(s)` entre elegíveis (após correções v3.2 de tempo limite/ausências).
+- Peso efetivo `w_eff(s) = w_base(tipo) * f_aging(s) * w_fast(s)`.
+- `w_base(tipo)`: configurável por tipo (`prioridade`, `contratual`, `normal`). Ex.: `{ prioridade: 1.3, contratual: 1.1, normal: 1.0 }`.
+- `estimativaServicoMs(s)`: média robusta por `servicoDoCliente` com janela curta; fallback por tipo; fallback final global.
+
+f_aging com clamp
+- Função: `f_aging(s) = 1 + alpha * clamp( tempoEsperaMin(s) / agingWindowMin, 0, clampMax )`.
+- Parâmetros: `alpha` (intensidade), `agingWindowMin` (janela base de aging em minutos), `clampMax` (limite superior do fator desacelerador/acelerador). Ex.: `alpha=0.1`, `agingWindowMin=30`, `clampMax=2.0`.
+- `clamp(x, lo, hi)`: retorna `min( max(x, lo), hi )`. Implementar utilitário dedicado para uso consistente.
+- Efeito: senhas com maior tempo de espera ganham peso adicional, limitado para evitar distorções.
+
+Serviços rápidos (limiares de contagem e fração)
+- Objetivo: dar bônus leve para serviços com tempo médio abaixo de um limite, apenas quando há evidência suficiente de carga rápida.
+- Regras:
+  - Janela: `fast.windowSize` amostras recentes por `servicoDoCliente` (ex.: `20`).
+  - Limite de tempo: `fast.msLimit` (ex.: `180000` ms). Considerar serviço rápido quando `tempoMedioAtendimentoMs <= fast.msLimit`.
+  - Limiares: aplicar boost somente se `count >= fast.minCount` (ex.: `10`) e `fractionFast >= fast.minFraction` (ex.: `0.5`) dentro da janela.
+  - Bônus: `fast.boost` multiplicador leve (ex.: `1.1`).
+  - Salvaguardas: `fast.maxConsecutiveBoost` (ex.: `3`) e `fast.cooldownCalls` (ex.: `10`) para evitar favorecer demais o mesmo perfil continuamente.
+- Cálculo de fração: `fractionFast = (# ocorrências com atendimentoMs <= msLimit) / count` na janela.
+
+WRR leve (salvaguarda)
+- Monitorar desvio de proporção por tipo nas últimas `wrr.windowCalls` chamadas (memória curta em `StateManager`).
+- Trigger: se `|proporcaoEfetiva(tipo) - proporcaoAlvo(tipo)| > wrr.enableThreshold` por `wrr.checkRounds` consecutivas, executar UMA rodada `WRR` na próxima chamada.
+- Pesos: `wrr.weights` por tipo (ex.: `{ prioridade: 3, contratual: 2, normal: 1 }`).
+- Contenção: `wrr.cooldownCalls` (ex.: `10`) para impedir rodadas sucessivas; registrar `wrrRuns` para telemetria.
+- Determinismo: WRR só corrige quando trigger ativa; fora disso, decisão é `JSED`.
+
+Thresholds IA (cliente)
+- Fonte: `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\public\ml\thresholds.json`.
+- Parâmetros:
+  - `latencyMsMax`: máximo de latência aceitável por inferência (ex.: `200`).
+  - `minScore`: mínimo de confiança para aceitar sugestão (ex.: `0.6`).
+  - `accuracyTarget`: meta de acurácia local (proxy) para manter IA ativa (ex.: `0.7`).
+  - `fallbackRateMax`: fração máxima de previsões rejeitadas por thresholds antes de disparar `cooldown` (ex.: `0.5`).
+  - `cooldownCalls`: chamadas que desativam temporariamente IA se `fallbackRate` exceder `fallbackRateMax` (ex.: `20`).
+- Política: cliente mede latência e aplica `validatePrediction`; se falhar, envia sem `mlHint` (fallback determinístico no servidor). Se `fallbackRate` > `fallbackRateMax`, suspende enviar `mlHint` por `cooldownCalls`.
+
+Telemetria
+- Cliente:
+  - `ml.latency_ms`, `ml.score`, `ml.source` (`onnx|fallback`), `ml.accepted_hint` (boolean), `ml.fallback_rate_window`.
+  - `ml.cooldown_active` (boolean), `ml.cooldown_remaining_calls`.
+- Servidor:
+  - Por chamada: `decision.algorithm` (`jsed|wrr|fifo|proporcao|round_robin`), `decision.reason` (`tempo_limite|jsed|min_score|wrr_trigger|ml_hint_desempate|fallback`).
+  - `jsed.top3_scores` (IDs/SED/pesos), `jsed.w_aging_applied` (%), `jsed.fast_boost_applied` (%), `wrr.triggered` (boolean), `wrr.runs_count`.
+  - Fairness: `slowdownRatioPorTipo`, `coberturaWRR`, `taxaAgingAplicado` (em `AdvancedStatisticsService`).
+
+Integração em código
+- Assinaturas (servidor `QueueService.ts`):
+  - `private reordenarFilaPorTempoLimite(senhasEspera: Senha[]): Senha[]` (existente).
+  - `private clamp(x: number, lo: number, hi: number): number`.
+  - `private estimativaServicoMs(s: Senha, estado: EstadoSistema): number`.
+  - `private pesoPorTipo(tipo: TipoSenha, jsedWeights: { prioridade: number; contratual: number; normal: number }): number`.
+  - `private wrrShouldRun(estado: EstadoSistema): boolean`.
+  - `private escolherPorWRR(elegiveis: Senha[], weights: { prioridade: number; contratual: number; normal: number }): Senha | null`.
+  - `public chamarPorJSEDFairWRR(guicheId: string): Senha | null`.
+- Lógica central (`chamarPorJSEDFairWRR` 1 guichê):
+  - Reordena por tempo limite; verifica `wrrShouldRun()`; se ativo, chama `escolherPorWRR()` e retorna.
+  - Caso contrário, calcula para cada `s`: `tEsperaMs`, `tServicoMs`, `wBase`, `f_aging = 1 + alpha * clamp((tEsperaMs/60000)/agingWindowMin, 0, clampMax)`, `wFast` via regras de limiar, `wEff = wBase * f_aging * wFast`, `score = (tEsperaMs + tServicoMs) / wEff`. Seleciona menor `score`.
+  - Atualiza contadores e telemetria.
+- Assinaturas (socket servidor `SocketHandlers.ts`):
+  - Handler `chamarSenha({ guicheId, mlHint? })` onde `mlHint?: { numeroPrevisto: string; score: number }`.
+  - No handler: calcula top‑3 por `JSED` e aceita `mlHint` apenas se `numeroPrevisto ∈ top3`; caso contrário, ignora. Logar motivo.
+- Assinaturas (cliente `useSocket.ts`):
+  - `chamarSenha(guicheId: string)` carrega thresholds (`loadThresholds`), mede latência de `predictNextOrFallback`, valida (`validatePrediction`), aplica cooldown por `fallbackRateMax` e envia `mlHint` se aceito.
+  - `recordPrediction` enriquecido com `accepted_hint` e latência.
+- Configuração (tipos):
+  - `ConfiguracaoComportamentoFila.algoritmo`: adicionar `'jsed_fair_wrr'`.
+  - Novo `interface ConfiguracaoRoteamento` e campo `roteamento` em `ConfiguracoesGerais`:
+    - `jsedWeights: { prioridade: number; contratual: number; normal: number }`.
+    - `wfq: { alphaAging: number; agingWindowMin: number; clampMax: number }`.
+    - `fast: { msLimit: number; windowSize: number; minCount: number; minFraction: number; boost: number; maxConsecutiveBoost: number; cooldownCalls: number }`.
+    - `wrr: { weights: { prioridade: number; contratual: number; normal: number }; enableThreshold: number; windowCalls: number; checkRounds: number; cooldownCalls: number }`.
+  - `ClientToServerEvents.chamarSenha`: aceitar `mlHint?: { numeroPrevisto: string; score: number }`.
+- Thresholds IA (cliente `thresholds.json`):
+  - Adicionar `fallbackRateMax` e `cooldownCalls` aos existentes.
+
+Exemplo de pseudocódigo (servidor, util clamp e decisão)
+```
+private clamp(x: number, lo: number, hi: number): number {
+  return Math.min(Math.max(x, lo), hi)
+}
+
+public chamarPorJSEDFairWRR(guicheId: string): Senha | null {
+  const estado = this.stateManager.getEstado()
+  let fila = estado.senhas.filter(s => s.status === 'espera').sort((a,b) => a.timestamp - b.timestamp)
+  if (fila.length === 0) return null
+  fila = this.reordenarFilaPorTempoLimite(fila)
+
+  if (this.wrrShouldRun(estado)) {
+    const s = this.escolherPorWRR(fila, estado.configuracoes.roteamento.wrr.weights)
+    if (s) return this.atualizarChamada(estado, s, guicheId)
+  }
+
+  let melhor: { s: Senha; score: number } | null = null
+  const cfg = estado.configuracoes.roteamento
+  const agora = Date.now()
+  for (const sen of fila) {
+    const tEsperaMs = agora - sen.timestamp
+    const tServicoMs = this.estimativaServicoMs(sen, estado)
+    const wBase = this.pesoPorTipo(sen.tipo, cfg.jsedWeights)
+    const agingRaw = (tEsperaMs/60000) / cfg.wfq.agingWindowMin
+    const fAging = 1 + cfg.wfq.alphaAging * this.clamp(agingRaw, 0, cfg.wfq.clampMax)
+    const wFast = this.isFastServiceBoostEnabled(sen, estado) ? cfg.fast.boost : 1
+    const wEff = wBase * fAging * wFast
+    const score = (tEsperaMs + tServicoMs) / wEff
+    if (!melhor || score < melhor.score) melhor = { s: sen, score }
+  }
+  return melhor ? this.atualizarChamada(estado, melhor.s, guicheId) : null
+}
+```
+
+Checklist executável por arquivo
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\shared\types.ts`
+  - Adicionar `'jsed_fair_wrr'` em `ConfiguracaoComportamentoFila.algoritmo`.
+  - Criar `interface ConfiguracaoRoteamento` e incluir `roteamento` em `ConfiguracoesGerais` com campos `jsedWeights`, `wfq`, `fast`, `wrr` conforme parâmetros acima.
+  - Atualizar `ClientToServerEvents.chamarSenha` para aceitar `mlHint?: { numeroPrevisto: string; score: number }`.
+  - Atualizar `getConfigPadrao()` para inicializar `roteamento` com defaults:
+    - `jsedWeights: { prioridade: 1.3, contratual: 1.1, normal: 1.0 }`.
+    - `wfq: { alphaAging: 0.1, agingWindowMin: 30, clampMax: 2.0 }`.
+    - `fast: { msLimit: 180000, windowSize: 20, minCount: 10, minFraction: 0.5, boost: 1.1, maxConsecutiveBoost: 3, cooldownCalls: 10 }`.
+    - `wrr: { weights: { prioridade: 3, contratual: 2, normal: 1 }, enableThreshold: 0.2, windowCalls: 20, checkRounds: 2, cooldownCalls: 10 }`.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\services\QueueService.ts`
+  - Implementar util `clamp(x, lo, hi)`.
+  - Implementar `estimativaServicoMs(s, estado)` com janela curta por `servicoDoCliente` e fallbacks.
+  - Implementar `pesoPorTipo(tipo, jsedWeights)`.
+  - Implementar controle de serviços rápidos:
+    - Manter contador por serviço com `windowSize`, `minCount`, `minFraction`, `msLimit` e `cooldownCalls`.
+    - Função `isFastServiceBoostEnabled(s, estado): boolean` usando essas regras.
+  - Implementar `wrrShouldRun(estado)` e `escolherPorWRR(elegiveis, weights)` com `windowCalls`, `enableThreshold`, `checkRounds`, `cooldownCalls` e contadores em `StateManager`.
+  - Adicionar `chamarPorJSEDFairWRR(guicheId)` e selecionar via `configuracoes.comportamentoFila.algoritmo === 'jsed_fair_wrr'`.
+  - Telemetria: logar `decision.algorithm`, `decision.reason`, `jsed.top3_scores`, `wrr.triggered`.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\socket\SocketHandlers.ts`
+  - Alterar handler `chamarSenha` para aceitar `mlHint` opcional e repassar ao `QueueService`.
+  - Calcular top‑3 pelo `JSED` no servidor e aceitar `mlHint` somente se `numeroPrevisto ∈ top3`.
+  - Telemetria: registrar `ml.accepted_hint` e motivo de rejeição (`latency|minScore|fora_top3`).
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\services\AdvancedStatisticsService.ts`
+  - Adicionar métricas: `slowdownRatioPorTipo`, `% wrr.triggered`, `% aging aplicado`, `% fast boost aplicado`.
+  - Expor no payload de `EstatisticasAvancadas` para UI.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\ml\validation.ts`
+  - Incluir leitura de `fallbackRateMax` e `cooldownCalls`.
+  - Exportar helper para avaliar/sinalizar cooldown por alta taxa de fallback.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\ml\inference.ts`
+  - Medir e retornar `tempoInferenciaMs` junto do resultado.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\composables\useSocket.ts`
+  - Em `chamarSenha`: carregar thresholds, medir latência de `predictNextOrFallback`, validar e enviar `mlHint` se aceito; manter contador de `fallbackRate` em janela e aplicar cooldown.
+  - Enriquecer `recordPrediction` com `accepted_hint` e latência.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\public\ml\thresholds.json`
+  - Adicionar campos: `fallbackRateMax` (ex.: `0.5`) e `cooldownCalls` (ex.: `20`).
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\components\AdvancedStatisticsPanel.vue`
+  - Exibir novas métricas de fairness: slowdown por tipo, % WRR, % aging aplicado, % fast boost.
+
+Defaults recomendados
+- `jsedWeights`: `{ prioridade: 1.3, contratual: 1.1, normal: 1.0 }`.
+- `wfq`: `{ alphaAging: 0.1, agingWindowMin: 30, clampMax: 2.0 }`.
+- `fast`: `{ msLimit: 180000, windowSize: 20, minCount: 10, minFraction: 0.5, boost: 1.1, maxConsecutiveBoost: 3, cooldownCalls: 10 }`.
+- `wrr`: `{ weights: { prioridade: 3, contratual: 2, normal: 1 }, enableThreshold: 0.2, windowCalls: 20, checkRounds: 2, cooldownCalls: 10 }`.
+- IA thresholds: `{ latencyMsMax: 200, minScore: 0.6, accuracyTarget: 0.7, fallbackRateMax: 0.5, cooldownCalls: 20 }`.
+
+Notas
+- Decisão permanece determinística no servidor; IA só atua como desempate dentro do top‑3 JSED.
+- Clamp e limiares evitam oscilações; tune fino deve ser feito com dados reais e janelas curtas.

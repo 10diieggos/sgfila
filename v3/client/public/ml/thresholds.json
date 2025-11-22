@@ -3,5 +3,7 @@
   "latencyMsMax": 200,
   "accuracyTarget": 0.7,
   "driftTolerance": 0.2,
-  "recallPrioridadeMin": 0.8
+  "recallPrioridadeMin": 0.8,
+  "fallbackRateMax": 0.5,
+  "cooldownCalls": 20
 }

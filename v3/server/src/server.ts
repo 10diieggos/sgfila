@@ -8,7 +8,7 @@ import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import type { ClientToServerEvents, ServerToClientEvents } from '../../shared/types.js';
+import type { ClientToServerEvents, ServerToClientEvents } from '../../shared/types';
 import { SocketHandlers } from './socket/SocketHandlers.js';
 import { StatisticsPersistence } from './services/StatisticsPersistence.js';
 import { AdvancedStatisticsService } from './services/AdvancedStatisticsService.js';

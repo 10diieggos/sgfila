@@ -1,14 +1,14 @@
 <template>
   <div class="period-filter">
     <div class="filter-header">
-      <h3><i class="fas fa-filter"></i> Filtros de Período</h3>
+      <h3><i class="fas fa-filter" /> Filtros de Período</h3>
       <button
         v-if="periodoAtual !== 'dia'"
-        @click="resetarFiltro"
         class="btn-reset"
         title="Voltar para visualização do dia atual"
+        @click="resetarFiltro"
       >
-        <i class="fas fa-sync"></i> Hoje
+        <i class="fas fa-sync" /> Hoje
       </button>
     </div>
 
@@ -19,7 +19,7 @@
           :class="['filter-btn', { active: periodoAtual === 'dia' }]"
           @click="aplicarFiltro('dia')"
         >
-          <i class="fas fa-calendar-day"></i>
+          <i class="fas fa-calendar-day" />
           Hoje
         </button>
 
@@ -27,7 +27,7 @@
           :class="['filter-btn', { active: periodoAtual === 'semana' }]"
           @click="aplicarFiltro('semana')"
         >
-          <i class="fas fa-calendar-week"></i>
+          <i class="fas fa-calendar-week" />
           Últimos 7 dias
         </button>
 
@@ -35,7 +35,7 @@
           :class="['filter-btn', { active: periodoAtual === 'mes' }]"
           @click="aplicarFiltro('mes')"
         >
-          <i class="fas fa-calendar-alt"></i>
+          <i class="fas fa-calendar-alt" />
           Últimos 30 dias
         </button>
 
@@ -43,63 +43,78 @@
           :class="['filter-btn', { active: periodoAtual === 'personalizado' }]"
           @click="togglePersonalizado"
         >
-          <i class="fas fa-calendar-plus"></i>
+          <i class="fas fa-calendar-plus" />
           Personalizado
         </button>
       </div>
 
       <!-- Seletor de período personalizado -->
-      <div v-if="mostrarPersonalizado" class="custom-period">
+      <div
+        v-if="mostrarPersonalizado"
+        class="custom-period"
+      >
         <div class="date-inputs">
           <div class="input-group">
             <label>Data Início:</label>
             <input
-              type="date"
               v-model="dataInicio"
+              type="date"
               :max="dataFim || dataHoje"
               class="date-input"
-            />
+            >
           </div>
 
           <div class="input-group">
             <label>Data Fim:</label>
             <input
-              type="date"
               v-model="dataFim"
+              type="date"
               :min="dataInicio"
               :max="dataHoje"
               class="date-input"
-            />
+            >
           </div>
 
           <button
-            @click="aplicarPeriodoPersonalizado"
             :disabled="!dataInicio || !dataFim"
             class="btn-apply"
+            @click="aplicarPeriodoPersonalizado"
           >
-            <i class="fas fa-check"></i> Aplicar
+            <i class="fas fa-check" /> Aplicar
           </button>
         </div>
       </div>
 
       <!-- Indicador de período ativo -->
-      <div v-if="periodoDescricao" class="period-indicator">
-        <i class="fas fa-info-circle"></i>
+      <div
+        v-if="periodoDescricao"
+        class="period-indicator"
+      >
+        <i class="fas fa-info-circle" />
         <span>Exibindo: <strong>{{ periodoDescricao }}</strong></span>
-        <span v-if="diasAnalisados > 1" class="days-count">
+        <span
+          v-if="(diasAnalisados || 0) > 1"
+          class="days-count"
+        >
           ({{ diasAnalisados }} dias)
         </span>
       </div>
 
       <!-- Tendências (se disponível) -->
-      <div v-if="tendencias && periodoAtual !== 'dia'" class="tendencias">
+      <div
+        v-if="tendencias && periodoAtual !== 'dia'"
+        class="tendencias"
+      >
         <div class="tendencia-item">
           <span class="label">Emissão:</span>
           <span :class="['badge', `badge-${tendencias.emissao}`]">
-            <i :class="getTendenciaIcon(tendencias.emissao)"></i>
+            <i :class="getTendenciaIcon(tendencias.emissao)" />
             {{ getTendenciaLabel(tendencias.emissao) }}
           </span>
-          <span v-if="tendencias.variacaoEmissao !== 0" class="variacao">
+          <span
+            v-if="tendencias.variacaoEmissao !== 0"
+            class="variacao"
+          >
             {{ tendencias.variacaoEmissao > 0 ? '+' : '' }}{{ tendencias.variacaoEmissao.toFixed(1) }}%
           </span>
         </div>
@@ -107,10 +122,13 @@
         <div class="tendencia-item">
           <span class="label">Tempo de Espera:</span>
           <span :class="['badge', `badge-${tendencias.atendimento}`]">
-            <i :class="getTendenciaIcon(tendencias.atendimento)"></i>
+            <i :class="getTendenciaIcon(tendencias.atendimento)" />
             {{ getTendenciaLabel(tendencias.atendimento) }}
           </span>
-          <span v-if="tendencias.variacaoTempo !== 0" class="variacao">
+          <span
+            v-if="tendencias.variacaoTempo !== 0"
+            class="variacao"
+          >
             {{ tendencias.variacaoTempo > 0 ? '+' : '' }}{{ tendencias.variacaoTempo.toFixed(1) }}%
           </span>
         </div>
@@ -118,8 +136,11 @@
     </div>
 
     <!-- Loading indicator -->
-    <div v-if="carregando" class="loading">
-      <i class="fas fa-spinner fa-spin"></i> Carregando estatísticas...
+    <div
+      v-if="carregando"
+      class="loading"
+    >
+      <i class="fas fa-spinner fa-spin" /> Carregando estatísticas...
     </div>
   </div>
 </template>

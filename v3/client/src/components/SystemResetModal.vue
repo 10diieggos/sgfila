@@ -1,10 +1,14 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show" class="modal-overlay" @click.self="$emit('cancel')">
+      <div
+        v-if="show"
+        class="modal-overlay"
+        @click.self="$emit('cancel')"
+      >
         <div class="modal-content">
           <div class="modal-header warning">
-            <h3><i class="fas fa-exclamation-triangle"></i> Reiniciar Sistema</h3>
+            <h3><i class="fas fa-exclamation-triangle" /> Reiniciar Sistema</h3>
           </div>
 
           <div class="modal-body">
@@ -17,10 +21,16 @@
           </div>
 
           <div class="modal-actions">
-            <button class="btn btn-reset" @click="$emit('confirm')">
-              <i class="fas fa-redo"></i> Reiniciar
+            <button
+              class="btn btn-reset"
+              @click="$emit('confirm')"
+            >
+              <i class="fas fa-redo" /> Reiniciar
             </button>
-            <button class="btn btn-cancel" @click="$emit('cancel')">
+            <button
+              class="btn btn-cancel"
+              @click="$emit('cancel')"
+            >
               Cancelar
             </button>
           </div>

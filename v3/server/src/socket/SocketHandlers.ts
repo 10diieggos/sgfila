@@ -4,7 +4,7 @@
  */
 
 import type { Socket, Server as SocketIOServer } from 'socket.io';
-import type { ClientToServerEvents, ServerToClientEvents } from '../../../shared/types.js';
+import type { ClientToServerEvents, ServerToClientEvents } from '../../../shared/types';
 import { StateManager } from '../services/StateManager.js';
 import { QueueService } from '../services/QueueService.js';
 import { StatisticsService } from '../services/StatisticsService.js';
@@ -102,9 +102,12 @@ export class SocketHandlers {
     // CHAMADA DE SENHAS
     // ========================================
 
-    socket.on('chamarSenha', ({ guicheId }) => {
+    socket.on('chamarSenha', ({ guicheId, mlHint }) => {
       try {
-        const senha = this.queueService.chamarSenha(guicheId);
+        const algoritmo = this.stateManager.getEstado().configuracoes?.comportamentoFila?.algoritmo || 'proporcao'
+        const senha = algoritmo === 'jsed_fair_wrr'
+          ? this.queueService.chamarPorJSEDFairWRR(guicheId, mlHint)
+          : this.queueService.chamarSenha(guicheId);
 
         if (senha) {
           // Emite beep para todos

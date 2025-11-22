@@ -2,7 +2,7 @@
   <div class="statistics-charts">
     <!-- Distribuição por Hora -->
     <div class="chart-section">
-      <h3><i class="fas fa-chart-line"></i> Distribuição por Hora</h3>
+      <h3><i class="fas fa-chart-line" /> Distribuição por Hora</h3>
       <div class="chart-container">
         <div class="chart-bar-wrapper">
           <div
@@ -16,15 +16,20 @@
                 class="bar-emitidas"
                 :style="{ height: calcularAlturaBarra(hora.emitidas, maxEmitidas) }"
                 :class="{ pico: hora.pico }"
-              ></div>
+              />
               <div
                 class="bar-atendidas"
                 :style="{ height: calcularAlturaBarra(hora.atendidas, maxEmitidas) }"
-              ></div>
+              />
             </div>
-            <div class="hour-label">{{ hora.hora }}h</div>
-            <div v-if="hora.pico" class="pico-badge">
-              <i class="fas fa-star"></i>
+            <div class="hour-label">
+              {{ hora.hora }}h
+            </div>
+            <div
+              v-if="hora.pico"
+              class="pico-badge"
+            >
+              <i class="fas fa-star" />
             </div>
           </div>
         </div>
@@ -32,15 +37,24 @@
         <!-- Legenda -->
         <div class="chart-legend">
           <div class="legend-item">
-            <span class="legend-color" style="background: #4dabf7"></span>
+            <span
+              class="legend-color"
+              style="background: #4dabf7"
+            />
             <span>Emitidas</span>
           </div>
           <div class="legend-item">
-            <span class="legend-color" style="background: #51cf66"></span>
+            <span
+              class="legend-color"
+              style="background: #51cf66"
+            />
             <span>Atendidas</span>
           </div>
           <div class="legend-item">
-            <i class="fas fa-star" style="color: #ffd43b"></i>
+            <i
+              class="fas fa-star"
+              style="color: #ffd43b"
+            />
             <span>Horário de Pico</span>
           </div>
         </div>
@@ -48,8 +62,11 @@
     </div>
 
     <!-- Performance por Atendente -->
-    <div v-if="performancePorAtendente.length > 0" class="chart-section">
-      <h3><i class="fas fa-user-chart"></i> Performance por Atendente</h3>
+    <div
+      v-if="performancePorAtendente.length > 0"
+      class="chart-section"
+    >
+      <h3><i class="fas fa-user-chart" /> Performance por Atendente</h3>
       <div class="performance-grid">
         <div
           v-for="perf in performancePorAtendente"
@@ -58,7 +75,10 @@
         >
           <div class="card-header">
             <h4>{{ perf.guicheNome }}</h4>
-            <div class="efficiency-badge" :class="getEfficiencyClass(perf.eficiencia)">
+            <div
+              class="efficiency-badge"
+              :class="getEfficiencyClass(perf.eficiencia)"
+            >
               {{ perf.eficiencia.toFixed(1) }} atend/h
             </div>
           </div>
@@ -84,79 +104,113 @@
               class="occupation-fill"
               :style="{ width: `${Math.min(perf.taxaOcupacao, 100)}%` }"
               :class="getOccupationClass(perf.taxaOcupacao)"
-            ></div>
+            />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Métricas de Qualidade -->
-    <div v-if="qualidade" class="chart-section">
-      <h3><i class="fas fa-award"></i> Métricas de Qualidade</h3>
+    <div
+      v-if="qualidade"
+      class="chart-section"
+    >
+      <h3><i class="fas fa-award" /> Métricas de Qualidade</h3>
       <div class="quality-metrics">
         <div class="metric-card">
-          <div class="metric-icon" style="background: #51cf66">
-            <i class="fas fa-check-circle"></i>
+          <div
+            class="metric-icon"
+            style="background: #51cf66"
+          >
+            <i class="fas fa-check-circle" />
           </div>
           <div class="metric-content">
-            <div class="metric-label">Taxa de Atendimento</div>
-            <div class="metric-value">{{ qualidade.taxaAtendimento.toFixed(1) }}%</div>
+            <div class="metric-label">
+              Taxa de Atendimento
+            </div>
+            <div class="metric-value">
+              {{ qualidade.taxaAtendimento.toFixed(1) }}%
+            </div>
           </div>
           <div class="metric-bar">
             <div
               class="metric-fill"
               :style="{ width: `${qualidade.taxaAtendimento}%`, background: '#51cf66' }"
-            ></div>
+            />
           </div>
         </div>
 
         <div class="metric-card">
-          <div class="metric-icon" style="background: #ff6b6b">
-            <i class="fas fa-user-times"></i>
+          <div
+            class="metric-icon"
+            style="background: #ff6b6b"
+          >
+            <i class="fas fa-user-times" />
           </div>
           <div class="metric-content">
-            <div class="metric-label">Taxa de Não Comparecimento</div>
-            <div class="metric-value">{{ qualidade.taxaNaoComparecimento.toFixed(1) }}%</div>
+            <div class="metric-label">
+              Taxa de Não Comparecimento
+            </div>
+            <div class="metric-value">
+              {{ qualidade.taxaNaoComparecimento.toFixed(1) }}%
+            </div>
           </div>
           <div class="metric-bar">
             <div
               class="metric-fill"
               :style="{ width: `${qualidade.taxaNaoComparecimento}%`, background: '#ff6b6b' }"
-            ></div>
+            />
           </div>
         </div>
 
         <div class="metric-card">
-          <div class="metric-icon" style="background: #ffd43b">
-            <i class="fas fa-undo"></i>
+          <div
+            class="metric-icon"
+            style="background: #ffd43b"
+          >
+            <i class="fas fa-undo" />
           </div>
           <div class="metric-content">
-            <div class="metric-label">Taxa de Devolução</div>
-            <div class="metric-value">{{ qualidade.taxaDevolucao.toFixed(1) }}%</div>
+            <div class="metric-label">
+              Taxa de Devolução
+            </div>
+            <div class="metric-value">
+              {{ qualidade.taxaDevolucao.toFixed(1) }}%
+            </div>
           </div>
           <div class="metric-bar">
             <div
               class="metric-fill"
               :style="{ width: `${qualidade.taxaDevolucao}%`, background: '#ffd43b' }"
-            ></div>
+            />
           </div>
         </div>
 
         <div class="metric-card">
-          <div class="metric-icon" style="background: #4dabf7">
-            <i class="fas fa-tachometer-alt"></i>
+          <div
+            class="metric-icon"
+            style="background: #4dabf7"
+          >
+            <i class="fas fa-tachometer-alt" />
           </div>
           <div class="metric-content">
-            <div class="metric-label">Eficiência Geral</div>
-            <div class="metric-value">{{ qualidade.eficienciaGeral.toFixed(1) }} atend/h</div>
+            <div class="metric-label">
+              Eficiência Geral
+            </div>
+            <div class="metric-value">
+              {{ qualidade.eficienciaGeral.toFixed(1) }} atend/h
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Horários de Pico -->
-    <div v-if="horasPico.length > 0" class="chart-section">
-      <h3><i class="fas fa-fire"></i> Horários de Pico</h3>
+    <div
+      v-if="horasPico.length > 0"
+      class="chart-section"
+    >
+      <h3><i class="fas fa-fire" /> Horários de Pico</h3>
       <div class="pico-list">
         <div
           v-for="(pico, index) in horasPico"
@@ -164,25 +218,28 @@
           class="pico-item"
         >
           <div class="pico-icon">
-            <i class="fas fa-clock"></i>
+            <i class="fas fa-clock" />
           </div>
           <div class="pico-info">
             <strong>{{ pico.descricao }}</strong>
             <span>{{ pico.quantidadeSenhas }} senhas emitidas</span>
           </div>
           <div class="pico-badge">
-            <i class="fas fa-star"></i>
+            <i class="fas fa-star" />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Devoluções (se houver) -->
-    <div v-if="devolucoes && devolucoes.totalDevolucoes > 0" class="chart-section">
-      <h3><i class="fas fa-exchange-alt"></i> Análise de Devoluções</h3>
+    <div
+      v-if="devolucoes && devolucoes.totalDevolucoes > 0"
+      class="chart-section"
+    >
+      <h3><i class="fas fa-exchange-alt" /> Análise de Devoluções</h3>
       <div class="devolucoes-stats">
         <div class="total-devolucoes">
-          <i class="fas fa-info-circle"></i>
+          <i class="fas fa-info-circle" />
           <span>Total de devoluções: <strong>{{ devolucoes.totalDevolucoes }}</strong></span>
           <span class="tempo-retorno">
             (Tempo médio até retorno: {{ formatarTempo(devolucoes.tempoMedioAteRetornoMs) }})
@@ -196,15 +253,17 @@
             class="motivo-card"
           >
             <div class="motivo-header">
-              <span class="motivo-label">{{ formatarMotivo(motivo) }}</span>
+              <span class="motivo-label">{{ formatarMotivo(String(motivo)) }}</span>
               <span class="motivo-percent">{{ dados.percentual.toFixed(1) }}%</span>
             </div>
-            <div class="motivo-count">{{ dados.quantidade }} devoluções</div>
+            <div class="motivo-count">
+              {{ dados.quantidade }} devoluções
+            </div>
             <div class="motivo-bar">
               <div
                 class="motivo-fill"
                 :style="{ width: `${dados.percentual}%` }"
-              ></div>
+              />
             </div>
           </div>
         </div>

@@ -1,13 +1,19 @@
 <template>
   <div class="current-attendance-wrapper">
-    <h3><i class="fas fa-user-headset"></i> Atendendo</h3>
+    <h3><i class="fas fa-user-headset" /> Atendendo</h3>
 
-    <div v-if="senhasAtendendo.length === 0" class="empty-state">
-      <i class="fas fa-inbox"></i>
+    <div
+      v-if="senhasAtendendo.length === 0"
+      class="empty-state"
+    >
+      <i class="fas fa-inbox" />
       <p>Nenhum atendimento em andamento</p>
     </div>
 
-    <div v-else class="lista-senhas">
+    <div
+      v-else
+      class="lista-senhas"
+    >
       <div
         v-for="item in senhasAtendendo"
         :key="item.senha.numero"
@@ -16,9 +22,12 @@
         <div class="senha-info">
           <strong class="senha-numero-small">{{ item.senha.numero }}</strong>
           <span class="guiche-info">{{ item.guiche }}</span>
-          <span v-if="item.senha.servicoDoCliente" class="servico-info">{{ item.senha.servicoDoCliente }}</span>
+          <span
+            v-if="item.senha.servicoDoCliente"
+            class="servico-info"
+          >{{ item.senha.servicoDoCliente }}</span>
           <span class="tempo-info">
-            <i class="fas fa-clock"></i>
+            <i class="fas fa-clock" />
             {{ formatTempoAtendimento(item.senha) }}
           </span>
         </div>
@@ -27,24 +36,24 @@
           <div class="botoes-wrapper">
             <button
               class="btn-acao-senha btn-acao-info"
-              @click="$emit('ver-detalhes', item.senha.numero)"
               title="Informações"
+              @click="$emit('ver-detalhes', item.senha.numero)"
             >
-              <i class="fas fa-info-circle"></i>
+              <i class="fas fa-info-circle" />
             </button>
             <button
               class="btn-acao-senha btn-acao-devolver"
-              @click="$emit('devolver', item.senha.numero)"
               title="Devolver para fila"
+              @click="$emit('devolver', item.senha.numero)"
             >
-              <i class="fas fa-undo"></i>
+              <i class="fas fa-undo" />
             </button>
             <button
               class="btn-acao-senha btn-acao-ausente"
-              @click="$emit('ausente', item.senha.numero)"
               title="Ausente"
+              @click="$emit('ausente', item.senha.numero)"
             >
-              <i class="fas fa-user-slash"></i>
+              <i class="fas fa-user-slash" />
             </button>
           </div>
         </div>

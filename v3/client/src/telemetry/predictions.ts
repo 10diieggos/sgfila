@@ -1,4 +1,4 @@
-export function recordPrediction(entry: { guicheId?: string; numeroPrevisto: string; score: number; source: string; timestamp: number }) {
+export function recordPrediction(entry: { guicheId?: string; numeroPrevisto: string; score: number; source: string; timestamp: number; accepted_hint?: boolean; latency_ms?: number }) {
   try {
     const key = 'sgfila_ml_telemetry'
     const raw = localStorage.getItem(key)

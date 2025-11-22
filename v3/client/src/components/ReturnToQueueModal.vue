@@ -1,20 +1,37 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show && senha" class="modal-overlay" @click.self="handleClose">
-        <div class="modal-content" @click.stop>
-          <button class="close-btn" @click="handleClose">
-            <i class="fas fa-times"></i>
+      <div
+        v-if="show && senha"
+        class="modal-overlay"
+        @click.self="handleClose"
+      >
+        <div
+          class="modal-content"
+          @click.stop
+        >
+          <button
+            class="close-btn"
+            @click="handleClose"
+          >
+            <i class="fas fa-times" />
           </button>
 
           <h2 class="modal-title">
-            <i class="fas fa-undo"></i> Devolver para Fila
+            <i class="fas fa-undo" /> Devolver para Fila
           </h2>
 
           <div class="senha-info">
-            <div :class="['senha-numero', senha.tipo]">{{ senha.numero }}</div>
+            <div :class="['senha-numero', senha.tipo]">
+              {{ senha.numero }}
+            </div>
             <div class="senha-detalhes">
-              <div v-if="senha.descricao" class="descricao">{{ senha.descricao }}</div>
+              <div
+                v-if="senha.descricao"
+                class="descricao"
+              >
+                {{ senha.descricao }}
+              </div>
               <div class="status-info">
                 <span :class="['status-badge', senha.status]">{{ getStatusLabel(senha.status) }}</span>
                 <span class="tempo-historico">{{ formatTempoHistorico() }}</span>
@@ -35,15 +52,22 @@
                 @click="selecionarMotivo('retorno_impressao')"
               >
                 <div class="motivo-icon">
-                  <i class="fas fa-print"></i>
+                  <i class="fas fa-print" />
                 </div>
-                <div class="motivo-titulo">Retorno após Impressão</div>
-                <div class="motivo-descricao">Cliente saiu para imprimir documentos</div>
+                <div class="motivo-titulo">
+                  Retorno após Impressão
+                </div>
+                <div class="motivo-descricao">
+                  Cliente saiu para imprimir documentos
+                </div>
                 <div class="motivo-posicao">
-                  <i class="fas fa-arrow-right"></i> Fila de retorno (prioridade)
+                  <i class="fas fa-arrow-right" /> Fila de retorno (prioridade)
                 </div>
-                <div v-if="validacao.retorno_impressao.bloqueado" class="motivo-bloqueio">
-                  <i class="fas fa-exclamation-triangle"></i> {{ validacao.retorno_impressao.mensagem }}
+                <div
+                  v-if="validacao.retorno_impressao.bloqueado"
+                  class="motivo-bloqueio"
+                >
+                  <i class="fas fa-exclamation-triangle" /> {{ validacao.retorno_impressao.mensagem }}
                 </div>
               </button>
 
@@ -56,15 +80,22 @@
                 @click="selecionarMotivo('erro_operacional')"
               >
                 <div class="motivo-icon">
-                  <i class="fas fa-exclamation-circle"></i>
+                  <i class="fas fa-exclamation-circle" />
                 </div>
-                <div class="motivo-titulo">Erro Operacional</div>
-                <div class="motivo-descricao">Marcada como atendida por engano</div>
+                <div class="motivo-titulo">
+                  Erro Operacional
+                </div>
+                <div class="motivo-descricao">
+                  Marcada como atendida por engano
+                </div>
                 <div class="motivo-posicao">
-                  <i class="fas fa-arrow-right"></i> Posição original aproximada
+                  <i class="fas fa-arrow-right" /> Posição original aproximada
                 </div>
-                <div v-if="validacao.erro_operacional.bloqueado" class="motivo-bloqueio">
-                  <i class="fas fa-exclamation-triangle"></i> {{ validacao.erro_operacional.mensagem }}
+                <div
+                  v-if="validacao.erro_operacional.bloqueado"
+                  class="motivo-bloqueio"
+                >
+                  <i class="fas fa-exclamation-triangle" /> {{ validacao.erro_operacional.mensagem }}
                 </div>
               </button>
 
@@ -77,15 +108,22 @@
                 @click="selecionarMotivo('ausente_retornou')"
               >
                 <div class="motivo-icon">
-                  <i class="fas fa-user-clock"></i>
+                  <i class="fas fa-user-clock" />
                 </div>
-                <div class="motivo-titulo">Cliente Ausente Retornou</div>
-                <div class="motivo-descricao">Não compareceu mas retornou rapidamente</div>
+                <div class="motivo-titulo">
+                  Cliente Ausente Retornou
+                </div>
+                <div class="motivo-descricao">
+                  Não compareceu mas retornou rapidamente
+                </div>
                 <div class="motivo-posicao">
-                  <i class="fas fa-arrow-right"></i> Terceira posição (≤15min)
+                  <i class="fas fa-arrow-right" /> Terceira posição (≤15min)
                 </div>
-                <div v-if="validacao.ausente_retornou.bloqueado" class="motivo-bloqueio">
-                  <i class="fas fa-exclamation-triangle"></i> {{ validacao.ausente_retornou.mensagem }}
+                <div
+                  v-if="validacao.ausente_retornou.bloqueado"
+                  class="motivo-bloqueio"
+                >
+                  <i class="fas fa-exclamation-triangle" /> {{ validacao.ausente_retornou.mensagem }}
                 </div>
               </button>
 
@@ -98,28 +136,41 @@
                 @click="selecionarMotivo('reabertura_atendimento')"
               >
                 <div class="motivo-icon">
-                  <i class="fas fa-redo"></i>
+                  <i class="fas fa-redo" />
                 </div>
-                <div class="motivo-titulo">Reabertura de Atendimento</div>
-                <div class="motivo-descricao">Atendimento insatisfatório</div>
+                <div class="motivo-titulo">
+                  Reabertura de Atendimento
+                </div>
+                <div class="motivo-descricao">
+                  Atendimento insatisfatório
+                </div>
                 <div class="motivo-posicao">
-                  <i class="fas fa-arrow-right"></i> Terceira posição (≤30min)
+                  <i class="fas fa-arrow-right" /> Terceira posição (≤30min)
                 </div>
-                <div v-if="validacao.reabertura_atendimento.bloqueado" class="motivo-bloqueio">
-                  <i class="fas fa-exclamation-triangle"></i> {{ validacao.reabertura_atendimento.mensagem }}
+                <div
+                  v-if="validacao.reabertura_atendimento.bloqueado"
+                  class="motivo-bloqueio"
+                >
+                  <i class="fas fa-exclamation-triangle" /> {{ validacao.reabertura_atendimento.mensagem }}
                 </div>
               </button>
             </div>
           </div>
 
           <!-- Alternativa: Emitir Nova Senha -->
-          <div v-if="motivoBloqueado" class="alternativa-section">
+          <div
+            v-if="motivoBloqueado"
+            class="alternativa-section"
+          >
             <div class="alternativa-mensagem">
-              <i class="fas fa-info-circle"></i>
+              <i class="fas fa-info-circle" />
               Prazo excedido para devolução. Você pode emitir uma nova senha para este cliente.
             </div>
-            <button class="btn-alternativa" @click="emitirNovaSenha">
-              <i class="fas fa-plus-circle"></i> Emitir Nova Senha
+            <button
+              class="btn-alternativa"
+              @click="emitirNovaSenha"
+            >
+              <i class="fas fa-plus-circle" /> Emitir Nova Senha
             </button>
           </div>
         </div>

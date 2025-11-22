@@ -1,0 +1,288 @@
+SGFILA — Algoritmo de IA Embarcada para Gerenciamento de Fila (Agência com 1 Guichê)
+
+Objetivo
+- Minimizar o tempo de espera percebido e real dos clientes, com prioridade legal e contratual respeitadas, maximizando a utilização do guichê e reduzindo ausências/abandono.
+
+Âmbito
+- Cenário: 1 guichê (M/M/1 com classes de prioridade não-preemptivas).
+- Ordenação de serviço: prioridade > contratual > normal.
+- Eventos: emissão → espera → chamada → atendimento → finalização (ou exclusão/ausência) → possíveis devoluções com motivo.
+
+Função Objetivo
+- Minimizar: J = Σ_i w(tipo_i) · W_i + β · A + γ · O
+  onde:
+  - W_i: tempo de espera por senha i;
+  - w(tipo): pesos por classe (prioridade=1, contratual=2, normal=3) ou calibrado por SLA;
+  - A: taxa de não comparecimento/abandono;
+  - O: tempo ocioso do guichê;
+  - β, γ: coeficientes de trade-off (tuning).
+
+Restrições
+- Legal: classe `prioridade` é atendida antes de `contratual` e `normal`, salvo exceções de correção por tempo-limite.
+- Capacidade: ρ = λ/μ < 1 (estabilidade); λ estimada por classe, μ por guichê.
+- Justiça mínima: bound em espera máxima por classe (tempo_limite por tipo), com reposicionamento controlado.
+- Operacional: sem preempção; uma senha por vez em atendimento; eventos atômicos (consistência do estado).
+
+Modelo de Fila e Métricas
+- Modelo base: M/M/1 não-preemptivo com prioridades (disciplinador: regra P > C > N, tie-breaker FIFO por timestamp).
+- Fórmulas (estimadores online):
+  - ρ = λ/μ, com λ = emissões por unidade de tempo, μ = 1 / E[S] (S = tempo de atendimento).
+  - W = 1/(μ − λ) (tempo médio no sistema, se M/M/1 puro).
+  - W_q = λ/(μ(μ − λ)) (tempo médio de espera em fila, M/M/1 puro).
+  - L = λ · W; L_q = λ · W_q (Little).
+  - P(wait) ≈ ρ (M/M/1); por classe, usar aproximação não-preemptiva via pesos: W_q^c ≈ W_q · f_c, com f_c calibrado.
+- Métricas operacionais calculadas por classe e geral:
+  - Tempo médio de espera e atendimento (média, p50, p90, p95, p99 — recomenda-se estender além da média já implementada).
+  - Maior/menor espera; taxa de atendimento, taxa de ausência, devoluções; eficiência (atendimentos/hora), ocupação (% tempo ativo); tempo ocioso médio.
+  - Distribuição por hora/dia (já existe); estimativas λ_t e μ_t por janelas deslizantes.
+
+Algoritmo de Ordenação (Runtime)
+1) Construção da lista de elegíveis: todas as senhas com `status=espera`, ordenadas por `timestamp` (FIFO base).
+2) Correção por tempo-limite: se `tempoLimiteAtingido=true`, estas senhas saltam à frente, ordenadas por maior tempo de espera.
+3) Seleção por classe:
+   - Prioridade: selecionar a primeira senha `prioridade` disponível;
+   - Senão, Contratual; senão, Normal;
+   - Empate: menor `timestamp`.
+4) Chamada: define `status=chamada`, `guicheAtendendo`, `chamadaTimestamp`, e atualiza `tempoEspera`.
+5) Finalização: ao concluir, `status=atendida`, `finalizadoTimestamp`, `tempoAtendimento`.
+6) Ausência: registra tentativas; se excede limite, `status=nao_compareceu`; caso contrário, retorna à fila com pausa de contagem de tempo (já suportado).
+7) Devoluções: retornam à fila com registro detalhado de motivo e tempo decorrido; mantêm ordem natural por `timestamp`.
+8) Fallback: se dados de correção indisponíveis ou inconsistentes, aplicar P > C > N com FIFO puro (sem correções) até a recuperação.
+
+Sinais de Realimentação (feedback)
+- Tempo-limite atingido: aciona reposicionamento (já implementado) e notificação opcional.
+- Ausência: incrementa tentativas e pausa contagem de tempo; migração para histórico em ‘não compareceu’ após limite.
+- Ocupação baixa: se `taxaOcupacao < θ`, sugerir chamadas automáticas (`chamarProximaAutomatica=true`).
+- Picos: horários com `emitidas` ≥ 80% do máximo por hora; ajustar mensagens e staffing (se aplicável).
+- Drift: variações >10% em tempo de espera médio ou taxa de emissão ativam revisão de parâmetros de correção.
+
+Tuning
+- Pesos de objetivo w(tipo): calibrar via SLA (ex.: prioridade=1, contratual=1.5, normal=2).
+- Limites de tempo por tipo: `correcoes.tempoLimite.temposPorTipo` (já no código), ajustar com base em p90 de espera por tipo.
+- Tentativas de ausência: `correcoes.ausencias.tentativasPermitidas`; reduzir se A↑.
+- Frequência de verificação: `correcoes.frequenciaVerificacao` e `intervaloVerificacaoMinutos`; aumentar em picos.
+- Limitar correções em massa: `correcoes.maxCorrecoesSimultaneas` para evitar saltos excessivos.
+
+Fallback
+- Modo offline/degradação: FIFO estrito com pré-filtro de classe (P > C > N), sem correções, sem redistribuição.
+- Configuração de segurança: desativar chamadas automáticas e logs volumosos; persistir apenas eventos mínimos.
+
+Coletas de Dados — Lista Completa (requerido para IA)
+Obrigatórios (por evento/senha):
+- Emissão: `timestamp_emissao`, `tipo`, `subtipo`, `servicoDoCliente`, `descricao`.
+- Chamada: `timestamp_chamada`, `tempoEspera_ms`, `guicheId`, `guicheNome`.
+- Finalização: `timestamp_finalizacao`, `tempoAtendimento_ms`, `guicheId`.
+- Ausência: `tentativasAusencia`, `timestampUltimaChamada`, `tempoAteNaoComparecer_ms` (NOVA — falta registrar).
+- Devolução: `historicoDevolucoes[]` com `motivo`, `tempoDecorridoMinutos`, `posicaoAtribuida`.
+- Correção tempo-limite: `tempoLimiteAtingido`, `timestampTempoLimite`, `reposicionamentos`.
+
+Obrigatórios (snapshot/tempo real):
+- Comprimento da fila (`|senhas status=espera|`), por classe e total.
+- λ estimado por janela (emissões por minuto/hora, por classe). [NOVA]
+- μ estimado por janela (média atendimento por guichê e por classe). [NOVA]
+- Percentis de espera e atendimento (p50/p90/p95/p99). [NOVA]
+- Taxa de ausência, taxa de devolução, taxa de atendimento.
+- Taxa de ocupação do guichê, tempo ocioso médio.
+- Distribuição por hora/dia da semana; sazonalidade. [parcial já existe por hora]
+
+Coletas já existentes no código (verificado)
+- v3/shared/types.ts:
+  - `Senha`: `numero`, `tipo`, `subtipo`, `timestamp`, `status`, `descricao`, `servicoDoCliente`, `guicheAtendendo`, `guicheNome`, `chamadaTimestamp`, `finalizadoTimestamp`, `tempoEspera`, `tempoAtendimento`, `historicoDevolucoes`, `tempoLimiteAtingido`, `timestampTempoLimite`, `reposicionamentos`, `tentativasAusencia`, `timestampUltimaChamada`, `pausarContagemTempo`, `timestampInicioAusencia`.
+  - `EstadoSistema`: contadores por tipo, proporções, `atendimentosAtuais`, `guichesConfigurados`, `configuracoes` (inclui `correcoes`).
+  - Estatísticas: totais, tempos médios, detalhes por tipo e por guichê, distribuição por hora, performance por atendente, qualidade, projeção, snapshots e arquivos por dia.
+- v3/server/src/services/QueueService.ts:
+  - Emissão, chamada (cálculo `tempoEspera`), finalização (cálculo `tempoAtendimento`), devolução com motivo, exclusão, ausência com pausa de tempo, correção por tempo-limite e reordenação.
+- v3/server/src/services/StatisticsService.ts:
+  - Cálculo de totais, tempos médios, próxima senha prevista, detalhes por tipo e por guichê.
+- v3/server/src/services/AdvancedStatisticsService.ts:
+  - Distribuição por hora, picos, performance por atendente (inclui `tempoTotalAtivoMs`, `eficiencia`, `taxaOcupacao`), qualidade (taxas e tempo ocioso), projeção baseada em últimos atendimentos.
+- v3/server/src/services/StatisticsPersistence.ts:
+  - Snapshots e estatísticas finais por dia, listagem de dias, agregação por período.
+- v3/server/src/services/StatisticsAggregator.ts:
+  - Agregação multi-dia: tendências, médias ponderadas, picos, qualidade agregada.
+- v3/server/src/services/QueueMonitor.ts:
+  - Verificação periódica de tempo-limite conforme configuração (`tempo_real`, `por_minuto`, `por_chamada`).
+- v3/client/src/App.vue:
+  - Coleta `servicoDoCliente` via input; invoca eventos Socket.IO de emissão/chamada/finalização/exclusão/ausência/devolução; sugere serviços frequentes.
+
+Coletas faltantes (gap analysis)
+- Estimadores de λ e μ por classe e por hora (janelas deslizantes). [FALTA]
+- Percentis de espera/atendimento (p50/p90/p95/p99) e distribuição (histograma) por classe. [FALTA]
+- Tempo até ‘não compareceu’ (quando ocorre por ausência), explicitamente salvo. [FALTA]
+- Comprimento da fila por snapshot (armazenar L_q_t por hora/minuto). [FALTA]
+- Marca de origem do cliente: walk-in vs agendado, e valor do cliente (para prioridade dinâmica opcional). [FALTA]
+- Dia da semana/mês sazonal em metadados das estatísticas para modelos preditivos. [parcial]
+- Marcação de reabertura/erro com SLA associado (prazo esperado). [parcial]
+- Taxa de chamadas automáticas e impacto em ocupação (telemetria de decisões do algoritmo). [FALTA]
+
+Estatísticas de Longo Prazo (Melhoria Contínua)
+- Tendências semanais/mensais de: λ por classe, μ por guichê, W_q, A, O.
+- Percentis de espera e atendimento: monitorar p90/p95 para tuning de `tempo_limite`.
+- Sazonalidade por dia da semana/hora do dia; detectar picos recorrentes.
+- Eficácia de correções: taxa de senhas com `tempoLimiteAtingido` e tempo até atendimento após correção.
+- Conversão pós-devolução: probabilidade de volta e tempo médio até retorno por motivo.
+- Impacto de chamadas automáticas sobre ocupação e espera.
+
+Parâmetros de Treinamento/Implantação (IA)
+- Features (por instância/tempo):
+  - Hora do dia, dia da semana; tamanho da fila atual e por classe; λ_t e μ_t estimados; últimos k tempos de espera/atendimento; flags de pico; correções aplicadas; tentativas de ausência; tipo/subtipo; serviço do cliente; configuração ativa (algoritmo, limites, frequências).
+- Rótulos:
+  - Regressão: tempo de espera previsto (ms) e probabilidade de ausência; classificação de próxima classe chamada (se algoritmo aprender proporção dinâmica).
+- Janela temporal:
+  - Curto prazo: 1–4 horas (previsão intradia); longo prazo: 7–30 dias (sazonalidade).
+- Frequência de atualização:
+  - Online: recalcular estimadores a cada snapshot (5–15 min); offline: re-treino diário/nocturno.
+- Limites offline/degradação:
+  - Se modelo indisponível, usar regra determinística P > C > N com FIFO e correções por tempo-limite; desativar decisões aprendidas.
+
+Pseudo-fluxo do Algoritmo (implementável sobre o estado atual)
+1) Coletar `senhas` e métricas correntes; estimar λ_t, μ_t por classe em janela recente.
+2) Ordenar fila aplicando: correção tempo-limite → prioridade de classe (P > C > N) → FIFO por `timestamp`.
+3) Chamar e registrar tempos; atualizar ocupação e eficiência.
+4) Ajustar parâmetros de correção se p90 de espera por classe excede SLA.
+5) Persistir snapshot com L_q_t, λ_t, μ_t e percentis; atualizar agregados.
+6) Fallback se qualquer componente de correção falhar.
+
+Recomendações de Implementação Incremental
+- Adicionar cálculo e persistência de λ_t e μ_t por classe no `AdvancedStatisticsService` e salvar nos snapshots.
+- Incluir percentis de espera/atendimento e L_q_t nos `EstatisticasAvancadas`.
+- Registrar `tempoAteNaoComparecer_ms` ao marcar `nao_compareceu`.
+- Ampliar `StatisticsAggregator` para percentis e sazonalidade por dia da semana.
+- Expor métricas no front (painel avançado) para tuning assistido.
+
+Observações de Conformidade e UX
+- Transparência: exibir estimativa de espera por senha ao emitir e ao entrar na fila.
+- Equidade percebida: comunicar reposicionamentos por tempo-limite com mensagem clara.
+- Auditoria: manter logs de alterações de configuração e correções aplicadas.
+
+Referências de Código (v3)
+- `v3/shared/types.ts`: definição de tipos, configurações e métricas disponíveis.
+- `v3/server/src/services/QueueService.ts`: emissão/chamada/finalização/ausência/devoluções/correções.
+- `v3/server/src/services/AdvancedStatisticsService.ts`: métricas avançadas (distribuição, performance, qualidade, projeção).
+- `v3/server/src/services/StatisticsService.ts`: métricas básicas.
+- `v3/server/src/services/StatisticsPersistence.ts`: snapshots/arquivos por dia.
+- `v3/server/src/services/StatisticsAggregator.ts`: agregação multi-dia e tendências.
+- `v3/server/src/services/QueueMonitor.ts`: verificação periódica de tempo-limite.
+
+Resumo Executivo
+- Implementado neste relatório: especificação do algoritmo P > C > N com correção por tempo-limite, função objetivo e métricas; fórmulas de fila M/M/1; feedback, tuning e fallback; análise das coletas existentes; plano de gaps e melhorias; parâmetros de IA para treinamento/implantação.
+- Pendências no código: estimadores λ/μ por classe; percentis e L_q_t; registro de `tempoAteNaoComparecer_ms`; origem do cliente (agendado/walk-in) e valor; telemetria de decisões; sazonalidade por dia da semana; exposição de novas métricas no front.
+
+Extensões Edge-AI Engineer — Especificações e Plano
+
+Formato de Dataset e Esquema Completo
+- Formato principal: JSONL (1 objeto por linha) para export/offline, com chaves estáveis e carimbos de tempo em ms.
+- Origem: snapshots diários e eventos (emissão/chamada/finalização/ausência/devolução) consolidados pelo `StatisticsPersistence`/`StatisticsAggregator`.
+- Esquema de features (entrada) por registro:
+  - `ts`: timestamp do snapshot/registro (ms).
+  - `horaDoDia`: 0–23; `diaDaSemana`: 0–6; `mes`: 1–12.
+  - `fila_total`: comprimento total; `fila_prioridade`/`fila_contratual`/`fila_normal`.
+  - `lambda_total`/`lambda_prioridade`/`lambda_contratual`/`lambda_normal` (por janela).
+  - `mu_total`/`mu_prioridade`/`mu_contratual`/`mu_normal` (por janela).
+  - `picos_flag`: bool; `taxaOcupacao`: 0–1; `tempoOciosoMedio_ms`.
+  - `ultimos_tempos_espera_ms`: vetor fixo k de últimos tempos (por classe quando disponível).
+  - `ultimos_tempos_atendimento_ms`: vetor fixo k.
+  - `config_algoritmo`: id/nome; `versao_algoritmo`: semver.
+  - `tipo`/`subtipo`: da `Senha`; `servicoDoCliente` (se coletado); `valorCliente` (opcional); `origemCliente`: `walkin|agendado` (opcional).
+  - `correcoes_aplicadas`: contagem; `tempoLimiteAtingido`: bool; `reposicionamentos`: inteiro.
+  - `tentativasAusencia`: inteiro; `chamadasAutomaticasAtivas`: bool.
+- Esquema de rótulos (saída) por registro:
+  - `y_tempoEsperaPrevisto_ms`: regressão.
+  - `y_probAusencia`: 0–1.
+  - `y_proximaClasse`: `prioridade|contratual|normal` (opcional para modelo de política).
+- Observações:
+  - Normalizar tempos (z-score por dia) e comprimentos de fila; padronizar vetores k com padding e máscara.
+  - Garantir consistência de timezone (`utils/timezone.ts`).
+
+Janela e Frequência
+- Janelas deslizantes padrão: curto prazo 60–240 min (∆=5–15 min); longo prazo 7–30 dias (∆=1 dia).
+- Snapshots: por padrão a cada 10 min; ajuste dinâmico entre 5–15 min via `QueueMonitor` conforme carga.
+- Re-treino offline: diário (02:00–03:00) com agregação do dia anterior; semanal para sazonalidade.
+- Revalidação online: recalcular estimadores λ/μ e percentis a cada snapshot e a cada evento de finalização.
+
+Metas de Desempenho Edge (Latência/Memória/Bateria)
+- Latência de inferência:
+  - Web (desktop): p95 < 50 ms por pedido de predição.
+  - Web (mobile/PWA): p95 < 100 ms; degrada para regra determinística se p99 > 150 ms por 3 snapshots.
+- Memória do modelo: alvo ≤ 5 MB (quantizado); hard limit 15 MB no navegador.
+- CPU/GPU: uso médio < 20% por inferência; evitar bloqueio de UI.
+- Bateria (mobile): reduzir frequência de predições para 1 por 15 min quando `battery < 30%` ou `saveMode=true`.
+- Instrumentação: coletar `inference_ms`, `model_size_mb`, `cpu_usage_pct`, `battery_pct` em telemetria (opt-in).
+
+Plano de Quantização
+- Formato de modelo: ONNX para interoperabilidade (`onnxruntime-web` no cliente; `onnxruntime-node` no servidor opcional).
+- Estratégias:
+  - Quantização estática INT8 com conjunto de calibração de 10k registros (últimos dias variados).
+  - Alternativa: FP16 para dispositivos sem suporte INT8.
+- Pipeline:
+  1) Treinar em FP32 offline.
+  2) Calibrar e quantizar (INT8/FP16) mantendo acurácia dentro dos limites de aceite.
+  3) Validar latência/uso de memória no cliente.
+- Compatibilidade Web: usar WebAssembly backend; fallback para regra determinística se `onnxruntime` indisponível.
+
+Validação Offline e Limites de Aceite
+- Split: treino/validação/teste por dias (70/15/15), preservando sazonalidade.
+- Métricas e limites:
+  - `MAE_tempoEspera` ≤ 60 s; `MAPE_tempoEspera` ≤ 15% (p95 ≤ 25%).
+  - `AUC_probAusencia` ≥ 0.80; `BrierScore` ≤ 0.20; calibração dentro de ±0.05.
+  - `Acc_proximaClasse` ≥ 0.95 quando aplicável; erro por classe equilibrado.
+- Teste de robustez: drifts/hora pico; falhas de coleta; imputação com medianas; verificação de estabilidade de λ/μ.
+- Aceite: somente publicar modelo se todas as métricas estiverem dentro dos limites por 7 dias consecutivos.
+
+Fallback e Telemetria (Detalhamento)
+- Fallback já definido (FIFO + P > C > N sem correções) é ativado por:
+  - indisponibilidade de modelo; latência acima do limite; erro de integridade de dados; bateria baixa.
+- Telemetria mínima por decisão:
+  - `decision_id`, `algoritmo_versao`, `features_hash`, `classe_escolhida`, `motivo_override` (tempo-limite/SLA), `inference_ms`, `fallback_ativo`.
+- Persistência: anexar à estrutura de snapshots diários com rotação e limites de retenção (ver privacidade).
+- Eventos Socket: `telemetry:decision` (cliente escuta via `useSocket.ts`), agregados expostos em painel avançado.
+
+Integração Web (v3/client) e Mobile
+- Web (Vue 3):
+  - Exibir predição de `tempoEsperaPrevisto_ms` na emissão de senha e nas listas (`QueueList.vue`, `TicketModal.vue`).
+  - Painéis: adicionar métricas λ/μ, percentis e ocupação em `AdvancedStatisticsPanel.vue` e `StatisticsPanel.vue`.
+  - Composables: estender `useSocket.ts` para eventos `prediction:update` e `telemetry:decision`; usar `useRealtimeTimer.ts` para refresh.
+  - Configuração: incluir toggles de `chamadasAutomaticas` e `modoEconomiaEnergia` em `ConfigurationPanel.vue`.
+- Mobile: estratégia PWA (sem criar novo app neste repositório):
+  - Habilitar Service Worker via `vite` para cache e execução offline de fallback.
+  - UI responsiva e redução de frequência de predições conforme bateria.
+  - Caso app nativo: contrato de API via Socket.IO/HTTP com eventos de predição e telemetria equivalentes.
+
+Versionamento e Compatibilidade
+- `versao_algoritmo` (semver) armazenada em `EstadoSistema.configuracoes.algoritmoVersao` (adicionar no `shared/types.ts`).
+- Compatibilidade:
+  - Negociação de recursos: cliente envia capacidades (`supports_int8`, `battery_pct`), servidor decide modo.
+  - Migração: manter suporte a políticas determinísticas enquanto modelo estiver em validação.
+- Auditoria: log de mudanças de configuração com `who/when/old/new` e motivo.
+
+Privacidade e Segurança
+- Minimização: não armazenar dados pessoais sensíveis; `servicoDoCliente` apenas como texto livre opcional.
+- Retenção: snapshots e telemetria por 90 dias; agregados anônimos por 365 dias.
+- Pseudonimização: guichês/atendentes por id; remover PII dos logs.
+- Consentimento: opt-in para telemetria de inferência e bateria.
+- Segurança: TLS no transporte; validação de payloads no `SocketHandlers.ts`; limitar volume de logs.
+- Acesso: perfis de usuário com permissões para ver/alterar configurações (já previsto em `SISTEMA-CONFIGURACOES.md`).
+
+Checklist Priorizado (mapeado a arquivos v3)
+ALTA PRIORIDADE
+- `v3/server/src/services/AdvancedStatisticsService.ts`: calcular/persistir `lambda_*` e `mu_*` por classe; percentis p50/p90/p95/p99; `L_q_t`.
+- `v3/server/src/services/StatisticsPersistence.ts`: incluir campos novos nos snapshots; rotação/retencao.
+- `v3/shared/types.ts`: adicionar `versao_algoritmo`, campos de telemetria mínimos, origem/valor do cliente (opcional) e `tempoAteNaoComparecer_ms`.
+- `v3/server/src/services/QueueService.ts`: registrar `tempoAteNaoComparecer_ms`; emitir eventos `prediction:update`/`telemetry:decision` via socket.
+- `v3/server/src/socket/SocketHandlers.ts`: validar payloads, novos canais de eventos, negotiation de capacidades do cliente.
+
+MÉDIA PRIORIDADE
+- `v3/server/src/services/StatisticsAggregator.ts`: tendências semanais/mensais; sazonalidade; validação offline agregada.
+- `v3/client/src/components/AdvancedStatisticsPanel.vue`: exibir λ/μ, percentis, ocupação e telemetria de decisões.
+- `v3/client/src/components/QueueList.vue` e `TicketModal.vue`: exibir `tempoEsperaPrevisto_ms` e indicadores de correção por tempo-limite.
+- `v3/client/src/composables/useSocket.ts`: suportar novos eventos; reconectar com fallback.
+- `v3/client/src/components/ConfigurationPanel.vue`: toggles de economia de energia e chamadas automáticas.
+
+BAIXA PRIORIDADE
+- `v3/client/vite.config.ts` e Service Worker: habilitar PWA básico (cache estático e fallback offline).
+- `v3/server/src/services/StatisticsService.ts`: expor API simplificada de predições para clientes legados.
+- `v3/qa/smoke-socket.js`: adicionar testes de eventos novos e validação de esquema básico.
+
+Validação e Publicação Incremental
+- Implementar itens de alta prioridade; validar limites de aceite por 7 dias; ativar quantização; então expandir UI/telemetria.
+- Manter fallback ativo durante todo o ciclo; publicar modelo somente após aprovação de métricas.

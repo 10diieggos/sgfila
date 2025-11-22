@@ -1,20 +1,23 @@
 <template>
   <div class="history-panel">
-    <h3><i class="fas fa-history"></i> Histórico de Atendimentos</h3>
+    <h3><i class="fas fa-history" /> Histórico de Atendimentos</h3>
 
     <!-- Busca -->
     <div class="search-wrapper">
-      <i class="fas fa-search"></i>
+      <i class="fas fa-search" />
       <input
         v-model="termoBusca"
         type="text"
         placeholder="Buscar na descrição ou número..."
-      />
+      >
     </div>
 
     <!-- Lista de senhas -->
     <div class="ticket-list">
-      <div v-if="senhasFiltradas.length === 0" class="empty-message">
+      <div
+        v-if="senhasFiltradas.length === 0"
+        class="empty-message"
+      >
         Nenhum atendimento encontrado
       </div>
 
@@ -24,10 +27,19 @@
         :class="['ticket-item', senha.tipo]"
       >
         <div class="ticket-info">
-          <i :class="getIconClass(senha.tipo)"></i>
+          <i :class="getIconClass(senha.tipo)" />
           <strong>{{ senha.numero }}</strong>
-          <div v-if="senha.servicoDoCliente" class="ticket-service">{{ senha.servicoDoCliente }}</div>
-          <div v-if="senha.descricao" class="ticket-description" v-html="formatarDescricao(senha.descricao)"></div>
+          <div
+            v-if="senha.servicoDoCliente"
+            class="ticket-service"
+          >
+            {{ senha.servicoDoCliente }}
+          </div>
+          <div
+            v-if="senha.descricao"
+            class="ticket-description"
+            v-html="formatarDescricao(senha.descricao)"
+          />
         </div>
 
         <div class="ticket-controls">
@@ -37,20 +49,40 @@
           <span class="wait-time">{{ formatarTempoHMS(senha.tempoEspera + senha.tempoAtendimento) }}</span>
 
           <div class="action-buttons">
-            <button @click="$emit('ver-detalhes', senha.numero)" class="btn-action btn-info" title="Ver Detalhes">
-              <i class="fas fa-info-circle"></i>
+            <button
+              class="btn-action btn-info"
+              title="Ver Detalhes"
+              @click="$emit('ver-detalhes', senha.numero)"
+            >
+              <i class="fas fa-info-circle" />
             </button>
-            <button @click="$emit('chamar', senha.numero)" class="btn-action btn-call" title="Chamar esta senha">
-              <i class="fas fa-bullhorn"></i>
+            <button
+              class="btn-action btn-call"
+              title="Chamar esta senha"
+              @click="$emit('chamar', senha.numero)"
+            >
+              <i class="fas fa-bullhorn" />
             </button>
-            <button @click="$emit('editar', senha.numero)" class="btn-action btn-edit" title="Editar Descrição">
-              <i class="fas fa-edit"></i>
+            <button
+              class="btn-action btn-edit"
+              title="Editar Descrição"
+              @click="$emit('editar', senha.numero)"
+            >
+              <i class="fas fa-edit" />
             </button>
-            <button @click="$emit('retornar', senha.numero)" class="btn-action btn-return" title="Retornar à Fila">
-              <i class="fas fa-undo"></i>
+            <button
+              class="btn-action btn-return"
+              title="Retornar à Fila"
+              @click="$emit('retornar', senha.numero)"
+            >
+              <i class="fas fa-undo" />
             </button>
-            <button @click="$emit('ausente', senha.numero)" class="btn-action btn-absent" title="Marcar como Ausente">
-              <i class="fas fa-user-slash"></i>
+            <button
+              class="btn-action btn-absent"
+              title="Marcar como Ausente"
+              @click="$emit('ausente', senha.numero)"
+            >
+              <i class="fas fa-user-slash" />
             </button>
           </div>
         </div>

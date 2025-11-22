@@ -1,23 +1,31 @@
 <template>
   <div class="counter-panels-wrapper">
     <div class="header-with-button">
-      <h3><i class="fas fa-desktop"></i> Painéis de Guichê</h3>
+      <h3><i class="fas fa-desktop" /> Painéis de Guichê</h3>
       <button
         class="btn-config-small"
-        @click="emit('open-config')"
         title="Configurar Guichês"
+        @click="emit('open-config')"
       >
-        <i class="fas fa-cog"></i>
+        <i class="fas fa-cog" />
       </button>
     </div>
 
-    <div v-if="guichesVisiveis.length === 0" class="empty-state">
-      <i class="fas fa-info-circle"></i>
+    <div
+      v-if="guichesVisiveis.length === 0"
+      class="empty-state"
+    >
+      <i class="fas fa-info-circle" />
       <p>Nenhum guichê configurado para exibição.</p>
-      <p class="hint">Configure os guichês na aba Configurações.</p>
+      <p class="hint">
+        Configure os guichês na aba Configurações.
+      </p>
     </div>
 
-    <div v-else class="counter-panels">
+    <div
+      v-else
+      class="counter-panels"
+    >
       <div
         v-for="guiche in guichesVisiveis"
         :key="guiche.id"
@@ -35,16 +43,19 @@
             </span>
             <div class="tempos-container">
               <span class="tempo-espera">
-                <i class="fas fa-hourglass-half"></i>
+                <i class="fas fa-hourglass-half" />
                 {{ formatTempoEspera(guiche.id) }}
               </span>
               <span class="tempo-atendimento">
-                <i class="fas fa-clock"></i>
+                <i class="fas fa-clock" />
                 {{ formatTempoAtendimento(guiche.id) }}
               </span>
             </div>
           </template>
-          <span v-else class="senha-numero vazio">
+          <span
+            v-else
+            class="senha-numero vazio"
+          >
             {{ filaVazia ? 'Fila Esgotada' : '---' }}
           </span>
         </div>

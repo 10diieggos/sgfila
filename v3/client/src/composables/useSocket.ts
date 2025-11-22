@@ -24,6 +24,7 @@ import type {
 import { useBeep } from './useBeep'
 import { predictNextOrFallback } from '../ml/inference'
 import { recordPrediction } from '../telemetry/predictions'
+import { loadThresholds, validatePrediction, shouldCooldown } from '../ml/validation'
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 
@@ -84,6 +85,20 @@ export function useSocket() {
       sessionStorage.removeItem('sgfGuichesExibicao')
       window.location.reload()
     })
+
+    socket.value.on('notificacaoAusencia', (dados) => {
+      try {
+        beep({ times: 1, tipo: 'chamada' })
+      } catch {}
+      console.log('Ausência registrada', dados)
+    })
+
+    socket.value.on('notificacaoNaoComparecimento', (dados) => {
+      try {
+        beep({ times: 1, tipo: 'chamada' })
+      } catch {}
+      console.log('Não comparecimento registrado', dados)
+    })
   }
 
   /**
@@ -106,12 +121,30 @@ export function useSocket() {
   }
 
   const chamarSenha = async (guicheId: string) => {
+    let mlHint: { numeroPrevisto: string; score: number } | undefined = undefined
     if (estado.value) {
+      const thresholds = await loadThresholds()
       const t0 = Date.now()
       const pred = await predictNextOrFallback(estado.value)
-      recordPrediction({ guicheId, numeroPrevisto: pred.numeroPrevisto, score: pred.score, source: pred.source, timestamp: t0 })
+      const tempoMs = Date.now() - t0
+      const accepted = validatePrediction({ numeroPrevisto: pred.numeroPrevisto, score: pred.score }, tempoMs, thresholds)
+      ;(window as any)._sgfFallbackWin = (window as any)._sgfFallbackWin || { total: 0, rejected: 0, cooldown: 0 }
+      const win = (window as any)._sgfFallbackWin
+      win.total++
+      if (!accepted || win.cooldown > 0) {
+        win.rejected++
+      } else {
+        mlHint = { numeroPrevisto: pred.numeroPrevisto, score: pred.score }
+      }
+      const rate = win.total > 0 ? win.rejected / win.total : 0
+      if (shouldCooldown(rate, thresholds)) {
+        win.cooldown = thresholds.cooldownCalls || 0
+      } else if (win.cooldown > 0) {
+        win.cooldown--
+      }
+      recordPrediction({ guicheId, numeroPrevisto: pred.numeroPrevisto, score: pred.score, source: pred.source, timestamp: t0, accepted_hint: !!mlHint, latency_ms: tempoMs })
     }
-    socket.value?.emit('chamarSenha', { guicheId })
+    socket.value?.emit('chamarSenha', { guicheId, mlHint })
   }
 
   const chamarSenhaEspecifica = async (guicheId: string, numeroSenha: string) => {

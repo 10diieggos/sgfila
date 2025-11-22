@@ -1,13 +1,25 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show && ticketSelecionado" class="modal-overlay modal-ticket" @click.self="handleClose">
-        <div class="modal-content-ticket" @click.stop>
-          <button class="close-btn" @click="handleClose">
-            <i class="fas fa-times"></i>
+      <div
+        v-if="show && ticketSelecionado"
+        class="modal-overlay modal-ticket"
+        @click.self="handleClose"
+      >
+        <div
+          class="modal-content-ticket"
+          @click.stop
+        >
+          <button
+            class="close-btn"
+            @click="handleClose"
+          >
+            <i class="fas fa-times" />
           </button>
 
-          <h2 class="modal-title"><i class="fas fa-info-circle"></i> Detalhes do Ticket</h2>
+          <h2 class="modal-title">
+            <i class="fas fa-info-circle" /> Detalhes do Ticket
+          </h2>
 
           <div class="ticket-details">
             <div :class="['ticket-number-display', ticketSelecionado.tipo]">
@@ -16,56 +28,130 @@
 
             <div class="ticket-info-grid">
               <div class="info-item">
-                <div class="info-label">Status</div>
-                <div class="info-value">{{ getStatusLabel(ticketSelecionado.status) }}</div>
+                <div class="info-label">
+                  Status
+                </div>
+                <div class="info-value">
+                  {{ getStatusLabel(ticketSelecionado.status) }}
+                </div>
               </div>
-              <div v-if="ticketSelecionado.status === 'espera'" class="info-item">
-                <div class="info-label">Posição (Automática)</div>
-                <div class="info-value"><strong>{{ queuePosition.peopleAhead }}</strong></div>
+              <div
+                v-if="ticketSelecionado.status === 'espera'"
+                class="info-item"
+              >
+                <div class="info-label">
+                  Posição (Automática)
+                </div>
+                <div class="info-value">
+                  <strong>{{ queuePosition.peopleAhead }}</strong>
+                </div>
               </div>
-              <div v-if="ticketSelecionado.status === 'espera'" class="info-item">
-                <div class="info-label">Estimativa de Atendimento</div>
-                <div class="info-value" title="Estimativa baseada no tempo médio de atendimento das pessoas à frente e número de guichês ativos">
+              <div
+                v-if="ticketSelecionado.status === 'espera'"
+                class="info-item"
+              >
+                <div class="info-label">
+                  Estimativa de Atendimento
+                </div>
+                <div
+                  class="info-value"
+                  title="Estimativa baseada no tempo médio de atendimento das pessoas à frente e número de guichês ativos"
+                >
                   <strong>~ {{ serviceEstimate.estimateFormatted }}</strong>
                 </div>
               </div>
-              <div v-if="ticketSelecionado.status === 'espera'" class="info-item">
-                <div class="info-label">Horário Estimado</div>
-                <div class="info-value" title="Horário estimado de início do atendimento">
+              <div
+                v-if="ticketSelecionado.status === 'espera'"
+                class="info-item"
+              >
+                <div class="info-label">
+                  Horário Estimado
+                </div>
+                <div
+                  class="info-value"
+                  title="Horário estimado de início do atendimento"
+                >
                   <strong>~ {{ serviceEstimate.eta }}</strong>
                 </div>
               </div>
               <div class="info-item">
-                <div class="info-label">Emitida em</div>
-                <div class="info-value">{{ formatTimestamp(ticketSelecionado.timestamp) }}</div>
+                <div class="info-label">
+                  Emitida em
+                </div>
+                <div class="info-value">
+                  {{ formatTimestamp(ticketSelecionado.timestamp) }}
+                </div>
               </div>
-              <div v-if="ticketSelecionado.chamadaTimestamp" class="info-item">
-                <div class="info-label">Chamada em</div>
-                <div class="info-value">{{ formatTimestamp(ticketSelecionado.chamadaTimestamp) }}</div>
+              <div
+                v-if="ticketSelecionado.chamadaTimestamp"
+                class="info-item"
+              >
+                <div class="info-label">
+                  Chamada em
+                </div>
+                <div class="info-value">
+                  {{ formatTimestamp(ticketSelecionado.chamadaTimestamp) }}
+                </div>
               </div>
-              <div v-if="ticketSelecionado.finalizadoTimestamp" class="info-item">
-                <div class="info-label">Finalizada em</div>
-                <div class="info-value">{{ formatTimestamp(ticketSelecionado.finalizadoTimestamp) }}</div>
+              <div
+                v-if="ticketSelecionado.finalizadoTimestamp"
+                class="info-item"
+              >
+                <div class="info-label">
+                  Finalizada em
+                </div>
+                <div class="info-value">
+                  {{ formatTimestamp(ticketSelecionado.finalizadoTimestamp) }}
+                </div>
               </div>
               <div class="info-item">
-                <div class="info-label">Tempo de Espera</div>
-                <div class="info-value">{{ formatarTempoHMS(tempoEsperaRealtime) }}</div>
+                <div class="info-label">
+                  Tempo de Espera
+                </div>
+                <div class="info-value">
+                  {{ formatarTempoHMS(tempoEsperaRealtime) }}
+                </div>
               </div>
               <div class="info-item">
-                <div class="info-label">Tempo de Atendimento</div>
-                <div class="info-value">{{ tempoAtendimentoRealtime > 0 ? formatarTempoHMS(tempoAtendimentoRealtime) : '---' }}</div>
+                <div class="info-label">
+                  Tempo de Atendimento
+                </div>
+                <div class="info-value">
+                  {{ tempoAtendimentoRealtime > 0 ? formatarTempoHMS(tempoAtendimentoRealtime) : '---' }}
+                </div>
               </div>
-              <div v-if="ticketSelecionado.servicoDoCliente" class="info-item full-width">
-                <div class="info-label">Serviço</div>
-                <div class="info-value">{{ ticketSelecionado.servicoDoCliente }}</div>
+              <div
+                v-if="ticketSelecionado.servicoDoCliente"
+                class="info-item full-width"
+              >
+                <div class="info-label">
+                  Serviço
+                </div>
+                <div class="info-value">
+                  {{ ticketSelecionado.servicoDoCliente }}
+                </div>
               </div>
-              <div v-if="ticketSelecionado.guicheAtendendo" class="info-item">
-                <div class="info-label">Guichê</div>
-                <div class="info-value">{{ ticketSelecionado.guicheNome || ticketSelecionado.guicheAtendendo }}</div>
+              <div
+                v-if="ticketSelecionado.guicheAtendendo"
+                class="info-item"
+              >
+                <div class="info-label">
+                  Guichê
+                </div>
+                <div class="info-value">
+                  {{ ticketSelecionado.guicheNome || ticketSelecionado.guicheAtendendo }}
+                </div>
               </div>
-              <div v-if="ticketSelecionado.descricao" class="info-item full-width">
-                <div class="info-label">Descrição</div>
-                <div class="info-value">{{ ticketSelecionado.descricao }}</div>
+              <div
+                v-if="ticketSelecionado.descricao"
+                class="info-item full-width"
+              >
+                <div class="info-label">
+                  Descrição
+                </div>
+                <div class="info-value">
+                  {{ ticketSelecionado.descricao }}
+                </div>
               </div>
             </div>
 
@@ -73,41 +159,41 @@
             <div class="ticket-actions">
               <button
                 v-if="ticketSelecionado.status !== 'chamada'"
-                @click="$emit('chamar', ticketSelecionado.numero)"
                 class="btn-ticket-action btn-call"
                 title="Chamar esta senha"
+                @click="$emit('chamar', ticketSelecionado.numero)"
               >
-                <i class="fas fa-bullhorn"></i>
+                <i class="fas fa-bullhorn" />
               </button>
               <button
-                @click="$emit('editar', ticketSelecionado.numero)"
                 class="btn-ticket-action btn-edit"
                 title="Editar descrição"
+                @click="$emit('editar', ticketSelecionado.numero)"
               >
-                <i class="fas fa-edit"></i>
+                <i class="fas fa-edit" />
               </button>
               <button
-                @click="$emit('excluir', ticketSelecionado.numero)"
                 class="btn-ticket-action btn-delete"
                 title="Excluir senha"
+                @click="$emit('excluir', ticketSelecionado.numero)"
               >
-                <i class="fas fa-trash-alt"></i>
+                <i class="fas fa-trash-alt" />
               </button>
               <button
                 v-if="ticketSelecionado.status !== 'espera'"
-                @click="$emit('retornar', ticketSelecionado.numero)"
                 class="btn-ticket-action btn-return"
                 title="Devolver para fila"
+                @click="$emit('retornar', ticketSelecionado.numero)"
               >
-                <i class="fas fa-undo"></i>
+                <i class="fas fa-undo" />
               </button>
               <button
                 v-if="ticketSelecionado.status !== 'nao_compareceu'"
-                @click="$emit('ausente', ticketSelecionado.numero)"
                 class="btn-ticket-action btn-absent"
                 title="Marcar como ausente"
+                @click="$emit('ausente', ticketSelecionado.numero)"
               >
-                <i class="fas fa-user-slash"></i>
+                <i class="fas fa-user-slash" />
               </button>
             </div>
           </div>
@@ -149,14 +235,6 @@ const handleClose = () => {
   emit('close')
 }
 
-const getTipoLabel = (tipo: string): string => {
-  const labels: Record<string, string> = {
-    'prioridade': 'Prioritária',
-    'normal': 'Normal',
-    'contratual': 'Contratual'
-  }
-  return labels[tipo] || tipo
-}
 
 const getStatusLabel = (status: string): string => {
   const labels: Record<string, string> = {

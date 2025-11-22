@@ -8,7 +8,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import type { ArquivoEstatisticasDia, EstatisticasAvancadas } from '../../../shared/types.js';
+import type { ArquivoEstatisticasDia, EstatisticasAvancadas } from '../../../shared/types.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

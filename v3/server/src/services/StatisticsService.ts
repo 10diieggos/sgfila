@@ -3,7 +3,7 @@
  * SGFILA v3.0
  */
 
-import type { EstadoSistema, Estatisticas, Senha, TipoSenha, DetalhesTipo, DetalhesGuiche } from '../../../shared/types.js';
+import type { EstadoSistema, Estatisticas, Senha, TipoSenha, DetalhesTipo, DetalhesGuiche } from '../../../shared/types';
 
 export class StatisticsService {
   /**

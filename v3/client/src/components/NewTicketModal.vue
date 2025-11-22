@@ -1,12 +1,25 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show" class="modal-overlay modal-clicavel-fechar" @click.self="handleClickOverlay" @keydown="handleKeyDown">
-        <div class="modal-content-nova-senha" @click.stop>
+      <div
+        v-if="show"
+        class="modal-overlay modal-clicavel-fechar"
+        @click.self="handleClickOverlay"
+        @keydown="handleKeyDown"
+      >
+        <div
+          class="modal-content-nova-senha"
+          @click.stop
+        >
           <span class="modal-label">Nova Senha Emitida</span>
-          <div :class="['senha-gerada-numero', tipoSenha]">{{ numeroSenha }}</div>
+          <div :class="['senha-gerada-numero', tipoSenha]">
+            {{ numeroSenha }}
+          </div>
 
-          <div v-show="descricaoAtiva" class="form-group-modal-senha">
+          <div
+            v-show="descricaoAtiva"
+            class="form-group-modal-senha"
+          >
             <label for="nova-senha-descricao">Descrição (Opcional - Pressione Enter para salvar):</label>
             <textarea
               id="nova-senha-descricao"
@@ -15,7 +28,7 @@
               rows="3"
               placeholder="Ex: Alteração de CPF..."
               @keydown.enter.prevent="handleSalvar"
-            ></textarea>
+            />
           </div>
         </div>
       </div>

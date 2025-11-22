@@ -2,60 +2,90 @@
   <div class="statistics-panel-with-filters">
     <!-- Filtro de Período -->
     <StatisticsPeriodFilter
-      :periodoDescricao="periodoDescricao"
-      :diasAnalisados="diasAnalisados"
+      :periodo-descricao="periodoDescricao"
+      :dias-analisados="diasAnalisados"
       :tendencias="tendencias"
       :carregando="carregando"
-      @aplicarFiltro="handleAplicarFiltro"
+      @aplicar-filtro="handleAplicarFiltro"
     />
 
     <!-- Loading State -->
-    <div v-if="carregando" class="loading-overlay">
+    <div
+      v-if="carregando"
+      class="loading-overlay"
+    >
       <div class="loading-spinner">
-        <i class="fas fa-spinner fa-spin"></i>
+        <i class="fas fa-spinner fa-spin" />
         <p>Carregando estatísticas...</p>
       </div>
     </div>
 
     <!-- Conteúdo de Estatísticas -->
-    <div v-else-if="estatisticas" class="statistics-content">
+    <div
+      v-else-if="estatisticas"
+      class="statistics-content"
+    >
       <!-- Resumo Geral -->
       <div class="stats-summary">
         <h2>
-          <i class="fas fa-chart-pie"></i>
+          <i class="fas fa-chart-pie" />
           {{ periodoDescricao || 'Estatísticas do Dia' }}
         </h2>
 
         <div class="stats-grid">
           <div class="stat-card primary">
-            <div class="stat-icon"><i class="fas fa-ticket-alt"></i></div>
+            <div class="stat-icon">
+              <i class="fas fa-ticket-alt" />
+            </div>
             <div class="stat-content">
-              <div class="stat-label">Senhas Emitidas</div>
-              <div class="stat-value">{{ estatisticas.totalEmitidas }}</div>
+              <div class="stat-label">
+                Senhas Emitidas
+              </div>
+              <div class="stat-value">
+                {{ estatisticas.totalEmitidas }}
+              </div>
             </div>
           </div>
 
           <div class="stat-card success">
-            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-icon">
+              <i class="fas fa-check-circle" />
+            </div>
             <div class="stat-content">
-              <div class="stat-label">Atendidas</div>
-              <div class="stat-value">{{ estatisticas.totalAtendidas }}</div>
+              <div class="stat-label">
+                Atendidas
+              </div>
+              <div class="stat-value">
+                {{ estatisticas.totalAtendidas }}
+              </div>
             </div>
           </div>
 
           <div class="stat-card warning">
-            <div class="stat-icon"><i class="fas fa-user-times"></i></div>
+            <div class="stat-icon">
+              <i class="fas fa-user-times" />
+            </div>
             <div class="stat-content">
-              <div class="stat-label">Não Compareceu</div>
-              <div class="stat-value">{{ estatisticas.totalNaoCompareceu }}</div>
+              <div class="stat-label">
+                Não Compareceu
+              </div>
+              <div class="stat-value">
+                {{ estatisticas.totalNaoCompareceu }}
+              </div>
             </div>
           </div>
 
           <div class="stat-card info">
-            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-icon">
+              <i class="fas fa-clock" />
+            </div>
             <div class="stat-content">
-              <div class="stat-label">Tempo Médio Espera</div>
-              <div class="stat-value-small">{{ estatisticas.tempoMedioEsperaGeral }}</div>
+              <div class="stat-label">
+                Tempo Médio Espera
+              </div>
+              <div class="stat-value-small">
+                {{ estatisticas.tempoMedioEsperaGeral }}
+              </div>
             </div>
           </div>
         </div>
@@ -64,16 +94,16 @@
       <!-- Gráficos e Visualizações -->
       <StatisticsCharts
         v-if="estatisticas.distribuicaoPorHora"
-        :distribuicaoPorHora="estatisticas.distribuicaoPorHora"
-        :performancePorAtendente="estatisticas.performancePorAtendente || []"
+        :distribuicao-por-hora="estatisticas.distribuicaoPorHora"
+        :performance-por-atendente="estatisticas.performancePorAtendente || []"
         :qualidade="estatisticas.qualidade || null"
-        :horasPico="estatisticas.horasPico || []"
+        :horas-pico="estatisticas.horasPico || []"
         :devolucoes="estatisticas.devolucoes || null"
       />
 
       <!-- Desempenho por Tipo (Tabela Clássica) -->
       <div class="stats-section">
-        <h3><i class="fas fa-tasks"></i> Desempenho por Tipo</h3>
+        <h3><i class="fas fa-tasks" /> Desempenho por Tipo</h3>
         <div class="table-responsive">
           <table class="stats-table">
             <thead>
@@ -88,7 +118,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(tipo, key) in estatisticas.detalhesPorTipo" :key="key">
+              <tr
+                v-for="(tipo, key) in estatisticas.detalhesPorTipo"
+                :key="key"
+              >
                 <td><span :class="['badge-tipo', key]">{{ getTipoLabel(key) }}</span></td>
                 <td>{{ tipo.emitidas }}</td>
                 <td>{{ tipo.atendidas }}</td>
@@ -104,17 +137,23 @@
 
       <!-- Desempenho por Guichê (Tabela Clássica) -->
       <div class="stats-section">
-        <h3><i class="fas fa-user-headset"></i> Desempenho por Guichê</h3>
-        <div v-if="Object.keys(estatisticas.detalhesPorGuiche).length === 0" class="empty-state">
+        <h3><i class="fas fa-user-headset" /> Desempenho por Guichê</h3>
+        <div
+          v-if="Object.keys(estatisticas.detalhesPorGuiche).length === 0"
+          class="empty-state"
+        >
           <p>Nenhum atendimento realizado ainda.</p>
         </div>
-        <div v-else class="guiche-stats-grid">
+        <div
+          v-else
+          class="guiche-stats-grid"
+        >
           <div
             v-for="(dados, guicheId) in estatisticas.detalhesPorGuiche"
             :key="guicheId"
             class="guiche-stat-card"
           >
-            <h4>{{ getGuicheNome(guicheId) }}</h4>
+            <h4>{{ getGuicheNome(String(guicheId)) }}</h4>
             <div class="guiche-stat-item">
               <span class="label">Atendidas:</span>
               <strong>{{ dados.atendidas }}</strong>
@@ -129,7 +168,7 @@
 
       <!-- Abandono e Exclusões -->
       <div class="stats-section">
-        <h3><i class="fas fa-user-slash"></i> Abandono e Exclusões</h3>
+        <h3><i class="fas fa-user-slash" /> Abandono e Exclusões</h3>
         <div class="stats-list">
           <div class="stat-item">
             <span>Senhas (Ausente):</span>
@@ -144,8 +183,11 @@
     </div>
 
     <!-- Estado Vazio -->
-    <div v-else class="empty-state-full">
-      <i class="fas fa-chart-bar"></i>
+    <div
+      v-else
+      class="empty-state-full"
+    >
+      <i class="fas fa-chart-bar" />
       <p>Nenhuma estatística disponível</p>
     </div>
   </div>

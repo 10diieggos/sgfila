@@ -11,7 +11,7 @@ import type {
   FiltroPeriodo,
   DetalhesTipo,
   DetalhesGuiche
-} from '../../../shared/types.js';
+} from '../../../shared/types';
 import { StatisticsPersistence } from './StatisticsPersistence.js';
 
 export interface EstatisticasAgregadas extends EstatisticasAvancadas {

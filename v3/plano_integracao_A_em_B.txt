@@ -1,0 +1,168 @@
+Plano técnico de integração: JSED básico + Fairness (aging/clamp) + Regra de serviços rápidos + WRR leve, com thresholds de IA e fallback determinístico no SGFila v3
+
+Objetivo
+- Integrar um chamador de senhas baseado em JSED (Join Shortest Expected Delay) com fairness por aging/clamp, regra de serviços rápidos e um WRR leve como salvaguarda.
+- Acionar IA embarcada apenas quando superar thresholds de qualidade/latência; manter fallback determinístico no servidor.
+
+Contexto Base
+- Referência conceitual: v3/projeto_anterior.txt (JSED ajustado por prioridade, aging, WRR/WFQ; PID opcional; IA ONNX com fallback).
+- Estado atual do código (principais pontos):
+  - Servidor: `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\services\QueueService.ts` implementa algoritmos `proporcao`, `round_robin` e `fifo`, com correções v3.2 (tempo limite e ausências).
+  - Socket: `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\socket\SocketHandlers.ts` orquestra eventos cliente-servidor.
+  - Estatísticas: `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\services\AdvancedStatisticsService.ts` já calcula λ/μ por hora, p50/p95/p99, eficiência, etc.
+  - Tipos/Config: `c:\Users\Diego\Downloads\nodep\sgfila\v3\shared\types.ts` contém configurações e tipos compartilhados.
+  - Cliente: composables `useSocket.ts`, `useUtils.ts`, `useRealtimeTimer.ts`; ML assistido em `client/src/ml/*` com thresholds em `client/public/ml/thresholds.json`.
+
+Arquitetura do Chamador Proposto
+- Núcleo de decisão (servidor):
+  - JSED básico: estima atraso esperado por senha candidata usando tamanho/estado de fila e tempo médio de atendimento esperado para o serviço/tipo.
+  - Fairness aging/clamp: peso efetivo cresce com tempo de espera; limitado por um clamp para evitar unfair speedup/slowdown.
+  - Regra de serviços rápidos: dar bônus leve para serviços com `tempoMedioAtendimento` abaixo de um limite configurável, para elevar throughput em picos.
+  - WRR leve: se desbalanceamento por tipo persistir além de thresholds, executar uma rodada de atendimento por pesos para corrigir rumo.
+- IA embarcada (cliente, assistiva):
+  - O cliente calcula uma sugestão `mlHint` (`numeroPrevisto`, `score`) via ONNX/WASM.
+  - `useSocket.chamarSenha` envia `mlHint` opcional. No servidor, apenas considera a sugestão se passar `validatePrediction` (latência/score). Caso contrário, ignora.
+  - O servidor continua a decidir de forma determinística (JSED+fairness+WRR); IA não quebra determinismo.
+
+Formulação Técnica
+- Peso efetivo de uma senha s:
+  - `w_base`: peso por tipo (ex.: prioridade=1.3, contratual=1.1, normal=1.0), configurável.
+  - `w_aging`: `1 + alpha * min(tempoEsperaMin / agingWindowMin, clampMax)`; clamp (ex.: 2.0) limita efeito.
+  - `w_fast`: se `tempoMedioServicoMs(servicoDoCliente) <= fast.msLimit`, aplicar multiplicador `fast.boost` (ex.: 1.1).
+  - `w_eff = w_base * w_aging * w_fast`.
+- Estimativa de atraso esperado (JSED simplificado por ticket):
+  - `SED(s) = (tempoEsperaAtualMs(s) + tempoMedioServicoMs(s)) / w_eff`.
+  - Seleciona `argmin_s SED(s)` entre elegíveis, respeitando correções v3.2 (tempo limite primeiro).
+- WRR leve de salvaguarda:
+  - Medir desvio entre proporção alvo por tipo e proporção efetiva nos últimos `wrr.windowCalls` (memória curta em `StateManager`).
+  - Se `|proporcaoEfetiva(tipo) - proporcaoAlvo(tipo)| > wrr.enableThreshold` por `wrr.checkRounds` consecutivas, ativa um ciclo único de WRR na próxima chamada.
+- Determinismo e fallback:
+  - Se IA ausente ou inválida: o servidor sempre segue `JSED_fair_WRR`.
+  - Se IA válida: pode apenas sugerir a senha entre top-3 por SED para "desempate"; nunca escolhe uma senha fora do conjunto elegível.
+
+Pseudocódigo (servidor)
+```
+// Dentro QueueService
+function chamarPorJSEDFairWRR(estado: EstadoSistema, fila: Senha[]): Senha | null {
+  // 1) Correções v3.2: tempo limite no topo
+  fila = reordenarFilaPorTempoLimite(fila)
+  const elegiveis = fila
+  if (elegiveis.length === 0) return null
+
+  // 2) WRR leve: se trigger ativo, executar uma rodada e sair
+  if (wrrShouldRun(estado)) {
+    const senhaWRR = escolherPorWRR(elegiveis, cfg.wrr.weights)
+    if (senhaWRR) return senhaWRR
+  }
+
+  // 3) JSED + fairness + fast-service
+  let melhor: { senha: Senha; score: number } | null = null
+  for (const s of elegiveis) {
+    const tEsperaMs = tempoEsperaAtualMs(s, agora)
+    const tServicoMs = estimativaServicoMs(s, estado)
+    const wBase = pesoPorTipo(s.tipo, cfg.routing.jsedWeights)
+    const wAging = 1 + cfg.wfq.alphaAging * min(tEsperaMs/60000 / cfg.wfq.agingWindowMin, cfg.wfq.slowdownMax)
+    const wFast = (tServicoMs <= cfg.fast.msLimit) ? cfg.fast.boost : 1
+    const wEff = wBase * wAging * wFast
+    const sed = (tEsperaMs + tServicoMs) / wEff
+    if (!melhor || sed < melhor.score) melhor = { senha: s, score: sed }
+  }
+
+  return melhor?.senha || elegiveis[0]
+}
+```
+
+Integração da IA com thresholds
+- Cliente (`useSocket.chamarSenha`):
+  - Carrega `thresholds.json` e mede tempo de inferência. Usa `validatePrediction(previsto, tempoMs, thresholds)`.
+  - Se validado: enviará opcionalmente `mlHint` no evento de chamada; se inválido: envia sem `mlHint`.
+- Servidor (`SocketHandlers`/`QueueService`):
+  - Se `mlHint` presente e o `numeroPrevisto` pertence ao top-3 por SED (desempate), aceita como escolha; caso contrário, ignora.
+  - Nunca degrada fairness ou regras de correção por conta da IA.
+
+Regra de serviços rápidos
+- Coletar `tempoMedioAtendimentoMs` por `servicoDoCliente` (rolling média robusta com janela curta, ex.: 20 últimas ocorrências; ignorar outliers).
+- Manter cache leve (em `StateManager` ou cálculo on-demand em `AdvancedStatisticsService`) para guiar `estimativaServicoMs(s)`.
+- Configuração:
+  - `fast.msLimit` (ex.: 180000 ms = 3 min) e `fast.boost` (ex.: 1.1).
+
+Mapeamento de mudanças por arquivo
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\shared\types.ts`
+  - Adições em `ConfiguracaoComportamentoFila.algoritmo`: incluir `'jsed_fair_wrr'` (sem quebrar os existentes).
+  - Novo bloco `ConfiguracaoRoteamento` com:
+    - `jsedWeights: { prioridade: number; contratual: number; normal: number }`.
+    - `fast: { msLimit: number; boost: number }`.
+    - `wfq: { alphaAging: number; agingWindowMin: number; slowdownMax: number }`.
+    - `wrr: { weights: { prioridade: number; contratual: number; normal: number }; enableThreshold: number; windowCalls: number; checkRounds: number }`.
+  - Opcional: tipo para `MLThresholds` no cliente (refletir `thresholds.json`) para validação tipada.
+  - Atualizar `ClientToServerEvents.chamarSenha` para aceitar opcional `mlHint?: { numeroPrevisto: string; score: number }`.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\services\QueueService.ts`
+  - Nova função `chamarPorJSEDFairWRR(estado, senhasEspera)` conforme pseudocódigo; respeitar primeiro senhas com `tempoLimiteAtingido`.
+  - Utilitários:
+    - `estimativaServicoMs(senha, estado)`: calcular média por `servicoDoCliente` (fallback: média por tipo; fallback final: média global recente).
+    - `pesoPorTipo(tipo, jsedWeights)` e `tempoEsperaAtualMs(s, agora)` considerando pausas por ausência.
+    - `wrrShouldRun(estado)` e `escolherPorWRR(elegiveis, weights)` com janela por chamadas recentes (guardar contadores simples no `StateManager`).
+  - Seleção de algoritmo: se `config.comportamentoFila.algoritmo === 'jsed_fair_wrr'`, usar nova rotina.
+  - Garantir fallback determinístico: se algo falhar, usar `chamarProporcao` atual.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\socket\SocketHandlers.ts`
+  - Alterar handler `chamarSenha` para aceitar `mlHint` opcional e repassar ao `QueueService`.
+  - Logar decisões: fonte (`deterministico` vs `mlHint-desempate`) e métricas (score, latência, ativação de WRR).
+  - Emitir `estadoAtualizado` como hoje; não expor decisão IA diretamente ao cliente (apenas via telemetria local).
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\services\AdvancedStatisticsService.ts`
+  - Adicionar métricas de fairness:
+    - `slowdownRatioPorTipo` (ex.: `tempoMedioEsperaMs / tempoMedioAtendimentoMs` por tipo com salvaguarda de zeros).
+    - `coberturaWRR` (porcentagem de chamadas em que WRR leve foi ativado, usando contadores em `StateManager`).
+    - `taxaAgingAplicado` (percentual de senhas com `w_aging > 1.0` ou com `tempoLimiteAtingido`).
+  - Expor no payload de `EstatisticasAvancadas` para UI.
+  - Opcional: estimativa de `E[Wq]` por tipo via M/M/c aproximado com `λ/h` e `μ/h` já calculados por hora.
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\composables\useSocket.ts`
+  - Em `chamarSenha` e `chamarSenhaEspecifica`: carregar thresholds (`loadThresholds`), validar `predictNextOrFallback` com `validatePrediction`, e incluir `mlHint` no emit apenas se válido:
+    - `socket.emit('chamarSenha', { guicheId, mlHint: { numeroPrevisto, score } })`.
+  - Manter telemetria com `recordPrediction` (registrar latência, score, source).
+
+- `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\ml\inference.ts` e `validation.ts`
+  - Garantir medição de latência e aplicação de `validatePrediction` antes de sugerir.
+  - Estruturar retorno contendo `tempoInferenciaMs` para telemetria.
+
+- UI (cliente)
+  - `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\components\QueueList.vue`: manter pré-visualização IA apenas visual (não decisória); destacar senha sugerida quando filtro “Automática” estiver ativo.
+  - `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\components\AdvancedStatisticsPanel.vue`: adicionar cartões/linhas para as novas métricas de fairness (slowdown por tipo, % WRR ativado, aging aplicado).
+  - `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\components\CounterPanel.vue`: sem mudanças funcionais; poderá exibir um indicativo leve de “desempate IA” no futuro (badge opcional).
+
+Configuração e Thresholds
+- Novos parâmetros sugeridos (default):
+  - `routing.jsedWeights`: `{ prioridade: 1.3, contratual: 1.1, normal: 1.0 }`.
+  - `wfq.alphaAging`: `0.1`; `wfq.agingWindowMin`: `30`; `wfq.slowdownMax`: `2.0`.
+  - `fast.msLimit`: `180000` ms; `fast.boost`: `1.1`.
+  - `wrr.weights`: `{ prioridade: 3, contratual: 2, normal: 1 }`.
+  - `wrr.enableThreshold`: `0.2`; `wrr.windowCalls`: `20`; `wrr.checkRounds`: `2`.
+- IA (cliente): `client/public/ml/thresholds.json` já existe; usar:
+  - `minScore`: ≥ 0.6 para ativação; `latencyMsMax`: ≤ 200 ms; `accuracyTarget`: 0.7; `driftTolerance`: 0.2; `recallPrioridadeMin`: 0.8.
+
+Riscos e Regressões
+- Calibração de pesos: `w_base`, `alphaAging`, `slowdownMax` e `fast.boost` podem gerar mudanças não-intuitivas; exigir validação em simulação.
+- WRR leve: janela curta e thresholds inadequados podem causar oscilações na ordem de chamada.
+- Estimativa de tempo de serviço: pouca amostra por `servicoDoCliente` pode enviesar; aplicar média robusta e fallback por tipo/global.
+- Performance: cálculo JSED por senha em cada chamada adiciona custo; otimizar com caches simples e limitar candidatos (ex.: top-10 por espera).
+- UX: alterações na ordem podem surpreender usuários; comunicar via UI métricas de fairness e motivos (tempo-limite/aging).
+- Compatibilidade: atualização de `ClientToServerEvents.chamarSenha` adiciona campo opcional; garantir retrocompatibilidade para clientes antigos.
+
+Passos de Implementação (fases curtas)
+- Fase 1 (Back-end determinístico):
+  - Adicionar config e tipos; implementar `chamarPorJSEDFairWRR` e utilitários; ativar via `algoritmo: 'jsed_fair_wrr'`.
+  - Persistir contadores simples para WRR e expor status para estatísticas avançadas.
+  - Testes de sanidade com cenários de pico e fila mista.
+- Fase 2 (Cliente IA assistiva):
+  - Aplicar validação de thresholds; enviar `mlHint` opcional; registrar telemetria.
+  - UI: adicionar métricas de fairness no painel avançado; manter preview IA.
+- Fase 3 (Calibração/observabilidade):
+  - Ajustar pesos/thresholds com dados reais; revisar WRR janela; otimizar caches.
+
+Notas de Integração
+- Correções v3.2 (tempo limite/ausências) mantêm prioridade lógica no topo da fila; JSED só ordena entre elegíveis após aplicar correções.
+- Determinismo é preservado no servidor; IA atua apenas como sugestão de desempate quando confiável.
+- Evitar criar novas tabelas/arquivos; usar `StateManager` e cálculos on-demand em serviços existentes.
