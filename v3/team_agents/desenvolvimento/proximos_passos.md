@@ -13,9 +13,9 @@
 - Itens concluídos permanecem para rastreabilidade.
 
 ### Peso 1 (Funções Desejadas pelo Dono do SGFila)
-- Implementar dashboard de IA no ConfigurationPanel.vue
-- Conectar interface com dados reais do StateManager
-- Adicionar visualização de métricas e histórico de decisões
+- [Concluído] [ID: T-015] Implementar dashboard de IA no ConfigurationPanel.vue (nova aba "IA" com status, thresholds e telemetria).
+- [ID: T-015b] Conectar interface com dados reais do StateManager (carregar thresholds do cliente, exibir última decisão).
+- [ID: T-015c] Adicionar visualização de métricas e histórico de decisões (integrar `estado.iaTelemetria` na seção de telemetria).
 
 ### Peso 1 (CRÍTICO - IA Operacional)
 - [Concluído] [ID: T-016] Criar `IAManager.ts` com algoritmo de decisão JSED/Fairness/WRR (ver `v3/server/src/services/IAManager.ts`).
@@ -26,8 +26,8 @@
  - [Concluído] [ID: T-021] Implementar "lista preview" ordenada por JSED no servidor e consumo pela UI no filtro "Automática".
 
 #### Thresholds e Top‑3 (Aceitação de `mlHint`)
-- [ID: T-043] Publicar thresholds offline em `client/public/ml/thresholds.json` com: `minScore ≥ 0.65`, `latencyMsMax ≤ 200`, `cooldownCalls = 20`, `accuracyTarget ≥ 0.75`, `recallPrioridadeMin ≥ 0.85`, `fallbackRateMax ≤ 0.30`.
-- [ID: T-044] Validar aceitação de `mlHint` apenas se `numeroPrevisto ∈ top‑3 JSED` e `score ≥ minScore` (servidor: `IAManager.ts` linhas 63–78).
+- [Concluído] [ID: T-043] Publicar thresholds offline em `client/public/ml/thresholds.json` com: `minScore ≥ 0.65`, `latencyMsMax ≤ 200`, `cooldownCalls = 20`, `accuracyTarget ≥ 0.75`, `recallPrioridadeMin ≥ 0.85`, `fallbackRateMax ≤ 0.30`.
+- [Concluído] [ID: T-044] Validar aceitação de `mlHint` apenas se `numeroPrevisto ∈ top‑3 JSED` e `score ≥ minScore` (servidor: `IAManager.ts` linhas 63–78).
 - [ID: T-048] Persistir últimas decisões de IA (fonte, confiança, top‑3, accepted_hint) e exibir no painel.
 
 #### Como alinhar com JSED
@@ -46,6 +46,8 @@
 ### Peso 1 (Documentação/Instalação)
  - [ID: T-009] Planejar instalação offline: cache de `node_modules` ou pacote zip com dependências preinstaladas.
  - [ID: T-010] Documentar no README os requisitos para IA (modelo ONNX e assets) e comportamento quando em fallback.
+ - [ID: T-013] Criar guia de início rápido para desenvolvedores (setup, build, testes básicos).
+ - [ID: T-014] Documentar arquitetura do sistema (diagrama de componentes, fluxo de dados, decisões de design).
 
 ### Peso 2 (UX e Telemetria)
 - [Concluído] [ID: T-006] Indicar na UI quando a IA estiver em fallback (sem modelo) e quando uma dica ML foi aceita/rejeitada.
@@ -62,9 +64,9 @@
  - [ID: T-034] Acessibilidade por teclado: ordem de tabulação lógica em `CounterPanel`, `ConfigurationPanel` e filtros; indicadores de foco visíveis; atalhos para ações críticas (chamar/ finalizar).
  - [ID: T-035] Contraste de cores (WCAG 2.1 AA): revisar pares principais dos tokens e ajustar onde necessário para atingir ≥ 4.5:1 em texto normal e ≥ 3:1 em UI/ícones.
 - [ID: T-036] Validação cross‑browser/offline: testar filtros, badge e toasts em Windows (Chrome/Edge) com assets locais e sem chamadas externas.
-- [ID: T-052] Design Tokens (CSS vars): introduzir tokens globais de cores e foco em `v3/client/src/styles/main.css` (`:root`), substituir cores de links/inputs por `var(--link)`/`var(--focus-ring)` para contraste AA.
-- [ID: T-053] Foco visível consistente: adicionar regras globais `:focus-visible` com `outline: 3px` e `outline-offset: 2px` cobrindo `button`, `.btn`, `.btn-modal`, `.tab-link`, `.modal-close-btn`, controles de formulário e `.guiche-card-selecao`.
-- [ID: T-054] Padronizar Badge IA: criar `.badge` base e `.badge-ia` em `main.css` e migrar uso em `CounterPanel.vue` com `aria-label` descritivo; garantir contraste AA.
+- [Concluído] [ID: T-052] Design Tokens (CSS vars): introduzir tokens globais de cores e foco em `v3/client/src/styles/main.css` (`:root`), substituir cores de links/inputs por `var(--link)`/`var(--focus-ring)` para contraste AA.
+- [Concluído] [ID: T-053] Foco visível consistente: adicionar regras globais `:focus-visible` com `outline: 3px` e `outline-offset: 2px` cobrindo `button`, `.btn`, `.btn-modal`, `.tab-link`, `.modal-close-btn`, controles de formulário e `.guiche-card-selecao`.
+- [Concluído] [ID: T-054] Padronizar Badge IA: criar `.badge` base e `.badge-ia` em `main.css` e migrar uso em `CounterPanel.vue` com `aria-label` descritivo; garantir contraste AA.
 - [ID: T-055] Auditar painéis por tipo (prioridade/normal/contratual): validar contraste texto/fundo; ajustar tokens (`--priority-700`, `--normal-700`, `--contract-700`) se algum par < 4.5:1.
 
 ### Peso 2 (Performance)
@@ -204,3 +206,57 @@
 #### Metas de Latência/Memória (IA)
 - [ID: T-050] Estabelecer metas: `session.create ≤ 1500 ms (p95)`, `inferência p95 ≤ 35 ms`, `p99 ≤ 60 ms`, memória adicional `≤ 32 MB`, modelo `≤ 1.5 MB`.
 - [ID: T-051] Implementar medição automática de latência e memória (DevTools/Performance API) com registro em telemetria local.
+
+---
+
+## Tarefas Adicionadas (2025-11-22)
+
+### Novos Itens de Continuidade
+
+#### Peso 1 (UI/UX - IA Dashboard)
+- [Concluído] [ID: T-085] Adicionar aba "IA" ao ConfigurationPanel com dashboard de monitoramento.
+- [ID: T-086] Conectar dashboard de IA com dados reais do StateManager (`ultimaDecisaoIA`, `iaTelemetria`).
+- [ID: T-087] Implementar visualização de histórico de decisões (últimas 20-50 decisões com fonte, confiança, top-3).
+
+#### Peso 2 (Qualidade de Código)
+- [ID: T-088] Refatorar código duplicado entre componentes (extrair composables compartilhados).
+- [ID: T-089] Adicionar JSDoc/comentários em funções complexas (IAManager, QueueService).
+- [ID: T-090] Revisar e padronizar tratamento de erros em todos os serviços.
+
+#### Peso 2 (Testes)
+- [ID: T-091] Criar testes unitários para IAManager (validação top-3, cálculo JSED, WRR).
+- [ID: T-092] Criar testes de integração para fluxo completo de chamada com IA.
+- [ID: T-093] Adicionar testes E2E para aba de configurações (mudança de algoritmo, thresholds).
+
+#### Peso 3 (Melhorias de Funcionalidade)
+- [ID: T-094] Implementar exportação de estatísticas em CSV/JSON para análise externa.
+- [ID: T-095] Adicionar filtros avançados no histórico (por data, tipo, guichê, motivo).
+- [ID: T-096] Criar relatório de produtividade por atendente/guichê.
+
+#### Peso 3 (Documentação Técnica)
+- [ID: T-097] Documentar algoritmo JSED detalhadamente (fórmulas, parâmetros, exemplos).
+- [ID: T-098] Criar diagramas de sequência para fluxos principais (emissão, chamada, finalização).
+- [ID: T-099] Documentar API de configuração (todos os campos de ConfiguracoesGerais).
+
+#### Peso 4 (Otimizações Futuras)
+- [ID: T-100] Investigar uso de Web Workers para inferência ML (não bloquear thread principal).
+- [ID: T-101] Implementar paginação/virtualização em listas longas (>100 senhas).
+- [ID: T-102] Adicionar cache inteligente de previsões JSED (invalidar apenas quando fila muda).
+
+### Resumo de Implementações Recentes
+
+**Concluído em 2025-11-22:**
+1. ✅ Atualização de thresholds para valores recomendados (minScore 0.65, fallbackRateMax 0.30)
+2. ✅ Criação de aba "IA" no ConfigurationPanel com:
+   - Status atual (modelo ONNX, algoritmo ativo, última decisão)
+   - Visualização de thresholds de aceitação (read-only)
+   - Placeholder para telemetria de decisões
+3. ✅ Design Tokens CSS já existentes e funcionais (cores, foco, contraste AA)
+4. ✅ Estilos responsivos para dashboard de IA
+
+**Próximos Passos Prioritários:**
+1. Conectar dashboard com dados reais (T-086)
+2. Implementar visualização de telemetria (T-087)
+3. Criar testes para IAManager (T-091)
+4. Documentar algoritmo JSED (T-097)
+5. Empacotar para entrega offline (T-037 a T-042)

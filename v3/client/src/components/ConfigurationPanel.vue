@@ -32,6 +32,12 @@
       >
         <i class="fas fa-palette" /> Design
       </button>
+      <button
+        :class="['sub-tab-link', { active: activeSubTab === 'ia' }]"
+        @click="changeSubTab('ia')"
+      >
+        <i class="fas fa-brain" /> IA
+      </button>
     </div>
 
     <!-- Conteúdo Guichês -->
@@ -1359,6 +1365,138 @@
       </div>
     </div>
 
+    <!-- Conteúdo IA Dashboard -->
+    <div
+      v-if="activeSubTab === 'ia'"
+      class="sub-tab-content"
+    >
+      <h2><i class="fas fa-brain" /> Dashboard de IA (JSED/Fairness/WRR)</h2>
+      <p class="hint">
+        Visualize o status da IA operacional, thresholds de aceitação de ML Hint e histórico de decisões.
+      </p>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle" />
+        <div>
+          <strong>Sobre o Sistema de IA:</strong>
+          <p>
+            O SGFila utiliza IA para sequenciamento inteligente de senhas, combinando JSED (Joint Shortest Expected Delay),
+            Fairness (WRR) e ML Hints do cliente. A decisão final sempre vem do servidor e respeita validação top-3 JSED.
+          </p>
+        </div>
+      </div>
+
+      <!-- Status da IA -->
+      <div class="config-section">
+        <h3>📊 Status Atual</h3>
+        <div class="ia-status-grid">
+          <div class="ia-status-card">
+            <div class="ia-status-label">Modelo ONNX</div>
+            <div class="ia-status-value">
+              <i class="fas fa-circle-notch fa-spin" /> Verificando...
+            </div>
+            <p class="ia-status-hint">Status do modelo de inferência no navegador</p>
+          </div>
+          <div class="ia-status-card">
+            <div class="ia-status-label">Algoritmo Ativo</div>
+            <div class="ia-status-value">
+              {{ comportamentoConfig.algoritmo === 'jsed_fair_wrr' ? 'IA (JSED/Fair/WRR)' : comportamentoConfig.algoritmo.toUpperCase() }}
+            </div>
+            <p class="ia-status-hint">Configurado em Proporção & Comportamento</p>
+          </div>
+          <div class="ia-status-card">
+            <div class="ia-status-label">Última Decisão</div>
+            <div class="ia-status-value">—</div>
+            <p class="ia-status-hint">Nenhuma decisão recente (ver StateManager)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thresholds -->
+      <div class="config-section">
+        <h3>⚙️ Thresholds de Aceitação (ML Hint)</h3>
+        <p class="section-hint">
+          Critérios para aceitar sugestões de ML do cliente. Apenas senhas no top-3 JSED e com score ≥ minScore são consideradas.
+        </p>
+        <div class="config-grid-2">
+          <div class="config-item">
+            <label>Score Mínimo (minScore):</label>
+            <input
+              type="number"
+              value="0.65"
+              min="0"
+              max="1"
+              step="0.05"
+              class="config-input"
+              disabled
+            >
+            <p class="input-hint">Configurado em /ml/thresholds.json</p>
+          </div>
+          <div class="config-item">
+            <label>Latência Máxima (ms):</label>
+            <input
+              type="number"
+              value="200"
+              min="50"
+              max="500"
+              step="10"
+              class="config-input"
+              disabled
+            >
+            <p class="input-hint">Tempo máximo para inferência ML</p>
+          </div>
+          <div class="config-item">
+            <label>Cooldown (chamadas):</label>
+            <input
+              type="number"
+              value="20"
+              min="5"
+              max="50"
+              class="config-input"
+              disabled
+            >
+            <p class="input-hint">Chamadas entre ativações de WRR</p>
+          </div>
+          <div class="config-item">
+            <label>Taxa Máxima Fallback:</label>
+            <input
+              type="number"
+              value="0.30"
+              min="0"
+              max="1"
+              step="0.05"
+              class="config-input"
+              disabled
+            >
+            <p class="input-hint">Máximo de fallbacks aceitável</p>
+          </div>
+        </div>
+        <div class="warning-box" style="margin-top: 20px;">
+          <i class="fas fa-lock" />
+          <div>
+            <strong>Thresholds Offline:</strong>
+            <p>
+              Os thresholds são carregados do arquivo <code>client/public/ml/thresholds.json</code> e não podem ser editados pela UI.
+              Para alterá-los, edite o arquivo diretamente.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telemetria (placeholder) -->
+      <div class="config-section">
+        <h3>📈 Telemetria de Decisões</h3>
+        <p class="section-hint">
+          Histórico das últimas decisões da IA (fonte, confiança, top-3). Implementação futura conectará com <code>estado.iaTelemetria</code>.
+        </p>
+        <div class="ia-telemetria-placeholder">
+          <i class="fas fa-chart-line" style="font-size: 3em; color: #868e96; margin-bottom: 15px;"></i>
+          <p style="color: #868e96;">Telemetria será exibida aqui quando houver dados.</p>
+          <p style="color: #868e96; font-size: 0.9em;">Conectar com <code>estado.iaTelemetria</code> e <code>estado.ultimaDecisaoIA</code>.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Conteúdo Reiniciar -->
     <div
       v-if="activeSubTab === 'reiniciar'"
@@ -1406,7 +1544,7 @@ import type {
   ConfiguracaoDesignTokens
 } from '../../../shared/types'
 
-type SubTab = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'design' | 'notificacoes' | 'seguranca' | 'correcoes' | 'reiniciar'
+type SubTab = 'guiches' | 'proporcao' | 'tipos' | 'retornos' | 'comportamento' | 'interface' | 'design' | 'notificacoes' | 'seguranca' | 'correcoes' | 'ia' | 'reiniciar'
 
 const props = withDefaults(defineProps<{
   guichesGlobais: Guiche[]
@@ -2610,10 +2748,79 @@ input:checked + .toggle-slider:before {
   border-color: #adb5bd;
 }
 
+/* IA Dashboard */
+.ia-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.ia-status-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.ia-status-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.ia-status-label {
+  font-size: 0.85em;
+  color: #868e96;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.ia-status-value {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: #495057;
+  margin-bottom: 8px;
+}
+
+.ia-status-hint {
+  font-size: 0.8em;
+  color: #adb5bd;
+  margin: 0;
+}
+
+.ia-telemetria-placeholder {
+  background: white;
+  border: 2px dashed #e9ecef;
+  border-radius: 12px;
+  padding: 50px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.warning-box code,
+.ia-telemetria-placeholder code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .tipo-config-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .ia-status-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2632,6 +2839,10 @@ input:checked + .toggle-slider:before {
   .sub-tab-link i {
     display: block;
     margin-bottom: 4px;
+  }
+
+  .ia-status-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

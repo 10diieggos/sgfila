@@ -29,6 +29,10 @@ export class IAManager {
 
     // 1) Correções v3.2: tempo limite no topo
     let elegiveis = this.reordenarFilaPorTempoLimite(senhasEspera);
+    const apenasTempoLimite = elegiveis.filter(s => s.tempoLimiteAtingido);
+    if (apenasTempoLimite.length > 0) {
+      elegiveis = apenasTempoLimite;
+    }
     if (elegiveis.length === 0) return null;
 
     // 2) WRR leve: se trigger ativo, executar uma rodada e sair
@@ -225,24 +229,31 @@ export class IAManager {
     try {
       const estado = this.stateManager.getEstado();
       this.stateManager.registrarDecisaoIA({ numero: numeroSenha, source, confianca, timestamp: Date.now(), top3, wrrAtivo: !!estado.wrrAtivo });
-    } catch {}
+    } catch (e) { void e }
   }
 
   public ordenarFilaPorJSED(estado: EstadoSistema, senhasEspera: Senha[]): string[] {
     const agora = Date.now();
     const configRoteamento = estado.configuracoes.roteamento;
-    const jsedScores: { numero: string; score: number }[] = [];
-    for (const s of senhasEspera) {
-      const tEsperaMs = this.tempoEsperaAtualMs(s, agora);
-      const tServicoMs = this.estimativaServicoMs(s, estado);
-      const wBase = this.pesoPorTipo(s.tipo, configRoteamento.jsedWeights);
-      const wAging = 1 + configRoteamento.wfq.alphaAging * Math.min(tEsperaMs / 60000 / configRoteamento.wfq.agingWindowMin, configRoteamento.wfq.slowdownMax);
-      const wFast = (tServicoMs <= configRoteamento.fast.msLimit) ? configRoteamento.fast.boost : 1;
-      const wEff = wBase * wAging * wFast;
-      const sed = (tEsperaMs + tServicoMs) / wEff;
-      jsedScores.push({ numero: s.numero, score: sed });
-    }
-    jsedScores.sort((a, b) => a.score - b.score);
-    return jsedScores.map(x => x.numero);
+    const comTempoLimite = senhasEspera.filter(s => s.tempoLimiteAtingido);
+    const semTempoLimite = senhasEspera.filter(s => !s.tempoLimiteAtingido);
+    const scoreSubset = (subset: Senha[]) => {
+      const scores: { numero: string; score: number }[] = [];
+      for (const s of subset) {
+        const tEsperaMs = this.tempoEsperaAtualMs(s, agora);
+        const tServicoMs = this.estimativaServicoMs(s, estado);
+        const wBase = this.pesoPorTipo(s.tipo, configRoteamento.jsedWeights);
+        const wAging = 1 + configRoteamento.wfq.alphaAging * Math.min(tEsperaMs / 60000 / configRoteamento.wfq.agingWindowMin, configRoteamento.wfq.slowdownMax);
+        const wFast = (tServicoMs <= configRoteamento.fast.msLimit) ? configRoteamento.fast.boost : 1;
+        const wEff = wBase * wAging * wFast;
+        const sed = (tEsperaMs + tServicoMs) / wEff;
+        scores.push({ numero: s.numero, score: sed });
+      }
+      scores.sort((a, b) => a.score - b.score);
+      return scores.map(x => x.numero);
+    };
+    const parteTL = scoreSubset(comTempoLimite);
+    const parteSemTL = scoreSubset(semTempoLimite);
+    return [...parteTL, ...parteSemTL];
   }
 }
