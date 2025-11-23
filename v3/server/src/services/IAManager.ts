@@ -205,17 +205,37 @@ export class IAManager {
 
   /**
    * Estima o tempo de serviço para uma senha.
+   * Usa EstimadorMu para obter tempo médio real por tipo (T-125)
    * @param senha A senha.
    * @param estado O estado atual do sistema.
    * @returns O tempo de serviço estimado em milissegundos.
    */
   private estimativaServicoMs(senha: Senha, estado: EstadoSistema): number {
-    // Implementar lógica de estimativa:
-    // 1. Média por servicoDoCliente (rolling média robusta)
-    // 2. Fallback para média por tipo (AdvancedStatisticsService)
-    // 3. Fallback final para média global recente (AdvancedStatisticsService)
-    // Por enquanto, um valor fixo
-    return 5 * 60 * 1000; // 5 minutos
+    // 1. Tentar obter tempo médio do EstimadorMu por tipo
+    const tempoMedio = this.stateManager.getTempoMedioAtendimento(senha.tipo);
+
+    if (tempoMedio && tempoMedio > 0) {
+      return tempoMedio;
+    }
+
+    // 2. Fallback: usar tempo médio global se disponível
+    const tipos: TipoSenha[] = ['prioridade', 'contratual', 'normal'];
+    const temposGlobais: number[] = [];
+
+    for (const tipo of tipos) {
+      const tempo = this.stateManager.getTempoMedioAtendimento(tipo);
+      if (tempo && tempo > 0) {
+        temposGlobais.push(tempo);
+      }
+    }
+
+    if (temposGlobais.length > 0) {
+      const mediaGlobal = temposGlobais.reduce((sum, t) => sum + t, 0) / temposGlobais.length;
+      return mediaGlobal;
+    }
+
+    // 3. Fallback final: valor fixo (5 minutos)
+    return 5 * 60 * 1000;
   }
 
   /**

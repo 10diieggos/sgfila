@@ -4,7 +4,8 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes, ConfiguracaoSeguranca, ConfiguracaoCorrecoes, ConfiguracaoDesignTokens } from '../../../shared/types.ts';
+import type { EstadoSistema, Guiche, ConfiguracoesGerais, ConfiguracaoTipoSenha, ConfiguracaoMotivoRetorno, ConfiguracaoComportamentoFila, ConfiguracaoInterface, ConfiguracaoNotificacoes, ConfiguracaoSeguranca, ConfiguracaoCorrecoes, ConfiguracaoDesignTokens, TipoSenha } from '../../../shared/types.ts';
+import { EstimadoresManager } from './EstimadoresManager.js';
 function getConfigPadraoLocal(): ConfiguracoesGerais {
   return {
     tiposSenha: [
@@ -198,9 +199,11 @@ const DADOS_FILE = './dados.json';
 export class StateManager {
   private static instance: StateManager;
   private estado: EstadoSistema;
+  private estimadores: EstimadoresManager;
 
   private constructor() {
     this.estado = this.carregarEstado();
+    this.estimadores = new EstimadoresManager();
   }
 
   public static getInstance(): StateManager {
@@ -547,5 +550,77 @@ export class StateManager {
    */
   public getConfiguracoes(): ConfiguracoesGerais {
     return this.estado.configuracoes;
+  }
+
+  // ============================================================================
+  // MÉTODOS DE ESTIMADORES ESTATÍSTICOS (T-122, T-123, T-124)
+  // ============================================================================
+
+  /**
+   * Registra chegada de senha (emissão) no estimador Lambda
+   */
+  public registrarChegada(tipo: TipoSenha, servicoDoCliente: string): void {
+    this.estimadores.registrarChegada(tipo, servicoDoCliente);
+  }
+
+  /**
+   * Registra atendimento finalizado nos estimadores Mu e Percentis
+   */
+  public registrarAtendimento(
+    tipo: TipoSenha,
+    servicoDoCliente: string,
+    tempoAtendimentoMs: number,
+    guicheId?: string,
+    interrompido: boolean = false
+  ): void {
+    this.estimadores.registrarAtendimento(tipo, servicoDoCliente, tempoAtendimentoMs, guicheId, interrompido);
+    this.estimadores.registrarTempoAtendimentoPercentil(tipo, servicoDoCliente, tempoAtendimentoMs, guicheId);
+  }
+
+  /**
+   * Registra tempo de espera (quando senha é chamada)
+   */
+  public registrarTempoEspera(
+    tipo: TipoSenha,
+    servicoDoCliente: string,
+    tempoEsperaMs: number,
+    guicheId?: string
+  ): void {
+    this.estimadores.registrarTempoEspera(tipo, servicoDoCliente, tempoEsperaMs, guicheId);
+  }
+
+  /**
+   * Retorna estatísticas gerais (λ, μ, percentis)
+   */
+  public getEstatisticas(): any {
+    return this.estimadores.getEstatisticas();
+  }
+
+  /**
+   * Retorna tempo médio de atendimento por tipo (para IAManager)
+   */
+  public getTempoMedioAtendimento(tipo: TipoSenha): number | null {
+    return this.estimadores.getTempoMedioAtendimento(tipo);
+  }
+
+  /**
+   * Retorna percentil de espera por tipo
+   */
+  public getPercentilEspera(tipo: TipoSenha, percentil: 50 | 95 | 99): number | null {
+    return this.estimadores.getPercentilEspera(tipo, percentil);
+  }
+
+  /**
+   * Retorna fator de utilização ρ = λ/μ
+   */
+  public calcularRho(tipo?: TipoSenha): number {
+    return this.estimadores.calcularRho(tipo);
+  }
+
+  /**
+   * Retorna estimadores manager (para acesso direto se necessário)
+   */
+  public getEstimadores(): EstimadoresManager {
+    return this.estimadores;
   }
 }
