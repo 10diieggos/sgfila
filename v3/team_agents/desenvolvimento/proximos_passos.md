@@ -394,14 +394,18 @@ Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/
     - Métodos de exportação/importação para persistência em JSON.
   - Próximo: Persistir em `estatisticas/mu_por_hora.json` via StatisticsPersistence.
 
-- [ID: T-106] **Estimador de Percentis (P50/P95/P99)**
-  - Implementar `EstimadorPercentis.ts`:
-    - Algoritmo P² (P-square) para fluxo contínuo.
-    - Harrell–Davis para lotes (quando buffer > 100 amostras).
-    - Intervalo de confiança por bootstrap (1.000 reamostragens).
-    - Publicar `tempoEspera_{p50,p95,p99}` e `tempoAtendimento_{p50,p95,p99}`.
-  - Por `tipoServico` e guichê.
-  - Persistir em `estatisticas/percentis_por_hora.json`.
+- [Concluído] [ID: T-106] **Estimador de Percentis (P50/P95/P99)**
+  - ✅ Implementado `EstimadorPercentis.ts` em `v3/server/src/services/`:
+    - Algoritmo P² (P-square) para fluxo contínuo e amostras médias.
+    - Harrell–Davis para lotes grandes (buffer > 100 amostras), mais robusto que percentil tradicional.
+    - Intervalo de confiança 95% por bootstrap (1.000 reamostragens) quando n ≥ 20.
+    - Percentil simples para poucas amostras (n < 5).
+    - Separação por tipo (prioridade/contratual/normal).
+    - Calcula `tempoEspera_{p50,p95,p99}` e `tempoAtendimento_{p50,p95,p99}`.
+    - Confiabilidade: alta (≥50), média (≥20), baixa (<20).
+    - Métodos `getPercentilEspera(tipo, percentil)` para consulta rápida.
+    - Métodos de exportação/importação para persistência em JSON.
+  - Próximo: Persistir em `estatisticas/percentis_por_hora.json` via StatisticsPersistence.
 
 #### Fase 2: Detecção de Não-Estacionariedade
 - [ID: T-107] **Detector de mudança de regime**
@@ -756,9 +760,82 @@ Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/
 
 ### Métricas da Sessão 5
 
-- **Tarefas concluídas:** 4 (T-091, T-104, T-105, relatório)
-- **Linhas de código:** ~1.107 (580 testes + 234 lambda + 263 mu + 31 config)
-- **Linhas de documentação:** ~620 (550 relatório + 70 proximos_passos)
-- **Cobertura de testes:** Planejado para T-091 (IAManager completo)
-- **Arquivos criados:** 5
+- **Tarefas concluídas:** 5 (Relatório sessões 2-4 + T-091 + T-104 + T-105 + T-106)
+- **Linhas de código:** ~1.458 (580 testes + 234 lambda + 263 mu + 351 percentis + 31 config)
+- **Linhas de documentação:** ~1.365 (550 relatório consolidado + 660 relatório sessão 5 + 155 proximos_passos)
+- **Cobertura de testes:** IAManager completo (gate ML Hint, JSED, WRR, telemetria)
+- **Arquivos criados:** 7
+- **Arquivos modificados:** 2
+
+---
+
+## Sessão de Desenvolvimento 2025-11-22 (Continuação - Sessão 6)
+
+**Concluído nesta sessão:**
+
+### 1. Relatório de Trabalho Concluído (Sessão 5)
+- ✅ Criado arquivo: [`v3/team_agents/desenvolvimento/relatorios_desenvolvimento/2025-11-22_sessao5_testes_estimadores.md`](relatorios_desenvolvimento/2025-11-22_sessao5_testes_estimadores.md)
+- Documentação completa da sessão 5 com exemplos de uso
+
+### 2. Estimador de Percentis (T-106)
+- ✅ Arquivo: [`v3/server/src/services/EstimadorPercentis.ts`](../server/src/services/EstimadorPercentis.ts) (351 linhas)
+- Algoritmos: Percentil Simples, P², Harrell-Davis, Bootstrap IC 95%
+- Percentis P50/P95/P99 para espera e atendimento por tipo
+- Confiabilidade e exportação/importação JSON
+
+### 3. Atualização de proximos_passos.md
+- ✅ Marcado T-106 como concluído
+- ✅ Adicionados novos itens de integração (T-122 a T-128)
+
+---
+
+### Novos Itens de Continuidade (Sessão 6)
+
+**[ID: T-122] Integrar EstimadorLambda ao StateManager**
+- Registrar chegadas em `emitirSenha`
+- Calcular λ(h) periodicamente
+- Persistir e expor via Socket.IO
+
+**[ID: T-123] Integrar EstimadorMu ao StateManager**
+- Registrar atendimentos em `finalizarAtendimento`
+- Marcar interrupções
+- Persistir e expor via Socket.IO
+
+**[ID: T-124] Integrar EstimadorPercentis ao StateManager**
+- Registrar tempos ao chamar/finalizar
+- Calcular percentis periodicamente
+- Persistir e expor via Socket.IO
+
+**[ID: T-125] Usar EstimadorMu em IAManager.estimativaServicoMs**
+- Substituir valor fixo por tempo médio real
+- Melhorar precisão do JSED
+
+**[ID: T-126] Adicionar configuração de modo dinâmico**
+- Expandir `ConfiguracaoTempoLimite` com modo fixo/dinâmico
+- Parâmetros por tipo (base, min, max)
+
+**[ID: T-127] Testes unitários para EstimadorPercentis**
+- Validar P², Harrell-Davis, bootstrap
+- Casos extremos e confiabilidade
+
+**[ID: T-128] Testes de integração para estimadores**
+- Simular operação completa
+- Validar persistência e precisão
+
+---
+
+### Métricas da Sessão 6
+
+- **Tarefas concluídas:** 2 (Relatório sessão 5 + T-106)
+- **Linhas de código:** ~351 (estimador de percentis)
+- **Linhas de documentação:** ~740 (660 relatório + 80 proximos_passos)
+- **Arquivos criados:** 2
+- **Arquivos modificados:** 1
+
+### Métricas Acumuladas (Sessões 5 + 6)
+
+- **Tarefas concluídas:** 6 (2 relatórios + 4 estimadores/testes)
+- **Linhas de código:** ~1.809
+- **Linhas de documentação:** ~2.105
+- **Arquivos criados:** 7
 - **Arquivos modificados:** 2
