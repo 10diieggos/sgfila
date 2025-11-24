@@ -51,7 +51,12 @@ export function useSocket() {
    * Conecta ao servidor Socket.IO
    */
   const connect = () => {
-    socket.value = io() as TypedSocket
+    // Em produção, usa a URL do servidor configurada (ou mesma origem se não especificada)
+    // Em desenvolvimento, usa proxy do Vite (localhost:5173 -> localhost:3000)
+    const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin
+    socket.value = io(serverUrl, {
+      transports: ['websocket', 'polling']
+    }) as TypedSocket
 
     socket.value.on('connect', () => {
       connected.value = true

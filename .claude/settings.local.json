@@ -11,7 +11,20 @@
       "Bash(dir node_modules.bintsc* /b)",
       "Bash(/c/Users/Diego/Downloads/nodep/node.exe /c/Users/Diego/Downloads/nodep/node_modules/.bin/tsc:*)",
       "Bash(/c/Users/Diego/Downloads/nodep/node.exe iniciar.mjs:*)",
-      "Bash(/c/Users/Diego/Downloads/nodep/node.exe:*)"
+      "Bash(/c/Users/Diego/Downloads/nodep/node.exe:*)",
+      "Bash(curl:*)",
+      "Bash(C:UsersDiegoDownloadsGoogleCloudCLIInstaller.exe)",
+      "Bash(cmd /c \"C:\\Users\\Diego\\Downloads\\GoogleCloudCLIInstaller.exe\")",
+      "Bash(gcloud version:*)",
+      "Bash(gcloud components install:*)",
+      "Bash(gcloud projects:*)",
+      "Bash(gcloud config set:*)",
+      "Bash(gcloud auth application-default set-quota-project:*)",
+      "Bash(gcloud services enable:*)",
+      "Bash(gcloud config:*)",
+      "Bash(gcloud services:*)",
+      "Bash(winget install:*)",
+      "Bash(ollama --version:*)"
     ],
     "deny": [],
     "ask": []

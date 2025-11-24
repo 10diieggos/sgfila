@@ -20,7 +20,7 @@ const __dirname = dirname(__filename);
 
 // Configuração
 const NODE_ENV = process.env.NODE_ENV || 'development';
-const HOST = process.env.HOST || '127.0.0.1'; // restringe bind por padrão
+const HOST = process.env.HOST || '0.0.0.0'; // bind em todas as interfaces para aceitar conexões da LAN
 const PORT = Number(process.env.PORT) || 3000;
 const MODO_TESTE = process.env.MODO_TESTE === 'true' || false;
 const INTERVALO_SNAPSHOT_MS = 3600000; // 1 hora
@@ -30,30 +30,29 @@ const app = express();
 const httpServer = createServer(app);
 
 // Configura Socket.IO com tipos
-// Em produção, restringe CORS a localhost/loopback na porta do servidor;
-// Em desenvolvimento, permite Vite (5173/5174) e porta local do servidor.
+// CORS_ORIGIN: lista de origens permitidas separadas por vírgula (ex: http://192.168.1.10:3000,http://192.168.1.11:3000)
+// Se não especificado:
+//   - Produção: permite mesma origem (cliente servido pelo servidor) e localhost
+//   - Desenvolvimento: permite Vite dev server (5173/5174) e qualquer origem da LAN
 const ORIGIN_ENV = process.env.CORS_ORIGIN;
 const ORIGINS = ORIGIN_ENV
   ? ORIGIN_ENV.split(',').map(s => s.trim()).filter(Boolean)
   : (NODE_ENV === 'production'
       ? [`http://localhost:${PORT}`, `http://127.0.0.1:${PORT}`]
-      : [
-          `http://localhost:${PORT}`,
-          `http://127.0.0.1:${PORT}`,
-          'http://localhost:5173',
-          'http://127.0.0.1:5173',
-          'http://localhost:5174',
-          'http://127.0.0.1:5174'
-        ]);
+      : true); // Em desenvolvimento, aceita qualquer origem (facilita testes na LAN)
+
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
     origin: ORIGINS,
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: false
   }
 });
 
 // Serve arquivos estáticos do cliente
-const clientPath = join(__dirname, '../../client/dist');
+// __dirname em produção: /path/to/v3/server/dist/server/src
+// Precisamos subir 4 níveis e entrar em client/dist
+const clientPath = join(__dirname, '../../../../client/dist');
 app.use(express.static(clientPath));
 
 // Rota principal

@@ -179,3 +179,41 @@
 - `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\composables\useSocket.ts`: `emitirSenha`/`chamarSenha`/`solicitarPreviewJSED` (eventos `estadoAtualizado`, `previewJSED`).
 - `c:\Users\Diego\Downloads\nodep\sgfila\v3\server\src\socket\SocketHandlers.ts`: `emitirEstadoAtualizado` e handlers correlatos.
 - `c:\Users\Diego\Downloads\nodep\sgfila\v3\client\src\components\QueueList.vue`: filtros e ordenações; alvo de medição de render.
+## Validação — Servidor Único Ubuntu Server 24.04 LTS
+- Preparação
+  - ISO: `ubuntu-24.04.1-live-server-amd64.iso` instalada em host servidor.
+  - Instalação mínima com `OpenSSH`; hostname `sgfila-server`; DHCP ativo.
+  - Partições: raiz `ext4` e dados `ext4` montada em `/mnt/sgfila`.
+
+- Checklist do Servidor
+  - Copiar pacote para `/opt/SGFila` e colocar Node portátil em `server/_runtime/node/`.
+  - `PATH`: exportar `.../node/bin` temporariamente para sessão.
+  - Start: `cd /opt/SGFila/servidor && HOST=0.0.0.0 PORT=3000 node dist/index.js`.
+  - CORS: definir `CORS_ORIGIN` para IPs/faixas da LAN.
+  - Health: `curl http://localhost:3000` retorna `200`.
+
+- Checklist dos Guichês (Windows, sem admin)
+  - Acessar `http://<IP_DO_SERVIDOR>:3000` em Chrome/Edge.
+  - Executar smoke (emitir → chamar → finalizar) e registrar latências.
+  - Confirmar ausência de prompts de firewall/admin.
+
+- Firewall/CORS
+  - Ingress no guichê não necessário; tráfego de saída para o servidor deve funcionar.
+  - Registrar origens permitidas e bloqueadas (CORS) com logs do servidor.
+
+- Offline
+  - Desconectar internet do servidor; manter LAN.
+  - Reexecutar smoke; confirmar `0` chamadas externas (inspecionar logs e DevTools do cliente).
+
+- Persistência
+  - Verificar escrita em `/opt/SGFila/_estatisticas/*.json`.
+  - Reiniciar processo e confirmar continuidade de dados.
+
+- KPIs
+  - Socket: média < `100 ms`, p95 < `200 ms`.
+  - TTI cliente: `≤ 1.5 s` em guichê padrão.
+  - Bundle budgets conforme metas.
+
+- Evidências
+  - Capturas de `curl`, logs de start, CORS/handshake, smoke e métricas.
+  - Registrar casos em “Template de Evidência” com IDs correlatos.

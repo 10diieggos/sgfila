@@ -14,4 +14,4 @@ NODE_ENV=production
 CORS_ORIGIN="http://$IP:$PORT"
 export HOST PORT NODE_ENV CORS_ORIGIN
 cd "$BASE_DIR/.."
-node dist/index.js
+node dist/server/src/server.js

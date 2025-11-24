@@ -7,6 +7,7 @@ dist/
 */dist/
 build/
 */build/
+build/SGFila/
 
 # TypeScript
 *.tsbuildinfo
@@ -36,6 +37,9 @@ Thumbs.db
 
 # Dados operacionais (não versionar)
 dados.json
+
+# Runtimes portáteis
+server/_runtime/node/
 
 # Testing
 coverage/

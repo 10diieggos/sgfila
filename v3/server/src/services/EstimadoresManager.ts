@@ -1,7 +1,7 @@
-import { EstimadorLambda, LambdaPorHora } from './EstimadorLambda';
-import { EstimadorMu, MuPorHora } from './EstimadorMu';
-import { EstimadorPercentis, PercentisPorHora } from './EstimadorPercentis';
-import { TipoSenha } from '../../../shared/types';
+import { EstimadorLambda, LambdaPorHora } from './EstimadorLambda.js';
+import { EstimadorMu, MuPorHora } from './EstimadorMu.js';
+import { EstimadorPercentis, PercentisPorHora } from './EstimadorPercentis.js';
+import { TipoSenha } from '../../../shared/types.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 
