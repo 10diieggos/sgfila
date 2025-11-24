@@ -529,6 +529,7 @@ const handleEmitirSenha = (tipo: 'prioridade' | 'normal' | 'contratual') => {
     return
   }
   emitirSenha(tipo, '', servicoSelecionado.value)
+  servicoSelecionado.value = '' // Limpa o serviço após a emissão
   // Aguardar resposta do servidor para mostrar modal
   setTimeout(() => {
     const ultimaSenha = estado.value?.senhas[estado.value.senhas.length - 1]

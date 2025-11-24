@@ -19,6 +19,11 @@ test('serviço selecionado deve ser resetado após emissão de senha', async ({ 
   const btnNormal = page.locator('.btn-normal.btn-emit')
   await btnNormal.click()
   
+  // Fechar o modal da senha emitida para poder prosseguir
+  await page.waitForSelector('.modal-overlay')
+  await page.keyboard.press('Escape')
+  await page.waitForSelector('.modal-overlay', { state: 'hidden' })
+  
   // Verificar que o serviço foi resetado após a emissão
   await expect(servicoInput).toHaveValue('')
   
@@ -28,6 +33,11 @@ test('serviço selecionado deve ser resetado após emissão de senha', async ({ 
   
   const btnPrioridade = page.locator('.btn-priority.btn-emit')
   await btnPrioridade.click()
+
+  // Fechar o modal da senha emitida
+  await page.waitForSelector('.modal-overlay')
+  await page.keyboard.press('Escape')
+  await page.waitForSelector('.modal-overlay', { state: 'hidden' })
   
   await expect(servicoInput).toHaveValue('')
   
@@ -37,6 +47,11 @@ test('serviço selecionado deve ser resetado após emissão de senha', async ({ 
   
   const btnContratual = page.locator('.btn-contract.btn-emit')
   await btnContratual.click()
+
+  // Fechar o modal da senha emitida
+  await page.waitForSelector('.modal-overlay')
+  await page.keyboard.press('Escape')
+  await page.waitForSelector('.modal-overlay', { state: 'hidden' })
   
   await expect(servicoInput).toHaveValue('')
 })
@@ -65,6 +80,11 @@ test('serviços sugeridos devem funcionar corretamente', async ({ page }) => {
     // Emitir senha
     const btnNormal = page.locator('.btn-normal.btn-emit')
     await btnNormal.click()
+
+    // Fechar o modal da senha emitida
+    await page.waitForSelector('.modal-overlay')
+    await page.keyboard.press('Escape')
+    await page.waitForSelector('.modal-overlay', { state: 'hidden' })
     
     // Verificar que o serviço foi resetado
     await expect(servicoInput).toHaveValue('')
