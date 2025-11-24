@@ -217,3 +217,26 @@
 - Evidências
   - Capturas de `curl`, logs de start, CORS/handshake, smoke e métricas.
   - Registrar casos em “Template de Evidência” com IDs correlatos.
+### Atualizações 2025-11-23 — Instalação e Importação
+- Dispositivo alvo: SEGUNDO pendrive/SSD dedicado (o USB de instalação não pode ser particionado).
+- Particionamento (Custom storage layout):
+  - `ESP` 512MB FAT32 em `/boot/efi`.
+  - `root` ext4 em `/`.
+  - opcional `dados` ext4 em `/opt/SGFila/_estatisticas`.
+- Importar build do Windows (NTFS):
+  - `lsblk -f` → identificar partição NTFS.
+  - `sudo mkdir -p /mnt/win && sudo mount -t ntfs3 -o ro /dev/<DISCO_PARTICAO> /mnt/win`.
+  - `sudo mkdir -p /opt/SGFila && sudo cp -r "/mnt/win/Users/Diego/Downloads/nodep/sgfila/build/SGFila" /opt/SGFila/`.
+- Inicializar servidor:
+  - `cd /opt/SGFila/SGFila/server/scripts && chmod +x start-sgfila.sh && ./start-sgfila.sh`.
+- Health/CORS:
+  - `curl http://localhost:3000` deve retornar 200.
+  - Definir `CORS_ORIGIN` para IPs/faixas da LAN quando necessário.
+
+### Scripts Windows — Operação
+- Produção
+  - Start: `v3/servers_inicializar/START.bat` inicia `http://0.0.0.0:3000`.
+  - Stop: `v3/servers_inicializar/STOP.bat` encerra processos na porta `3000`.
+- Desenvolvimento
+  - Start: `v3/servers_inicializar/START_dev.bat` inicia watchers (server 3000, client 5173) com `VITE_SERVER_URL`.
+  - Stop: `v3/servers_inicializar/STOP_dev.bat` encerra `3000/5173/5174`.

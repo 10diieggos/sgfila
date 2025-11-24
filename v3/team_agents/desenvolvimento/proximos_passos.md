@@ -1150,3 +1150,38 @@ Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/
   - `curl http://localhost:3000` no servidor retorna 200.
   - De um guichê: abrir URL do servidor; executar smoke (emitir/chamar/finalizar).
   - Desconectar internet do servidor; operação permanece, sem chamadas externas.
+## Estado Atual — Build/Release
+- Pasta oficial de produção definida: `C:\Users\Diego\Downloads\nodep\sgfila\build\SGFila`.
+- Scripts criados para operação local:
+  - Produção: `v3/servers_inicializar/START.bat`, `v3/servers_inicializar/STOP.bat`.
+  - Desenvolvimento: `v3/servers_inicializar/START_dev.bat`, `v3/servers_inicializar/STOP_dev.bat`.
+- Limpeza aplicada:
+  - Removidos scripts obsoletos de preparação e download de Node.
+  - Removida duplicata de runtime em `v3/server/_runtime/node` (mantemos apenas em `build/SGFila/server/_runtime/node`).
+- Servidor local validado em produção: `http://0.0.0.0:3000` com CORS restrito a `localhost`.
+
+## Próximas Ações — Entrega Offline Ubuntu
+- Aquisição de segundo pendrive/SSD para instalação dedicada do Ubuntu (o USB de instalação não pode ser particionado).
+- Instalação do Ubuntu Server 24.04 LTS em dispositivo dedicado:
+  - Storage: `Custom storage layout` no alvo (não selecionar disco do Windows).
+  - Partições: `ESP 512MB FAT32 (/boot/efi)` + `root ext4 (/)` + opcional `dados ext4 (/opt/SGFila/_estatisticas)`.
+  - Boot loader no mesmo dispositivo.
+- Importar build a partir do Windows (NTFS):
+  - `lsblk -f` → identificar partição NTFS do Windows.
+  - `sudo mount -t ntfs3 -o ro /dev/<DISCO_PARTICAO> /mnt/win`.
+  - `sudo mkdir -p /opt/SGFila && sudo cp -r "/mnt/win/Users/Diego/Downloads/nodep/sgfila/build/SGFila" /opt/SGFila/`.
+- Inicializar servidor:
+  - `cd /opt/SGFila/SGFila/server/scripts && chmod +x start-sgfila.sh && ./start-sgfila.sh`.
+- Validações:
+  - `curl http://localhost:3000`.
+  - Guichês: `http://<IP_DO_SERVIDOR>:3000`.
+  - Persistência: `/opt/SGFila/_estatisticas/*.json`.
+
+## Plano de Mitigação
+- Sem segundo dispositivo: alternativa de dual‑boot com redução do C: no Windows e uso do espaço livre via `Custom storage layout` (sem tocar partições NTFS existentes).
+- Rede ausente durante instalação: prosseguir sem rede; configurar IP depois com netplan.
+
+## Itens de Build/Release (Adicionar ao Backlog)
+- Empacotar assets ONNX/ORT no cliente (`client/public/onnxruntime-web` e `client/public/models`).
+- Script de exportação para pendrive (rsync) no Ubuntu.
+- Versão e timestamp de build armazenados em `build/SGFila/_builds/checksums.txt`.
