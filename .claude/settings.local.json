@@ -24,7 +24,8 @@
       "Bash(gcloud config:*)",
       "Bash(gcloud services:*)",
       "Bash(winget install:*)",
-      "Bash(ollama --version:*)"
+      "Bash(ollama --version:*)",
+      "Bash(del \"C:\\Users\\Diego\\.continue\\config.yaml\")"
     ],
     "deny": [],
     "ask": []

@@ -1177,6 +1177,71 @@ Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/
   - Guichês: `http://<IP_DO_SERVIDOR>:3000`.
   - Persistência: `/opt/SGFila/_estatisticas/*.json`.
 
+## Automação de Testes — E2E/UI (Plano Detalhado)
+- Objetivo: criar suíte E2E/UI robusta (Playwright) cobrindo fluxos críticos de guichês, consistência de ordenação JSED, notificações e acessibilidade, com métricas e relatórios integrados ao `testes.md`.
+
+### Setup e Estrutura
+- Preparar dependências de teste (dev) sem afetar produção:
+  - Instalar Playwright (quando autorizado): `npm i -D @playwright/test` e `npx playwright install --with-deps`.
+  - Criar estrutura: `v3/e2e/` com subpastas `pages/`, `fixtures/`, `specs/`, `utils/`, `reports/`.
+  - Padrão Page Object:
+    - `pages/CounterPanelPage.ts`: ações chamar/finalizar, leitura de badges.
+    - `pages/ConfigurationPanelPage.ts`: troca de abas, IA, thresholds, design tokens.
+    - `pages/QueueListPage.ts`: filtros (emissão/tipo/automática), busca e destaques.
+  - Fixtures:
+    - `fixtures/serverFixture.ts`: subir server local (prod) via `START.bat`/`STOP.bat` e checar `http://localhost:3000`.
+    - `fixtures/devFixture.ts`: subir watchers `START_dev.bat`/`STOP_dev.bat` quando necessário; exportar `baseURL` e `VITE_SERVER_URL`.
+  - Config:
+    - `playwright.config.ts`: `use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure', video: 'on', screenshot: 'only-on-failure' }`.
+
+### Casos Prioritários (E2E/UI)
+- Alternador de Guichê (sem autochamada):
+  - Dado guichê livre, ao clicar “Chamar”, deve chamar próxima; novo clique deve “Finalizar”; validar estado no painel e via socket.
+  - Métricas: `emitMs`, `callMs`, `finishMs` capturadas no log; p95 < 200 ms.
+- Consistência preview JSED vs chamada real:
+  - Ativar `algoritmo === 'jsed_fair_wrr'`; solicitar `previewJSED`; validar que a senha chamada pertence ao top‑3 e segue a ordenação quando ML não interfere.
+  - Registrar telemetria: `accepted_hint`, `latency_ms`, `score` (quando disponível).
+- Notificações de correção:
+  - Ao acionar “Ausência”/“Não comparecimento”, cliente deve receber `notificacaoAusencia`/`notificacaoNaoComparecimento` e disparar beep/alerta; UI exibe contador.
+- Destaque de tempo‑limite:
+  - Com `destacarSenhasTempoLimite` ativo, senhas com `tempoLimiteAtingido` aparecem com destaque; capturar screenshot e assert de classe/aria.
+- Acessibilidade e UX:
+  - Foco visível: navegar por controles essenciais; validar `outline` e offset.
+  - Contraste AA: medir tokens críticos; assegurar ≥ 4.5:1.
+  - Teclado: alternar abas/painéis/filtros sem mouse.
+
+### Roteiro de Implementação
+- Fase A — Infraestrutura de testes:
+  - Adicionar Playwright e `playwright.config.ts`.
+  - Implementar fixtures de start/stop (prod/dev) usando os `.bat` existentes.
+  - Criar POMs mínimos para CounterPanel/QueueList/ConfigurationPanel.
+- Fase B — Smoke e Fluxos críticos:
+  - Escrever `specs/smoke.spec.ts` com navegação inicial, health da UI e verificação de socket conectando.
+  - Escrever `specs/alternador_guiche.spec.ts` validando chamar/finalizar.
+- Fase C — JSED/IA e notificações:
+  - `specs/preview_jsed_consistencia.spec.ts` e `specs/notificacoes_correcao.spec.ts`.
+- Fase D — Acessibilidade/Performance:
+  - `specs/a11y_focus_contraste.spec.ts` e instrumentos leves de performance (marcas e medições por interação).
+- Fase E — Relatórios e Integração:
+  - Salvar artefatos (trace, vídeo, screenshots) em `v3/e2e/reports/`.
+  - Publicar resumos e métricas em `v3/team_agents/desenvolvimento/testes.md` com referências a arquivos.
+
+### Política de Dados e Estabilidade
+- Testes idempotentes: limpar estado entre cenários; evitar dependência de dados persistidos.
+- Retentativas controladas: aplicar `retry` apenas para operações flakey não determinísticas (ex.: animações), com limites.
+- Timeouts: padronizar `timeout` por ação (3–5 s) e por teste (30–60 s).
+
+### Comandos de Execução (Documentação)
+- Preparar build local (se necessário): `npm run build` em `v3/server` e `v3/client`.
+- Produção local para E2E: `v3/servers_inicializar/START.bat`; depois `npx playwright test`.
+- Desenvolvimento E2E (se requerido): `v3/servers_inicializar/START_dev.bat`; configurar `baseURL` para `http://localhost:5173` com `VITE_SERVER_URL=http://localhost:3000`.
+
+### Resultados e Publicação
+- Após cada execução, anexar:
+  - Sumário de pass/fail e tempos.
+  - Artefatos (trace/vídeo/screenshots) e logs relevantes.
+  - Métricas: socket RTT média/p95; tempos de quadro em interações; tamanhos de bundle.
+- Atualizar `testes.md` com “Sessão de Automação” e IDs de tarefas relacionadas.
 ## Plano de Mitigação
 - Sem segundo dispositivo: alternativa de dual‑boot com redução do C: no Windows e uso do espaço livre via `Custom storage layout` (sem tocar partições NTFS existentes).
 - Rede ausente durante instalação: prosseguir sem rede; configurar IP depois com netplan.
@@ -1185,3 +1250,18 @@ Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/
 - Empacotar assets ONNX/ORT no cliente (`client/public/onnxruntime-web` e `client/public/models`).
 - Script de exportação para pendrive (rsync) no Ubuntu.
 - Versão e timestamp de build armazenados em `build/SGFila/_builds/checksums.txt`.
+## Automação E2E/UI — Execução 2025-11-23
+- Conceito atualizado: automações rodam na pasta oficial de produção `C:\Users\Diego\Downloads\nodep\sgfila\build\SGFila` (pendrive é somente cópia).
+- Scripts:
+  - Start produção a partir da pasta oficial: `v3/servers_inicializar/START_build.bat`.
+  - Stop: `v3/servers_inicializar/STOP.bat`.
+- Suíte inicial criada:
+  - `v3/e2e/package.json`, `v3/e2e/playwright.config.ts`, `v3/e2e/specs/smoke.spec.ts`.
+- Execução:
+  - `cd v3/e2e && npm install && npx playwright install && npx playwright test`.
+  - Resultados: `app loads and socket handshake` [OK]; `ui loads main app container` [OK].
+- Artefatos:
+  - `v3/e2e/test-results/` com trace, vídeo e screenshots.
+- Próximas implementações:
+  - Semear dados ou acionar emissão de senhas para validar botões de chamada e fluxo completo de alternador.
+  - Page Objects para CounterPanel/QueueList/ConfigurationPanel.
