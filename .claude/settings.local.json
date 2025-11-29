@@ -25,7 +25,15 @@
       "Bash(gcloud services:*)",
       "Bash(winget install:*)",
       "Bash(ollama --version:*)",
-      "Bash(del \"C:\\Users\\Diego\\.continue\\config.yaml\")"
+      "Bash(del \"C:\\Users\\Diego\\.continue\\config.yaml\")",
+      "Bash(cat:*)",
+      "Bash(\"team_agents/Continue/Tech_Lead_Fullstack.md\")",
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(VSCODE_WORKSPACE_FOLDER=/c/Users/Diego/Downloads/nodep/sgfila node -e \"const config = require(''/c/Users/Diego/.continue/config.js''); console.log(''Models loaded:'', config.models.length); config.models.forEach((m, i) => console.log((i+1) + ''.'', m.title));\")",
+      "Bash(test:*)",
+      "Bash(cmd /c .continuediagnostico.bat)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

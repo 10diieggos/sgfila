@@ -1,0 +1,21 @@
+rem ATENÇÃO: Isto APAGARÁ TODO O CONTEÚDO do disco selecionado
+rem Alvo: pendrive associado à letra D:\ (verifique com 'Get-Partition -DriveLetter D | Get-Disk')
+
+list disk
+select disk 1
+detail disk
+
+clean
+convert gpt
+
+create partition primary size=512
+format quick fs=fat32 label=ESP
+assign letter=D
+
+create partition primary size=20480
+
+create partition primary
+
+list disk
+list partition
+list volume

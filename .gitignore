@@ -17,3 +17,9 @@ v3/server/_runtime/node/
 
 .gemini/
 gha-creds-*.json
+/v3/server/src/estatisticas
+
+# Continue Dev - Segurança
+.env
+.continue/local_*
+.continue/*.log
