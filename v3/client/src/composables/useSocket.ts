@@ -58,6 +58,9 @@ export function useSocket() {
       transports: ['websocket', 'polling']
     }) as TypedSocket
 
+    // Expõe socket globalmente para testes E2E e debug
+    (window as any).socket = socket.value
+
     socket.value.on('connect', () => {
       connected.value = true
       console.log('Socket conectado')
@@ -71,6 +74,9 @@ export function useSocket() {
     socket.value.on('estadoAtualizado', (payload) => {
       estado.value = payload.estado
       estatisticas.value = payload.estatisticas
+
+      // Expõe último estado para testes E2E e debug
+      (window as any).__lastEstado = payload.estado
     })
 
     socket.value.on('previewJSED', (dados) => {

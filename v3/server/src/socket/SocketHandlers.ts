@@ -58,6 +58,15 @@ export class SocketHandlers {
       : StatisticsService.calcularEstatisticas(estado);
 
     this.io.emit('estadoAtualizado', { estado, estatisticas });
+
+    // [T-130] Emitir estatísticas dos estimadores (λ, μ, percentis)
+    try {
+      const estatisticasEstimadores = this.stateManager.getEstatisticas();
+      this.io.emit('estatisticasEstimadores', estatisticasEstimadores);
+    } catch (error) {
+      // Não falha se estimadores não estiverem disponíveis
+      console.debug('Estimadores ainda não disponíveis:', error);
+    }
   }
 
   /**
@@ -85,6 +94,9 @@ export class SocketHandlers {
         }
         const senha = this.queueService.emitirSenha(tipo, subtipo, servicoDoCliente);
 
+        // [T-129] Registrar chegada no estimador λ (lambda)
+        this.stateManager.registrarChegada(tipo, servicoDoCliente);
+
         // Emite beep para todos
         this.io.emit('beep', {
           times: 1,
@@ -107,6 +119,19 @@ export class SocketHandlers {
         const senha = this.queueService.chamarSenha(guicheId, mlHint);
 
         if (senha) {
+          // [T-129] Registrar tempo de espera no estimador de percentis
+          const tempoEsperaMs = senha.chamadaTimestamp
+            ? (senha.chamadaTimestamp - senha.timestamp)
+            : 0;
+          if (tempoEsperaMs > 0) {
+            this.stateManager.registrarTempoEspera(
+              senha.tipo,
+              senha.servicoDoCliente || '',
+              tempoEsperaMs,
+              guicheId
+            );
+          }
+
           // Emite beep para todos
           this.io.emit('beep', {
             times: 2,
@@ -156,6 +181,25 @@ export class SocketHandlers {
     socket.on('finalizarAtendimento', ({ guicheId }) => {
       try {
         const resultado = this.queueService.finalizarAtendimento(guicheId);
+
+        // [T-129] Registrar atendimento no estimador μ (mu) e percentis
+        if (resultado.senha) {
+          const senha = resultado.senha;
+          const tempoAtendimentoMs = senha.finalizadoTimestamp && senha.chamadaTimestamp
+            ? (senha.finalizadoTimestamp - senha.chamadaTimestamp)
+            : 0;
+
+          if (tempoAtendimentoMs > 0) {
+            this.stateManager.registrarAtendimento(
+              senha.tipo,
+              senha.servicoDoCliente || '',
+              tempoAtendimentoMs,
+              guicheId,
+              false // não interrompido (atendimento normal)
+            );
+          }
+        }
+
         this.emitirEstadoAtualizado();
 
         // Se auto-chamada está ativa, chama a próxima senha após emitir o estado
@@ -203,6 +247,19 @@ export class SocketHandlers {
         if (resultado.acao === 'recolocada') {
           console.log(`Senha ${numeroSenha} recolocada na fila (tentativa ${resultado.senha?.tentativasAusencia})`);
 
+          // [T-129] Registrar interrupção no estimador μ (ausência)
+          if (resultado.senha) {
+            const senha = resultado.senha;
+            const tempoAtendimentoMs = Date.now() - (senha.chamadaTimestamp || Date.now());
+            this.stateManager.registrarAtendimento(
+              senha.tipo,
+              senha.servicoDoCliente || '',
+              tempoAtendimentoMs,
+              senha.guicheAtendendo || '',
+              true // interrompido = true (ausência)
+            );
+          }
+
           // Emite notificação de ausência
           this.io.emit('notificacaoAusencia', {
             numeroSenha,
@@ -210,6 +267,19 @@ export class SocketHandlers {
           });
         } else if (resultado.acao === 'historico') {
           console.log(`Senha ${numeroSenha} movida para histórico (não compareceu)`);
+
+          // [T-129] Registrar interrupção no estimador μ (não comparecimento)
+          if (resultado.senha) {
+            const senha = resultado.senha;
+            const tempoAtendimentoMs = Date.now() - (senha.chamadaTimestamp || Date.now());
+            this.stateManager.registrarAtendimento(
+              senha.tipo,
+              senha.servicoDoCliente || '',
+              tempoAtendimentoMs,
+              senha.guicheAtendendo || '',
+              true // interrompido = true (não comparecimento)
+            );
+          }
 
           // Emite notificação de não comparecimento
           this.io.emit('notificacaoNaoComparecimento', {
@@ -436,6 +506,23 @@ export class SocketHandlers {
         this.emitirEstadoAtualizado();
       } catch (error) {
         console.error('Erro ao reiniciar sistema:', error);
+      }
+    });
+
+    // ========================================
+    // ESTATÍSTICAS E ESTIMADORES (T-130)
+    // ========================================
+
+    socket.on('getEstatisticas', () => {
+      try {
+        const estatisticas = this.stateManager.getEstatisticas();
+        socket.emit('estatisticasEstimadores', estatisticas);
+      } catch (error) {
+        console.error('Erro ao obter estatísticas de estimadores:', error);
+        socket.emit('erroOperacao', {
+          mensagem: 'Erro ao obter estatísticas',
+          tipo: 'getEstatisticas'
+        });
       }
     });
 

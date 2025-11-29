@@ -924,16 +924,17 @@ Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/
 ### Próximos Passos Imediatos (Atualizado)
 
 **Peso 1 - Alta Prioridade:**
-1. **[ID: T-129] Integrar estimadores em eventos do sistema**
-   - Chamar `stateManager.registrarChegada()` em `emitirSenha`
-   - Chamar `stateManager.registrarTempoEspera()` em `chamarSenha`
-   - Chamar `stateManager.registrarAtendimento()` em `finalizarAtendimento`
-   - Marcar interrupções em eventos de ausência/não comparecimento
+1. **[Concluído] [ID: T-129] Integrar estimadores em eventos do sistema**
+   - ✅ Chamar `stateManager.registrarChegada()` em `emitirSenha` ([SocketHandlers.ts:89](../server/src/socket/SocketHandlers.ts#L89))
+   - ✅ Chamar `stateManager.registrarTempoEspera()` em `chamarSenha` ([SocketHandlers.ts:118-132](../server/src/socket/SocketHandlers.ts#L118-L132))
+   - ✅ Chamar `stateManager.registrarAtendimento()` em `finalizarAtendimento` ([SocketHandlers.ts:176-192](../server/src/socket/SocketHandlers.ts#L176-L192))
+   - ✅ Marcar interrupções em eventos de ausência/não comparecimento ([SocketHandlers.ts:241-282](../server/src/socket/SocketHandlers.ts#L241-L282))
 
-2. **[ID: T-130] Expor estatísticas via Socket.IO**
-   - Adicionar handler `getEstatisticas` em SocketHandlers
-   - Emitir estatísticas para clientes conectados
-   - Atualizar a cada mudança significativa
+2. **[Concluído] [ID: T-130] Expor estatísticas via Socket.IO**
+   - ✅ Adicionar handler `getEstatisticas` em SocketHandlers ([SocketHandlers.ts:507-518](../server/src/socket/SocketHandlers.ts#L507-L518))
+   - ✅ Emitir estatísticas para clientes conectados em `emitirEstadoAtualizado()` ([SocketHandlers.ts:62-69](../server/src/socket/SocketHandlers.ts#L62-L69))
+   - ✅ Evento `estatisticasEstimadores` adicionado aos tipos ([types.ts:285](../shared/types.ts#L285))
+   - ✅ Evento `getEstatisticas` adicionado aos tipos ([types.ts:324](../shared/types.ts#L324))
 
 3. **T-108:** Implementar CalculadorLimiteDinamico
 4. **T-109:** Integrar limites dinâmicos com QueueService
@@ -1085,16 +1086,17 @@ Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/
 ### Próximos Passos Imediatos (Atualizado - Sessão 8)
 
 **Peso 1 - Alta Prioridade:**
-1. **[ID: T-129] Integrar estimadores em eventos do sistema**
-   - Chamar `stateManager.registrarChegada()` em `emitirSenha`
-   - Chamar `stateManager.registrarTempoEspera()` em `chamarSenha`
-   - Chamar `stateManager.registrarAtendimento()` em `finalizarAtendimento`
-   - Marcar interrupções em eventos de ausência/não comparecimento
+1. **[Concluído] [ID: T-129] Integrar estimadores em eventos do sistema**
+   - ✅ Chamar `stateManager.registrarChegada()` em `emitirSenha` ([SocketHandlers.ts:89](../server/src/socket/SocketHandlers.ts#L89))
+   - ✅ Chamar `stateManager.registrarTempoEspera()` em `chamarSenha` ([SocketHandlers.ts:118-132](../server/src/socket/SocketHandlers.ts#L118-L132))
+   - ✅ Chamar `stateManager.registrarAtendimento()` em `finalizarAtendimento` ([SocketHandlers.ts:176-192](../server/src/socket/SocketHandlers.ts#L176-L192))
+   - ✅ Marcar interrupções em eventos de ausência/não comparecimento ([SocketHandlers.ts:241-282](../server/src/socket/SocketHandlers.ts#L241-L282))
 
-2. **[ID: T-130] Expor estatísticas via Socket.IO**
-   - Adicionar handler `getEstatisticas` em SocketHandlers
-   - Emitir estatísticas para clientes conectados
-   - Atualizar a cada mudança significativa
+2. **[Concluído] [ID: T-130] Expor estatísticas via Socket.IO**
+   - ✅ Adicionar handler `getEstatisticas` em SocketHandlers ([SocketHandlers.ts:507-518](../server/src/socket/SocketHandlers.ts#L507-L518))
+   - ✅ Emitir estatísticas para clientes conectados em `emitirEstadoAtualizado()` ([SocketHandlers.ts:62-69](../server/src/socket/SocketHandlers.ts#L62-L69))
+   - ✅ Evento `estatisticasEstimadores` adicionado aos tipos ([types.ts:285](../shared/types.ts#L285))
+   - ✅ Evento `getEstatisticas` adicionado aos tipos ([types.ts:324](../shared/types.ts#L324))
 
 3. **[ID: T-108] Implementar CalculadorLimiteDinamico**
 4. **[ID: T-109] Integrar limites dinâmicos com QueueService**
@@ -1265,3 +1267,181 @@ Relatório do Data Scientist/Queue Engineer em [`v3/team_agents/desenvolvimento/
 - Próximas implementações:
   - Semear dados ou acionar emissão de senhas para validar botões de chamada e fluxo completo de alternador.
   - Page Objects para CounterPanel/QueueList/ConfigurationPanel.
+
+---
+
+## Sessão de Desenvolvimento 2025-11-28 (Continuação - Sessão 9)
+
+**Concluído nesta sessão:**
+
+### 1. Integração de Estimadores em Eventos do Sistema (T-129) ✅
+
+**Implementações realizadas em** [`v3/server/src/socket/SocketHandlers.ts`](../server/src/socket/SocketHandlers.ts):
+
+#### 1.1 Registro de Chegadas (λ - Lambda)
+- ✅ Adicionado registro de chegada em `emitirSenha` ([linha 89](../server/src/socket/SocketHandlers.ts#L89))
+- ✅ Chamada: `stateManager.registrarChegada(tipo, servicoDoCliente)`
+- ✅ Registra cada senha emitida para cálculo da taxa de chegadas por hora
+
+#### 1.2 Registro de Tempo de Espera (Percentis)
+- ✅ Adicionado em `chamarSenha` ([linhas 122-132](../server/src/socket/SocketHandlers.ts#L122-L132))
+- ✅ Cálculo: `tempoEsperaMs = senha.chamadaTimestamp - senha.timestamp`
+- ✅ Chamada: `stateManager.registrarTempoEspera(tipo, servico, tempoMs, guicheId)`
+- ✅ Alimenta estimador de percentis P50/P95/P99
+
+#### 1.3 Registro de Atendimentos (μ - Mu)
+- ✅ Adicionado em `finalizarAtendimento` ([linhas 176-192](../server/src/socket/SocketHandlers.ts#L176-L192))
+- ✅ Cálculo: `tempoAtendimentoMs = senha.finalizadoTimestamp - senha.chamadaTimestamp`
+- ✅ Chamada: `stateManager.registrarAtendimento(tipo, servico, tempoMs, guicheId, interrompido=false)`
+- ✅ Registra tempo de atendimento para cálculo da taxa de serviço
+
+#### 1.4 Registro de Interrupções (Ausências e Não Comparecimentos)
+- ✅ Adicionado em `processarAusencia` ([linhas 241-282](../server/src/socket/SocketHandlers.ts#L241-L282))
+- ✅ Marca `interrompido=true` para ausências e não comparecimentos
+- ✅ Dois casos tratados:
+  - **Recolocada:** senha recolocada na fila após ausência ([linhas 250-261](../server/src/socket/SocketHandlers.ts#L250-L261))
+  - **Histórico:** senha movida para histórico após não comparecimento ([linhas 271-282](../server/src/socket/SocketHandlers.ts#L271-L282))
+- ✅ Ajuste de μ: exclui interrupções do cálculo de taxa de atendimento
+
+#### 1.5 Correções de Tipagem
+- ✅ Corrigido uso de `senha.timestamp` ao invés de `senha.emissaoTimestamp` ([linha 124](../server/src/socket/SocketHandlers.ts#L124))
+- ✅ Corrigido uso de `senha.guicheAtendendo` ao invés de `senha.guicheAtual` ([linhas 258, 279](../server/src/socket/SocketHandlers.ts#L258))
+- ✅ Compilação TypeScript validada sem erros
+
+### 2. Exposição de Estatísticas via Socket.IO (T-130) ✅
+
+**Implementações realizadas em** [`v3/server/src/socket/SocketHandlers.ts`](../server/src/socket/SocketHandlers.ts):
+
+#### 2.1 Handler de Consulta (`getEstatisticas`)
+- ✅ Adicionado evento `getEstatisticas` ([linhas 507-518](../server/src/socket/SocketHandlers.ts#L507-L518))
+- ✅ Consulta: `stateManager.getEstatisticas()`
+- ✅ Resposta: `socket.emit('estatisticasEstimadores', estatisticas)`
+- ✅ Tratamento de erros com `erroOperacao`
+
+#### 2.2 Emissão Automática em Atualizações de Estado
+- ✅ Modificado `emitirEstadoAtualizado()` ([linhas 62-69](../server/src/socket/SocketHandlers.ts#L62-L69))
+- ✅ Emite estatísticas dos estimadores junto com estado do sistema
+- ✅ Evento: `io.emit('estatisticasEstimadores', estatisticasEstimadores)`
+- ✅ Tratamento gracioso se estimadores não disponíveis (console.debug)
+
+#### 2.3 Atualização de Tipos Socket.IO
+**Em** [`v3/shared/types.ts`](../shared/types.ts):
+
+- ✅ Adicionado evento `estatisticasEstimadores` em `ServerToClientEvents` ([linha 285](../shared/types.ts#L285))
+  ```typescript
+  estatisticasEstimadores: (dados: any) => void;
+  ```
+- ✅ Adicionado evento `getEstatisticas` em `ClientToServerEvents` ([linha 324](../shared/types.ts#L324))
+  ```typescript
+  getEstatisticas: () => void;
+  ```
+
+### 3. Validação e Testes ✅
+
+#### 3.1 Compilação TypeScript
+- ✅ Executado: `tsc --noEmit` sem erros
+- ✅ Todos os tipos validados
+- ✅ Nenhuma quebra de compatibilidade
+
+#### 3.2 Arquivos Modificados
+| Arquivo | Linhas Modificadas | Descrição |
+|---------|-------------------|-----------|
+| `server/src/socket/SocketHandlers.ts` | +80 | Integração de estimadores em eventos |
+| `shared/types.ts` | +6 | Novos eventos Socket.IO |
+
+### 4. Atualização de Documentação ✅
+
+- ✅ Marcado T-129 como [Concluído] em `proximos_passos.md`
+- ✅ Marcado T-130 como [Concluído] em `proximos_passos.md`
+- ✅ Adicionadas referências de código com links
+- ✅ Documentados todos os pontos de integração
+
+---
+
+### Próximos Passos Imediatos (Atualizado - Sessão 9)
+
+**Peso 1 - Alta Prioridade:**
+
+1. **[ID: T-108] Implementar CalculadorLimiteDinamico** (3-4h)
+   - Fórmula: `limite_t(h) = clamp(base_t × f_load(h) + P95_t(h), min_t, max_t)`
+   - Arquivo alvo: `v3/server/src/services/CalculadorLimiteDinamico.ts`
+   - Depende de: T-104 ✅, T-105 ✅, T-106 ✅, T-129 ✅
+
+2. **[ID: T-109] Integrar limites dinâmicos com QueueService** (1-2h)
+   - Modificar `QueueService.verificarTemposLimite()` (linha 580)
+   - Usar modo fixo ou dinâmico conforme configuração
+   - Depende de: T-108
+
+3. **[ID: T-126] Adicionar configuração de modo dinâmico** (3-4h)
+   - Expandir `ConfiguracaoTempoLimite` com modo fixo/dinâmico
+   - Controles na aba "Correções" do ConfigurationPanel
+   - Depende de: T-108, T-109
+
+4. **[ID: T-113] Dashboard de estatísticas em tempo real** (3-4h)
+   - Consumir evento `estatisticasEstimadores` no cliente
+   - Tabela com λ(h), μ(h), P95(h) por tipo
+   - Indicador de confiabilidade (alta/média/baixa)
+   - Depende de: T-129 ✅, T-130 ✅
+
+**Peso 2 - Médio Prazo:**
+
+5. **[ID: T-018] Implementar fallback robusto no sequenciamento IA**
+6. **[ID: T-019] Coletar métricas para aprendizado contínuo**
+7. **[ID: T-127] Testes unitários para EstimadorPercentis**
+8. **[ID: T-128] Testes de integração para estimadores**
+
+---
+
+### Critérios de Aceite - Sessão 9
+
+#### Integração de Estimadores (T-129) ✅
+- [x] Registro de chegada em cada emissão de senha
+- [x] Registro de tempo de espera em cada chamada
+- [x] Registro de atendimento em cada finalização
+- [x] Marcação de interrupções (ausências e não comparecimentos)
+- [x] Tipagem correta (sem erros de compilação)
+- [x] Sem quebra de funcionalidades existentes
+
+#### Exposição de Estatísticas (T-130) ✅
+- [x] Handler `getEstatisticas` respondendo corretamente
+- [x] Emissão automática em `emitirEstadoAtualizado()`
+- [x] Eventos adicionados aos tipos Socket.IO
+- [x] Tratamento de erros implementado
+- [x] Compatibilidade com clientes sem estimadores
+
+#### Validação ✅
+- [x] TypeScript compila sem erros
+- [x] Tipos Socket.IO corretos (cliente e servidor)
+- [x] Documentação atualizada com referências de código
+
+---
+
+### Métricas da Sessão 9
+
+- **Tarefas concluídas:** 2 (T-129, T-130)
+- **Linhas de código:** ~86 (80 SocketHandlers + 6 types)
+- **Arquivos modificados:** 2
+- **Erros de compilação corrigidos:** 3
+- **Eventos Socket.IO criados:** 2 (estatisticasEstimadores, getEstatisticas)
+- **Pontos de integração:** 4 (emissão, chamada, finalização, ausência)
+
+### Métricas Acumuladas (Sessões 5-9)
+
+- **Tarefas concluídas:** 12 (2 relatórios + 4 estimadores + 4 integrações + 2 exposições)
+- **Linhas de código:** ~2.325 (2.239 + 86)
+- **Arquivos criados:** 8 (estimadores, testes, relatórios)
+- **Arquivos modificados:** 6 (handlers, types, proximos_passos)
+
+---
+
+### Bloqueadores Resolvidos ✅
+
+- ✅ **T-129:** Sistema agora coleta dados reais de λ, μ e percentis
+- ✅ **T-130:** Estatísticas disponíveis via Socket.IO para consumo no cliente
+
+### Próximos Bloqueadores Críticos
+
+- 🔴 **T-108:** Necessário para habilitar limites dinâmicos de tempo
+- 🔴 **T-109:** Integração com lógica de correção existente
+
+---

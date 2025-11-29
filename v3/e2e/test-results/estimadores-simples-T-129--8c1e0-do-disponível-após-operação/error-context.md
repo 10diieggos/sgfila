@@ -1,0 +1,376 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading " SGFILA v3.0" [level=1] [ref=e5]:
+      - generic [ref=e6]: 
+      - text: SGFILA v3.0
+    - generic [ref=e7]: Conectado
+  - generic [ref=e9]:
+    - generic [ref=e10]: 
+    - strong [ref=e11]: "Prioridades legais:"
+    - generic [ref=e12]:
+      - generic "Idosos (60 anos ou mais)" [ref=e13]:
+        - generic [ref=e14]: 
+      - generic "Gestantes" [ref=e15]:
+        - generic [ref=e16]: 
+      - generic "Lactantes (mães amamentando)" [ref=e17]:
+        - generic [ref=e18]: 
+      - generic "Pessoas com crianças de colo" [ref=e19]:
+        - generic [ref=e20]: 
+      - generic "Pessoas com deficiência física" [ref=e21]:
+        - generic [ref=e22]: 
+      - generic "Pessoas com deficiência visual" [ref=e23]:
+        - generic [ref=e24]: 
+      - generic "Pessoas com deficiência auditiva" [ref=e25]:
+        - generic [ref=e26]: 
+      - generic "Pessoas com Transtorno do Espectro Autista (TEA)" [ref=e27]:
+        - generic [ref=e28]: 
+  - generic [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - heading " Painéis de Guichê" [level=3] [ref=e34]:
+            - generic [ref=e35]: 
+            - text: Painéis de Guichê
+          - button "" [ref=e36] [cursor=pointer]:
+            - generic [ref=e37]: 
+        - generic [ref=e38]:
+          - generic [ref=e39]: 
+          - paragraph [ref=e40]: Nenhum guichê configurado para exibição.
+          - paragraph [ref=e41]: Configure os guichês na aba Configurações.
+      - generic [ref=e42]:
+        - heading " Emissão de Senhas" [level=3] [ref=e43]:
+          - generic [ref=e44]: 
+          - text: Emissão de Senhas
+        - generic [ref=e45]:
+          - textbox "Serviço do cliente" [ref=e46]
+          - generic [ref=e47]:
+            - generic [ref=e48]:
+              - checkbox "s" [ref=e49]
+              - text: s
+            - generic [ref=e50]:
+              - checkbox "Atendimento ao Cliente" [ref=e51]
+              - text: Atendimento ao Cliente
+            - generic [ref=e52]:
+              - checkbox "Consulta Médica" [ref=e53]
+              - text: Consulta Médica
+          - button " Prioritária" [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]: 
+            - text: Prioritária
+          - button " Normal" [ref=e56] [cursor=pointer]:
+            - generic [ref=e57]: 
+            - text: Normal
+          - button " Contratual" [ref=e58] [cursor=pointer]:
+            - generic [ref=e59]: 
+            - text: Contratual
+      - generic [ref=e61]:
+        - heading "Atendendo" [level=3] [ref=e62]: Atendendo
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - strong [ref=e66]: P-004
+            - generic [ref=e67]: guiche-1
+            - generic [ref=e68]: Consulta Médica
+            - generic [ref=e69]:
+              - generic [ref=e70]: 
+              - text: 0:01:14
+          - generic [ref=e72]:
+            - button "" [ref=e73] [cursor=pointer]:
+              - generic [ref=e74]: 
+            - button "" [ref=e75] [cursor=pointer]:
+              - generic [ref=e76]: 
+            - button "" [ref=e77] [cursor=pointer]:
+              - generic [ref=e78]: 
+    - generic [ref=e79]:
+      - generic [ref=e80]:
+        - heading " Painéis" [level=3] [ref=e81]:
+          - generic [ref=e82]: 
+          - text: Painéis
+        - generic [ref=e83]:
+          - button " Estatísticas" [ref=e84] [cursor=pointer]:
+            - generic [ref=e85]: 
+            - text: Estatísticas
+          - button " Histórico" [ref=e86] [cursor=pointer]:
+            - generic [ref=e87]: 
+            - text: Histórico
+          - button " Configurações" [ref=e88] [cursor=pointer]:
+            - generic [ref=e89]: 
+            - text: Configurações
+      - generic [ref=e91]:
+        - heading " Fila de Espera" [level=3] [ref=e92]:
+          - generic [ref=e93]: 
+          - text: Fila de Espera
+        - generic [ref=e95]: "IA: Indefinida"
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - button " Emissão" [ref=e98] [cursor=pointer]:
+              - generic [ref=e99]: 
+              - text: Emissão
+            - button " Automática" [ref=e100] [cursor=pointer]:
+              - generic [ref=e101]: 
+              - text: Automática
+            - button " Tipo" [ref=e102] [cursor=pointer]:
+              - generic [ref=e103]: 
+              - text: Tipo
+          - generic [ref=e104]:
+            - generic [ref=e105]: 
+            - textbox "Buscar por serviço ou descrição..." [ref=e106]
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - generic [ref=e110]: 
+              - strong [ref=e111]: P-001
+              - generic [ref=e112]: s
+            - generic [ref=e113]:
+              - generic [ref=e114]: 108:18:41
+              - generic [ref=e115]:
+                - button "" [ref=e116] [cursor=pointer]:
+                  - generic [ref=e117]: 
+                - button "" [ref=e118] [cursor=pointer]:
+                  - generic [ref=e119]: 
+                - button "" [ref=e120] [cursor=pointer]:
+                  - generic [ref=e121]: 
+                - button "" [ref=e122] [cursor=pointer]:
+                  - generic [ref=e123]: 
+          - generic [ref=e124]:
+            - generic [ref=e125]:
+              - generic [ref=e126]: 
+              - strong [ref=e127]: C-001
+              - generic [ref=e128]: s
+            - generic [ref=e129]:
+              - generic [ref=e130]: 108:18:34
+              - generic [ref=e131]:
+                - button "" [ref=e132] [cursor=pointer]:
+                  - generic [ref=e133]: 
+                - button "" [ref=e134] [cursor=pointer]:
+                  - generic [ref=e135]: 
+                - button "" [ref=e136] [cursor=pointer]:
+                  - generic [ref=e137]: 
+                - button "" [ref=e138] [cursor=pointer]:
+                  - generic [ref=e139]: 
+          - generic [ref=e140]:
+            - generic [ref=e141]:
+              - generic [ref=e142]: 
+              - strong [ref=e143]: N-001
+              - generic [ref=e144]: Atendimento ao Cliente
+            - generic [ref=e145]:
+              - generic [ref=e146]: 108:16:59
+              - generic [ref=e147]:
+                - button "" [ref=e148] [cursor=pointer]:
+                  - generic [ref=e149]: 
+                - button "" [ref=e150] [cursor=pointer]:
+                  - generic [ref=e151]: 
+                - button "" [ref=e152] [cursor=pointer]:
+                  - generic [ref=e153]: 
+                - button "" [ref=e154] [cursor=pointer]:
+                  - generic [ref=e155]: 
+          - generic [ref=e156]:
+            - generic [ref=e157]:
+              - generic [ref=e158]: 
+              - strong [ref=e159]: P-002
+              - generic [ref=e160]: Consulta Médica
+            - generic [ref=e161]:
+              - generic [ref=e162]: 108:16:59
+              - generic [ref=e163]:
+                - button "" [ref=e164] [cursor=pointer]:
+                  - generic [ref=e165]: 
+                - button "" [ref=e166] [cursor=pointer]:
+                  - generic [ref=e167]: 
+                - button "" [ref=e168] [cursor=pointer]:
+                  - generic [ref=e169]: 
+                - button "" [ref=e170] [cursor=pointer]:
+                  - generic [ref=e171]: 
+          - generic [ref=e172]:
+            - generic [ref=e173]:
+              - generic [ref=e174]: 
+              - strong [ref=e175]: C-002
+              - generic [ref=e176]: Renovação de Contrato
+            - generic [ref=e177]:
+              - generic [ref=e178]: 108:16:58
+              - generic [ref=e179]:
+                - button "" [ref=e180] [cursor=pointer]:
+                  - generic [ref=e181]: 
+                - button "" [ref=e182] [cursor=pointer]:
+                  - generic [ref=e183]: 
+                - button "" [ref=e184] [cursor=pointer]:
+                  - generic [ref=e185]: 
+                - button "" [ref=e186] [cursor=pointer]:
+                  - generic [ref=e187]: 
+          - generic [ref=e188]:
+            - generic [ref=e189]:
+              - generic [ref=e190]: 
+              - strong [ref=e191]: N-002
+              - generic [ref=e192]: s
+            - generic [ref=e193]:
+              - generic [ref=e194]: 108:16:55
+              - generic [ref=e195]:
+                - button "" [ref=e196] [cursor=pointer]:
+                  - generic [ref=e197]: 
+                - button "" [ref=e198] [cursor=pointer]:
+                  - generic [ref=e199]: 
+                - button "" [ref=e200] [cursor=pointer]:
+                  - generic [ref=e201]: 
+                - button "" [ref=e202] [cursor=pointer]:
+                  - generic [ref=e203]: 
+          - generic [ref=e204]:
+            - generic [ref=e205]:
+              - generic [ref=e206]: 
+              - strong [ref=e207]: N-003
+              - generic [ref=e208]: Atendimento ao Cliente
+            - generic [ref=e209]:
+              - generic [ref=e210]: 107:51:04
+              - generic [ref=e211]:
+                - button "" [ref=e212] [cursor=pointer]:
+                  - generic [ref=e213]: 
+                - button "" [ref=e214] [cursor=pointer]:
+                  - generic [ref=e215]: 
+                - button "" [ref=e216] [cursor=pointer]:
+                  - generic [ref=e217]: 
+                - button "" [ref=e218] [cursor=pointer]:
+                  - generic [ref=e219]: 
+          - generic [ref=e220]:
+            - generic [ref=e221]:
+              - generic [ref=e222]: 
+              - strong [ref=e223]: P-003
+              - generic [ref=e224]: Consulta Médica
+            - generic [ref=e225]:
+              - generic [ref=e226]: 107:51:04
+              - generic [ref=e227]:
+                - button "" [ref=e228] [cursor=pointer]:
+                  - generic [ref=e229]: 
+                - button "" [ref=e230] [cursor=pointer]:
+                  - generic [ref=e231]: 
+                - button "" [ref=e232] [cursor=pointer]:
+                  - generic [ref=e233]: 
+                - button "" [ref=e234] [cursor=pointer]:
+                  - generic [ref=e235]: 
+          - generic [ref=e236]:
+            - generic [ref=e237]:
+              - generic [ref=e238]: 
+              - strong [ref=e239]: C-003
+              - generic [ref=e240]: Renovação de Contrato
+            - generic [ref=e241]:
+              - generic [ref=e242]: 107:51:03
+              - generic [ref=e243]:
+                - button "" [ref=e244] [cursor=pointer]:
+                  - generic [ref=e245]: 
+                - button "" [ref=e246] [cursor=pointer]:
+                  - generic [ref=e247]: 
+                - button "" [ref=e248] [cursor=pointer]:
+                  - generic [ref=e249]: 
+                - button "" [ref=e250] [cursor=pointer]:
+                  - generic [ref=e251]: 
+          - generic [ref=e252]:
+            - generic [ref=e253]:
+              - generic [ref=e254]: 
+              - strong [ref=e255]: N-004
+              - generic [ref=e256]: s
+            - generic [ref=e257]:
+              - generic [ref=e258]: 107:51:00
+              - generic [ref=e259]:
+                - button "" [ref=e260] [cursor=pointer]:
+                  - generic [ref=e261]: 
+                - button "" [ref=e262] [cursor=pointer]:
+                  - generic [ref=e263]: 
+                - button "" [ref=e264] [cursor=pointer]:
+                  - generic [ref=e265]: 
+                - button "" [ref=e266] [cursor=pointer]:
+                  - generic [ref=e267]: 
+          - generic [ref=e268]:
+            - generic [ref=e269]:
+              - generic [ref=e270]: 
+              - strong [ref=e271]: N-005
+              - generic [ref=e272]: Atendimento ao Cliente
+            - generic [ref=e273]:
+              - generic [ref=e274]: 107:31:25
+              - generic [ref=e275]:
+                - button "" [ref=e276] [cursor=pointer]:
+                  - generic [ref=e277]: 
+                - button "" [ref=e278] [cursor=pointer]:
+                  - generic [ref=e279]: 
+                - button "" [ref=e280] [cursor=pointer]:
+                  - generic [ref=e281]: 
+                - button "" [ref=e282] [cursor=pointer]:
+                  - generic [ref=e283]: 
+          - generic [ref=e284]:
+            - generic [ref=e285]:
+              - generic [ref=e286]: 
+              - strong [ref=e287]: C-004
+              - generic [ref=e288]: Renovação de Contrato
+            - generic [ref=e289]:
+              - generic [ref=e290]: 107:31:23
+              - generic [ref=e291]:
+                - button "" [ref=e292] [cursor=pointer]:
+                  - generic [ref=e293]: 
+                - button "" [ref=e294] [cursor=pointer]:
+                  - generic [ref=e295]: 
+                - button "" [ref=e296] [cursor=pointer]:
+                  - generic [ref=e297]: 
+                - button "" [ref=e298] [cursor=pointer]:
+                  - generic [ref=e299]: 
+          - generic [ref=e300]:
+            - generic [ref=e301]:
+              - generic [ref=e302]: 
+              - strong [ref=e303]: N-006
+              - generic [ref=e304]: s
+            - generic [ref=e305]:
+              - generic [ref=e306]: 107:31:21
+              - generic [ref=e307]:
+                - button "" [ref=e308] [cursor=pointer]:
+                  - generic [ref=e309]: 
+                - button "" [ref=e310] [cursor=pointer]:
+                  - generic [ref=e311]: 
+                - button "" [ref=e312] [cursor=pointer]:
+                  - generic [ref=e313]: 
+                - button "" [ref=e314] [cursor=pointer]:
+                  - generic [ref=e315]: 
+          - generic [ref=e316]:
+            - generic [ref=e317]:
+              - generic [ref=e318]: 
+              - strong [ref=e319]: N-ATENDIMENTO GERAL-007
+              - generic [ref=e320]: Teste E2E - Chegada
+            - generic [ref=e321]:
+              - generic [ref=e322]: 0:01:25
+              - generic [ref=e323]:
+                - button "" [ref=e324] [cursor=pointer]:
+                  - generic [ref=e325]: 
+                - button "" [ref=e326] [cursor=pointer]:
+                  - generic [ref=e327]: 
+                - button "" [ref=e328] [cursor=pointer]:
+                  - generic [ref=e329]: 
+                - button "" [ref=e330] [cursor=pointer]:
+                  - generic [ref=e331]: 
+          - generic [ref=e332]:
+            - generic [ref=e333]:
+              - generic [ref=e334]: 
+              - strong [ref=e335]: N-ATENDIMENTO GERAL-008
+              - generic [ref=e336]: Teste E2E - Tempo Espera
+            - generic [ref=e337]:
+              - generic [ref=e338]: 0:01:15
+              - generic [ref=e339]:
+                - button "" [ref=e340] [cursor=pointer]:
+                  - generic [ref=e341]: 
+                - button "" [ref=e342] [cursor=pointer]:
+                  - generic [ref=e343]: 
+                - button "" [ref=e344] [cursor=pointer]:
+                  - generic [ref=e345]: 
+                - button "" [ref=e346] [cursor=pointer]:
+                  - generic [ref=e347]: 
+          - generic [ref=e348]:
+            - generic [ref=e349]:
+              - generic [ref=e350]: 
+              - strong [ref=e351]: N-ATENDIMENTO GERAL-009
+              - generic [ref=e352]: Teste E2E Simples
+            - generic [ref=e353]:
+              - generic [ref=e354]: 0:00:10
+              - generic [ref=e355]:
+                - button "" [ref=e356] [cursor=pointer]:
+                  - generic [ref=e357]: 
+                - button "" [ref=e358] [cursor=pointer]:
+                  - generic [ref=e359]: 
+                - button "" [ref=e360] [cursor=pointer]:
+                  - generic [ref=e361]: 
+                - button "" [ref=e362] [cursor=pointer]:
+                  - generic [ref=e363]: 
+```

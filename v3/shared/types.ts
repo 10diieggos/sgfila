@@ -281,6 +281,9 @@ export interface ServerToClientEvents {
   estatisticasAgregadas: (dados: { estatisticas: EstatisticasAvancadas; periodoDescricao: string }) => void;
   diasDisponiveis: (dados: { dias: string[] }) => void;
 
+  // Eventos de estimadores (T-130)
+  estatisticasEstimadores: (dados: any) => void;
+
   // Eventos de correções (v3.2)
   notificacaoAusencia: (dados: { numeroSenha: string; tentativa: number }) => void;
   notificacaoNaoComparecimento: (dados: { numeroSenha: string }) => void;
@@ -316,6 +319,9 @@ export interface ClientToServerEvents {
 
   // Eventos de correções (v3.2)
   processarAusencia: (dados: { numeroSenha: string }) => void;
+
+  // Eventos de estimadores (T-130)
+  getEstatisticas: () => void;
 
   // Eventos de consulta de estatísticas históricas
   solicitarEstatisticasPeriodo: (dados: {
