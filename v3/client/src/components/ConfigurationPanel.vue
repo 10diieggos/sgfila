@@ -1430,64 +1430,16 @@
         </div>
       </div>
 
-      <!-- Thresholds -->
-      <div class="config-section">
-        <h3>⚙️ Thresholds de Aceitação (ML Hint)</h3>
-        <p class="section-hint">
-          Critérios para aceitar sugestões de ML do cliente. Apenas senhas no top-3 JSED com score e latência válidos são consideradas.
-        </p>
-
-        <div class="config-item" style="margin-bottom: 20px;">
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              v-model="roteamentoConfig.mlHintThresholds.enabled"
-              @change="salvarRoteamento"
-            >
-            <span>Habilitar validação de ML Hint</span>
-          </label>
-          <p class="input-hint">Quando desabilitado, aceita qualquer ML Hint no top-3 JSED sem validar score/latência</p>
-        </div>
-
-        <div class="config-grid-2">
-          <div class="config-item">
-            <label>Score Mínimo:</label>
-            <input
-              type="number"
-              v-model.number="roteamentoConfig.mlHintThresholds.minScore"
-              min="0"
-              max="1"
-              step="0.05"
-              class="config-input"
-              @change="salvarRoteamento"
-            >
-            <p class="input-hint">Recomendado: ≥ 0.65 (maior confiança mínima)</p>
-          </div>
-          <div class="config-item">
-            <label>Latência Máxima (ms):</label>
-            <input
-              type="number"
-              v-model.number="roteamentoConfig.mlHintThresholds.maxLatencyMs"
-              min="50"
-              max="500"
-              step="10"
-              class="config-input"
-              @change="salvarRoteamento"
-            >
-            <p class="input-hint">Recomendado: ≤ 200ms (tempo de inferência)</p>
-          </div>
-        </div>
-
-        <div class="info-box" style="margin-top: 20px;">
-          <i class="fas fa-info-circle" />
-          <div>
-            <strong>Como funciona:</strong>
-            <p>
-              Quando habilitado, o servidor rejeita ML Hints com score baixo ou latência alta,
-              mesmo se estiverem no top-3 JSED. A rejeição é registrada na telemetria com fonte
-              <code>jsed_fallback_threshold</code>.
-            </p>
-          </div>
+      <!-- Informação sobre Thresholds (valores fixos, não editáveis) -->
+      <div class="info-box" style="margin-top: 20px;">
+        <i class="fas fa-info-circle" />
+        <div>
+          <strong>Validação de ML Hint:</strong>
+          <p>
+            O sistema utiliza thresholds fixos para validar sugestões de ML: score mínimo de 0.65 e latência máxima de 200ms.
+            Apenas senhas no top-3 JSED que atendem esses critérios são aceitas. Rejeições são registradas na telemetria
+            como <code>jsed_fallback_threshold</code>.
+          </p>
         </div>
       </div>
 
